@@ -1,0 +1,2 @@
+Dedsi.CleanArchitecture.CQRS.Template
+免费使用！

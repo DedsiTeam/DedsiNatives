@@ -1,0 +1,52 @@
+/* 侧边栏菜单在折叠和展开状态下的样式兼容与居中修复 */
+
+/* 1. Sider 侧边栏基础复写 */
+.admin-sider-collapsed {
+  width: 64px !important;
+}
+
+.admin-sider-collapsed .admin-logo-area {
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+/* 2. 折叠状态 (inlineCollapsed) 下菜单项与图标强制完美居中 */
+.admin-sider-menu .ant-menu-inline-collapsed {
+  width: 64px !important;
+}
+
+.admin-sider-menu .ant-menu-inline-collapsed > .ant-menu-item,
+.admin-sider-menu .ant-menu-inline-collapsed > .ant-menu-submenu > .ant-menu-submenu-title {
+  padding: 0 !important;
+  margin-inline: 8px !important;
+  width: 48px !important;
+  height: 48px !important;
+  line-height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+}
+
+/* 图标无外边距、字号适中、完美居中 */
+.admin-sider-menu .ant-menu-inline-collapsed .ant-menu-item-icon,
+.admin-sider-menu .ant-menu-inline-collapsed .ant-icon {
+  margin: 0 !important;
+  font-size: 18px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 隐去折叠菜单下拉子项的小箭头，保证简洁感 */
+.admin-sider-menu .ant-menu-inline-collapsed .ant-menu-submenu-arrow {
+  display: none !important;
+}
+
+/* 3. 正常展开状态下的菜单对齐增强 */
+.admin-sider-menu .ant-menu-inline > .ant-menu-item,
+.admin-sider-menu .ant-menu-inline > .ant-menu-submenu > .ant-menu-submenu-title {
+  border-radius: 8px !important;
+  margin-inline: 8px !important;
+  width: calc(100% - 16px) !important;
+}

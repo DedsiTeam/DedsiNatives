@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Cohen Wang",
+  "classifications": [
+    "Clean Architecture",
+    "WebAPI",
+    "ABP Framework",
+    "PostgreSQL",
+    "FastEndpoints"
+  ],
+  "identity": "DedsiNative.Template.CSharp.1.0",
+  "name": "DedsiNative Clean Architecture",
+  "description": "基于 ABP Framework、FastEndpoints 和 PostgreSQL 的 Clean Architecture 解决方案模板。",
+  "shortName": "dedsi-native",
+  "tags": {
+    "language": "C#",
+    "type": "solution"
+  },
+  "sourceName": "DedsiNative",
+  "preferNameDirectory": true,
+  "symbols": {
+    "HttpPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 10010,
+        "high": 65535
+      },
+      "replaces": "12256"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**",
+            "**/nupkg/**",
+            "**/.idea/**",
+            "**/.DS_Store",
+            "**/Logs/**",
+            "**/EntityFrameworkCore/Migrations/**",
+            "**/*.DotSettings.user",
+            ".template.config/**",
+            "DedsiNative.Template.csproj",
+            "README.md"
+          ]
+        }
+      ]
+    }
+  ]
+}

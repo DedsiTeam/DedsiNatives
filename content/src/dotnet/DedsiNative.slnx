@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/asipres/">
+    <Project Path="asipres/DedsiNative.AppHost/DedsiNative.AppHost.csproj" />
+    <Project Path="asipres/DedsiNative.ServiceDefaults/DedsiNative.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/DedsiNative.Core/DedsiNative.Core.csproj" />
+    <Project Path="src/DedsiNative.Host/DedsiNative.Host.csproj" />
+    <Project Path="src/DedsiNative.Infrastructure/DedsiNative.Infrastructure.csproj" />
+  </Folder>
+</Solution>

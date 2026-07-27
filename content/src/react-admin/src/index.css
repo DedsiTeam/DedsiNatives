@@ -1,0 +1,95 @@
+/* 导入 Inter 字体 (欧美现代科技风格) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* AGENTS.md 规范色彩 Token */
+  --color-primary: #315efb;
+  --color-primary-hover: #244bd6;
+  --color-primary-light: rgba(49, 94, 251, 0.08);
+
+  --color-secondary: #8b31fb;
+  --color-secondary-hover: #7023d8;
+  --color-secondary-light: rgba(139, 49, 251, 0.08);
+
+  --color-title: #111827;
+  --color-body: #374151;
+  --color-muted: #6b7280;
+
+  --color-bg: #f7f9fc;
+  --color-card: #ffffff;
+  --color-border: #e5e7eb;
+
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-error: #dc2626;
+
+  /* 8px 梯级间距 */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+
+  /* 圆角规范 */
+  --radius-card: 12px;
+  --radius-btn: 8px;
+
+  /* 品牌渐变与阴影 */
+  --gradient-brand: linear-gradient(135deg, #315efb 0%, #8b31fb 100%);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.04);
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-body);
+  line-height: 1.5;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 自定义美化滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* 优化 Table 分页器：分为左右两部分，左侧显示数据总数与页码文字，右侧显示分页按钮 */
+.ant-table-wrapper .ant-table-pagination.ant-pagination {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin: 16px 0 0 0 !important;
+}
+
+.ant-table-wrapper .ant-table-pagination .ant-pagination-total-text {
+  margin-right: auto !important;
+  color: #6b7280;
+  font-size: 13px;
+}
