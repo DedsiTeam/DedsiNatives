@@ -3,9 +3,17 @@
  * @description 封装通用请求客户端，构造函数可传入 baseURL，提供 request, get, post 泛型方法
  */
 
-import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
+import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 import { message } from 'antd';
 import { DefaultApiServiceUrl } from '../../configs';
+
+/**
+ * 后端通用错误响应中可能包含的消息字段。
+ */
+interface ErrorResponseBody {
+  /** 可向用户展示的错误消息。 */
+  message?: string;
+}
 
 /**
  * 通用 HTTP 请求客户端封装类
@@ -44,17 +52,23 @@ export class HttpClient {
         }
         return config;
       },
-      (error) => Promise.reject(error)
+      (error: unknown) => Promise.reject(error)
     );
 
     // 2. 响应拦截器 (解包数据与统一异常处理)
     this.instance.interceptors.response.use(
-      (response: AxiosResponse) => {
+      (response) => {
         return response.data;
       },
-      (error) => {
-        const status = error.response?.status;
-        const errorMessage = error.response?.data?.message || error.message || '网络请求异常';
+      (error: unknown) => {
+        const axiosError = axios.isAxiosError<ErrorResponseBody>(error)
+          ? error
+          : undefined;
+        const status = axiosError?.response?.status;
+        const errorMessage =
+          axiosError?.response?.data?.message ||
+          axiosError?.message ||
+          '网络请求异常';
 
         switch (status) {
           case 401:
@@ -80,8 +94,10 @@ export class HttpClient {
    * 通用 AxiosRequestConfig 请求方法
    * @param config 请求配置参数
    */
-  public request<T = any>(config: AxiosRequestConfig): Promise<T> {
-    return this.instance.request<any, T>(config);
+  public request<TResponse>(
+    config: AxiosRequestConfig,
+  ): Promise<TResponse> {
+    return this.instance.request<unknown, TResponse>(config);
   }
 
   /**
@@ -89,8 +105,11 @@ export class HttpClient {
    * @param url 请求相对路径
    * @param config 额外配置参数
    */
-  public get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return this.instance.get<any, T>(url, config);
+  public get<TResponse>(
+    url: string,
+    config?: AxiosRequestConfig,
+  ): Promise<TResponse> {
+    return this.instance.get<unknown, TResponse>(url, config);
   }
 
   /**
@@ -99,8 +118,12 @@ export class HttpClient {
    * @param data Body 请求体数据
    * @param config 额外配置参数
    */
-  public post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    return this.instance.post<any, T>(url, data, config);
+  public post<TResponse, TBody = unknown>(
+    url: string,
+    data?: TBody,
+    config?: AxiosRequestConfig<TBody>,
+  ): Promise<TResponse> {
+    return this.instance.post<unknown, TResponse, TBody>(url, data, config);
   }
 }
 

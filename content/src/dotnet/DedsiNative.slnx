@@ -8,4 +8,7 @@
     <Project Path="src/DedsiNative.Host/DedsiNative.Host.csproj" />
     <Project Path="src/DedsiNative.Infrastructure/DedsiNative.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DedsiNative.Core.Tests/DedsiNative.Core.Tests.csproj" />
+  </Folder>
 </Solution>

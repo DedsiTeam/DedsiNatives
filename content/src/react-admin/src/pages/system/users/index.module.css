@@ -1,0 +1,27 @@
+.userModal :global(.ant-modal-content) {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-lg);
+}
+
+.userForm {
+  margin-top: var(--space-16);
+}
+
+.formControl {
+  min-height: 42px;
+  border-radius: var(--radius-btn);
+}
+
+.formControl:focus,
+.formControl:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgb(49 94 251 / 15%);
+}
+
+@media (max-width: 768px) {
+  .userModal {
+    max-width: calc(100vw - 32px);
+    margin: var(--space-16) auto;
+  }
+}

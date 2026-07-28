@@ -37,6 +37,7 @@ import {
   type CreateUserInputDto,
   type UpdateUserInputDto,
 } from '../../../apiServices';
+import styles from './index.module.css';
 
 /**
  * 用户管理主页面组件
@@ -80,7 +81,7 @@ export const UserManagement: React.FC = () => {
   const [detailUser, setDetailUser] = useState<UserResultDto | null>(null);
 
   /** Antd Form 表单实例句柄 */
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<CreateUserInputDto>();
 
   // ---------------------------------------------------------------------------
   // API 网络请求处理函数 (Async API Handlers)
@@ -117,7 +118,12 @@ export const UserManagement: React.FC = () => {
    * 监听页码、每页条数、搜索条件自动拉取 API 数据
    */
   useEffect(() => {
-    fetchUsers();
+    // 延后到本轮提交完成后请求，避免 Effect 内同步触发级联渲染。
+    const timeoutId = window.setTimeout(() => {
+      void fetchUsers();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [fetchUsers]);
 
   /**
@@ -173,35 +179,40 @@ export const UserManagement: React.FC = () => {
   /**
    * 提交新增或修改表单 API
    */
-  const handleModalSubmit = () => {
-    form.validateFields().then(async (values) => {
+  const handleModalSubmit = async () => {
+    try {
+      const values = await form.validateFields();
       setSubmitting(true);
-      try {
-        if (editingUser) {
-          const updateDto: UpdateUserInputDto = {
-            name: values.name,
-            email: values.email,
-          };
-          await UserApiService.updateUser(editingUser.id, updateDto);
-          message.success('用户信息修改成功');
-        } else {
-          const createDto: CreateUserInputDto = {
-            name: values.name,
-            email: values.email,
-          };
-          await UserApiService.createUser(createDto);
-          message.success('新用户创建成功');
-        }
 
-        setIsModalOpen(false);
-        form.resetFields();
-        fetchUsers();
-      } catch {
-        // 请求失败拦截
-      } finally {
-        setSubmitting(false);
+      if (editingUser) {
+        const updateDto: UpdateUserInputDto = values;
+        await UserApiService.updateUser(editingUser.id, updateDto);
+        message.success('用户信息修改成功');
+      } else {
+        await UserApiService.createUser(values);
+        message.success('新用户创建成功');
       }
-    });
+
+      setIsModalOpen(false);
+      form.resetFields();
+      await fetchUsers();
+    } catch {
+      // 表单校验错误由 Form 展示，请求错误由统一请求层提示，并保留当前输入。
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  /**
+   * 关闭新增或编辑弹窗；提交期间保持弹窗稳定，防止重复操作。
+   */
+  const handleModalCancel = () => {
+    if (submitting) {
+      return;
+    }
+
+    setIsModalOpen(false);
+    form.resetFields();
   };
 
   /**
@@ -361,18 +372,24 @@ export const UserManagement: React.FC = () => {
         open={isModalOpen}
         onOk={handleModalSubmit}
         confirmLoading={submitting}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={handleModalCancel}
+        cancelButtonProps={{ disabled: submitting }}
+        keyboard={!submitting}
+        maskClosable={!submitting}
         okText="确定"
         cancelText="取消"
-        style={{ borderRadius: 12 }}
+        className={styles.userModal}
       >
-        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+        <Form form={form} layout="vertical" className={styles.userForm}>
           <Form.Item
             name="name"
             label="用户名称"
             rules={[{ required: true, message: '请输入用户名称' }]}
           >
-            <Input placeholder="例如：Alex Smith" style={{ borderRadius: 8 }} />
+            <Input
+              className={styles.formControl}
+              placeholder="例如：Alex Smith"
+            />
           </Form.Item>
 
           <Form.Item
@@ -383,7 +400,10 @@ export const UserManagement: React.FC = () => {
               { type: 'email', message: '邮箱格式不正确' },
             ]}
           >
-            <Input placeholder="alex.smith@dedsi.com" style={{ borderRadius: 8 }} />
+            <Input
+              className={styles.formControl}
+              placeholder="alex.smith@dedsi.com"
+            />
           </Form.Item>
         </Form>
       </Modal>

@@ -14,8 +14,9 @@ public record GetUserResponse(string Id, string Name, string Email);
 /// <summary>
 /// 获取用户详情端点，处理 GET /api/user/{id} 请求，根据路由中的用户 ID 查询并返回用户信息。
 /// </summary>
-/// <param name="userRepository">用户仓储，用于按 ID 查询用户实体。</param>
-public class GetUserEndpoint(IUserRepository userRepository) : EndpointWithoutRequest<GetUserResponse>
+/// <param name="userRepository">用户仓储，用于查询用户实体。</param>
+public class GetUserEndpoint(IUserRepository userRepository)
+    : EndpointWithoutRequest<GetUserResponse>
 {
     /// <summary>
     /// 配置端点路由和权限策略。
@@ -31,8 +32,7 @@ public class GetUserEndpoint(IUserRepository userRepository) : EndpointWithoutRe
     /// <param name="ct">取消令牌。</param>
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var id = Route<string>("id");
-
+        var id = Route<string>("id")!;
         var user = await userRepository.GetAsync(id, true, ct);
 
         await Send.OkAsync(new GetUserResponse(user.Id, user.Name, user.Email), ct);

@@ -23,8 +23,8 @@ public class DeleteUserEndpoint(IUserRepository userRepository) : EndpointWithou
     /// <param name="ct">取消令牌。</param>
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var id = Route<string>("id");
-        
+        var id = Route<string>("id")!;
+
         var user = await userRepository.GetAsync(id, true, ct);
         await userRepository.DeleteAsync(user, true, ct);
 

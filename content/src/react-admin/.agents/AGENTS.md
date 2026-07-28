@@ -4,8 +4,7 @@
 
 When working on UI components, layouts, or styling tasks in this repository, **all AI Agents must read and adhere to the project UI specifications**:
 
-- Primary Visual Guide: [.agents/prompts/ui.html](file:///.agents/prompts/ui.html)
-- Markdown Spec: [.agents/prompts/UI.MD](file:///.agents/prompts/UI.MD)
+- Primary UI Guide: [prompts/ui.md](prompts/ui.md)
 
 ### UI Rule Summary
 - Colors: Primary `#315efb`, Secondary `#8b31fb`, Title `#111827`, Body `#374151`, Bg `#f7f9fc`, Card `#ffffff`, Border `#e5e7eb`.

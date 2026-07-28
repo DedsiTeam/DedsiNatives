@@ -28,12 +28,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         // ── User 自有字段 ─────────────────────────────────────────
         // Name：用户名称，必填，最大长度 64
         builder.Property(x => x.Name)
-            .HasMaxLength(64)
+            .HasMaxLength(User.MaxNameLength)
             .IsRequired();
 
         // Email：用户邮箱地址，必填，最大长度 256
         builder.Property(x => x.Email)
-            .HasMaxLength(256)
+            .HasMaxLength(User.MaxEmailLength)
             .IsRequired();
 
         // ── 继承自 DedsiAggregateRoot 的审计字段 ──────────────────

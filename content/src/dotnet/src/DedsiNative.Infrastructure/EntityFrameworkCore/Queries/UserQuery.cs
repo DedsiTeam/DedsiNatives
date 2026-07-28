@@ -1,9 +1,47 @@
 using DedsiNative.Users;
+using Microsoft.EntityFrameworkCore;
 
 namespace DedsiNative.EntityFrameworkCore.Queries;
 
 /// <summary>
-/// 用户查询服务的 EF Core 实现，实现 <see cref="IUserQuery"/> 接口，基于 <see cref="IDedsiNativeDbContext"/> 执行数据查询。
+/// 用户查询服务的 EF Core 实现。
 /// </summary>
-/// <param name="dedsiNativeDbContext">DedsiNative 数据库上下文，提供对数据集的直接查询能力。</param>
-public class UserQuery(IDedsiNativeDbContext dedsiNativeDbContext) : IUserQuery;
+/// <param name="dbContext">DedsiNative 数据库上下文。</param>
+public sealed class UserQuery(IDedsiNativeDbContext dbContext) : IUserQuery
+{
+    /// <inheritdoc />
+    public async Task<UserPagedQueryResult> GetPagedAsync(
+        UserPagedQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        var name = query.Name?.Trim();
+        var email = query.Email?.Trim();
+        var users = dbContext.Users
+            .AsNoTracking()
+            .WhereIf(
+                !string.IsNullOrEmpty(name),
+                user => user.Name.Contains(name!))
+            .WhereIf(
+                !string.IsNullOrEmpty(email),
+                user => user.Email.Contains(email!));
+
+        var totalCount = await users.LongCountAsync(cancellationToken);
+
+        users = users.OrderByDescending(user => user.CreationTime);
+        if (!query.IsExport)
+        {
+            users = users
+                .Skip(query.SkipCount)
+                .Take(query.MaxResultCount);
+        }
+
+        var items = await users
+            .Select(user => new UserQueryItem(
+                user.Id,
+                user.Name,
+                user.Email))
+            .ToListAsync(cancellationToken);
+
+        return new UserPagedQueryResult(totalCount, items);
+    }
+}

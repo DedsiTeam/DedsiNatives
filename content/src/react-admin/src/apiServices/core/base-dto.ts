@@ -6,7 +6,7 @@
 /**
  * 接口统一响应包装结构
  */
-export interface ApiResult<T = any> {
+export interface ApiResult<T = unknown> {
   /** 状态码 (例如: 200 为成功) */
   code: number;
   /** 响应消息说明 */

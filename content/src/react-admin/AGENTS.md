@@ -4,13 +4,9 @@
 
 在本项目中进行任何前端界面重构、UI 组件开发、CSS 样式修改或页面布局调整时，**AI Agent 必须优先读取并严格遵守以下 UI 设计规范文件**：
 
-1. **可视化 UI 设计规范指南 (HTML 演示页面)**：
-   - 相对路径：[.agents/prompts/ui.html](file:///.agents/prompts/ui.html)
+1. **UI 设计规范指南（Markdown）**：
+   - 相对路径：[.agents/prompts/ui.md](.agents/prompts/ui.md)
    - 说明：包含项目统一的颜色 Token（主色 `#315efb` / 辅助色 `#8b31fb`）、8px 梯级间距网格、12px 卡片圆角、8px 控件圆角、按钮与表单各交互状态 (Hover / Focus / Active / Disabled) 以及微动效示例。
-
-2. **Markdown 版 UI 设计 Prompt 规范**：
-   - 相对路径：[.agents/prompts/UI.MD](file:///.agents/prompts/UI.MD)
-   - 说明：包含了核心 UI 优化的指导原则、色盘定义与设计要求条目。
 
 ---
 

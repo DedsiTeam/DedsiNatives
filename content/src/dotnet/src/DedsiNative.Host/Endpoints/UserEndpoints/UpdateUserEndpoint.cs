@@ -34,7 +34,7 @@ public class UpdateUserEndpoint(IUserRepository userRepository) : Endpoint<Updat
     /// <param name="ct">取消令牌。</param>
     public override async Task HandleAsync(UpdateUserRequest req, CancellationToken ct)
     {
-        var id = Route<string>("id");
+        var id = Route<string>("id")!;
 
         var user = await userRepository.GetAsync(id, true, ct);
 

@@ -1,7 +1,6 @@
 using Dedsi.Ddd.Application.Contracts.Dtos;
-using DedsiNative.EntityFrameworkCore;
+using DedsiNative.Users;
 using FastEndpoints;
-using Microsoft.EntityFrameworkCore;
 
 namespace DedsiNative.Endpoints.UserEndpoints;
 
@@ -38,8 +37,9 @@ public class PagedUserResponse : DedsiPagedResultDto<PagedUserRowDto>;
 /// 用户分页查询端点，处理 POST /api/user/pagedQuery 请求，支持按名称和邮箱过滤，
 /// 并根据是否为导出模式决定是否分页。
 /// </summary>
-/// <param name="dedsiNativeDbContext">数据库上下文，用于直接查询用户数据集。</param>
-public class PagedUserEndpoint(IDedsiNativeDbContext dedsiNativeDbContext): Endpoint<PagedUserRequest, PagedUserResponse>
+/// <param name="userQuery">用户只读查询服务。</param>
+public class PagedUserEndpoint(IUserQuery userQuery)
+    : Endpoint<PagedUserRequest, PagedUserResponse>
 {
     /// <summary>
     /// 配置端点路由和权限策略。
@@ -56,28 +56,23 @@ public class PagedUserEndpoint(IDedsiNativeDbContext dedsiNativeDbContext): Endp
     /// <param name="ct">取消令牌。</param>
     public override async Task HandleAsync(PagedUserRequest req, CancellationToken ct)
     {
-        var query = dedsiNativeDbContext
-            .Users
-            .AsNoTracking()
-            .WhereIf(!string.IsNullOrEmpty(req.Name), x => x.Name.Contains(req.Name))
-            .WhereIf(!string.IsNullOrEmpty(req.Email), x => x.Name.Contains(req.Email));
-        
-        var totalCount = await query.LongCountAsync(ct);
-        if (!req.IsExport)
-        {
-            query = query
-                .OrderByDescending(project => project.CreationTime)
-                .PageBy(req.GetSkipCount(), req.PageSize);
-        }
+        var query = new UserPagedQuery(
+            req.Name,
+            req.Email,
+            req.GetSkipCount(),
+            req.PageSize,
+            req.IsExport);
+        var result = await userQuery.GetPagedAsync(query, ct);
 
-        var items = await query
-            .Select(a => new PagedUserRowDto(a.Id, a.Name, a.Email))
-            .ToListAsync(ct);
-        
         await Send.OkAsync(new PagedUserResponse
         {
-            TotalCount = totalCount,
-            Items = items
+            TotalCount = result.TotalCount,
+            Items = result.Items
+                .Select(item => new PagedUserRowDto(
+                    item.Id,
+                    item.Name,
+                    item.Email))
+                .ToList()
         }, ct);
     }
 }

@@ -18,7 +18,10 @@ export class UserApiService {
    * @param params 检索与分页输入 DTO
    */
   static async getPageList(params: UserQueryInputDto): Promise<UserPageResultDto> {
-    return request.post<UserPageResultDto>('/api/user/pagedQuery', params);
+    return request.post<UserPageResultDto, UserQueryInputDto>(
+      '/api/user/pagedQuery',
+      params,
+    );
   }
 
   /**
@@ -26,7 +29,9 @@ export class UserApiService {
    * @param id 用户唯一 ID
    */
   static async getById(id: string): Promise<UserResultDto> {
-    return request.get<UserResultDto>(`/api/user/${id}`);
+    return request.get<UserResultDto>(
+      `/api/user/${encodeURIComponent(id)}`,
+    );
   }
 
   /**
@@ -35,7 +40,10 @@ export class UserApiService {
    * @returns 新创建用户的唯一标识 ID (ULID)
    */
   static async createUser(data: CreateUserInputDto): Promise<string> {
-    return request.post<string>('/api/user/create', data);
+    return request.post<string, CreateUserInputDto>(
+      '/api/user/create',
+      data,
+    );
   }
 
   /**
@@ -44,7 +52,10 @@ export class UserApiService {
    * @param data 用户更新输入 DTO
    */
   static async updateUser(id: string, data: UpdateUserInputDto): Promise<boolean> {
-    return request.post<boolean>(`/api/user/update/${id}`, data);
+    return request.post<boolean, UpdateUserInputDto>(
+      `/api/user/update/${encodeURIComponent(id)}`,
+      data,
+    );
   }
 
   /**
@@ -52,6 +63,8 @@ export class UserApiService {
    * @param id 用户唯一 ID
    */
   static async deleteUser(id: string): Promise<boolean> {
-    return request.post<boolean>(`/api/user/delete/${id}`);
+    return request.post<boolean>(
+      `/api/user/delete/${encodeURIComponent(id)}`,
+    );
   }
 }
