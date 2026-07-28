@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dedsi React Admin API"
+  short_description: "按项目约定创建 DTO、Axios 请求与模块化 API 服务"
+  default_prompt: "使用 $dedsi-build-react-admin-api 为当前前端模块创建类型安全的 API 服务。"

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dedsi FastEndpoint 开发"
+  short_description: "按项目约定创建 FastEndpoints 接口与 DTO"
+  default_prompt: "使用 $dedsi-build-fastendpoint 按当前项目规范创建一个 API 端点。"

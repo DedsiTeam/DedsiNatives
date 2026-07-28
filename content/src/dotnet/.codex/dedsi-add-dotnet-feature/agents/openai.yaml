@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dedsi 新增 .NET 功能"
+  short_description: "按项目分层与中文注释规范新增完整的 .NET 业务功能"
+  default_prompt: "使用 $dedsi-add-dotnet-feature 按当前项目规范新增一个完整业务模块。"

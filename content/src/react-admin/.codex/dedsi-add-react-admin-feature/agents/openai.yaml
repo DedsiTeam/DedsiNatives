@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dedsi React Admin 完整功能"
+  short_description: "按项目规范新增类型安全的 React Admin 业务功能"
+  default_prompt: "使用 $dedsi-add-react-admin-feature 按当前项目规范新增一个完整前端业务功能。"

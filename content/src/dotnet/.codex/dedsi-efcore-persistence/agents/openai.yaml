@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dedsi EF Core 持久化"
+  short_description: "按项目中文规范实现 EF Core 映射、仓储、查询与迁移"
+  default_prompt: "使用 $dedsi-efcore-persistence 为领域实体实现 EF Core 持久化。"

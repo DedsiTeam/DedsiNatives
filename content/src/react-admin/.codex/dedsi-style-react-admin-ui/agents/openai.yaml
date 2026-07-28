@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dedsi React Admin UI"
+  short_description: "按项目视觉规范创建或调整 React Admin 页面样式"
+  default_prompt: "使用 $dedsi-style-react-admin-ui 按当前设计规范实现一个后台管理页面。"
