@@ -2,13 +2,13 @@
 
 ## 生成迁移
 
-从包含 `DedsiNative.slnx` 的 .NET 根目录执行：
+从包含 `DedsiIdentity.slnx` 的 .NET 根目录执行：
 
 ```powershell
 dotnet ef migrations add <MigrationName> `
-  --project src/DedsiNative.Infrastructure `
-  --startup-project src/DedsiNative.Host `
-  --context DedsiNativeDbContext `
+  --project src/DedsiIdentity.Infrastructure `
+  --startup-project src/DedsiIdentity.Host `
+  --context DedsiIdentityDbContext `
   --output-dir EntityFrameworkCore/Migrations
 ```
 
@@ -18,9 +18,9 @@ dotnet ef migrations add <MigrationName> `
 
 ```powershell
 dotnet ef database update `
-  --project src/DedsiNative.Infrastructure `
-  --startup-project src/DedsiNative.Host `
-  --context DedsiNativeDbContext
+  --project src/DedsiIdentity.Infrastructure `
+  --startup-project src/DedsiIdentity.Host `
+  --context DedsiIdentityDbContext
 ```
 
 ## 检查生成结果
