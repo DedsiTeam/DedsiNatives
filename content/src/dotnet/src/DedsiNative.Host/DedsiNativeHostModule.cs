@@ -112,6 +112,8 @@ public class DedsiNativeHostModule : AbpModule
         app.UseAuthorization();
         app.UseAuditing();
         
+        app.UseUnitOfWork();
+        
         app.UseConfiguredEndpoints(endpoints =>
         {
             // FastEndpoints
