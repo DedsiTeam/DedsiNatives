@@ -1,5 +1,4 @@
 using DedsiNative;
-using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
@@ -30,35 +29,6 @@ try
                 .WriteTo.Async(c => c.OpenTelemetry());
         });
     
-    #region DedsiNative
-    builder.Services.AddOpenApi(options =>
-    {
-        options.AddDocumentTransformer((document, context, cancellationToken) =>
-        {
-            var scheme = new OpenApiSecurityScheme
-            {
-                Type = SecuritySchemeType.Http,
-                Scheme = "bearer",
-                BearerFormat = "JWT",
-                Description = "请输入 JWT Token (格式: Bearer {token})"
-            };
-
-            document.Components ??= new OpenApiComponents();
-            document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
-            document.Components.SecuritySchemes["Bearer"] = scheme;
-
-            var requirement = new OpenApiSecurityRequirement
-            {
-                [new OpenApiSecuritySchemeReference("Bearer", document)] = new List<string>()
-            };
-            document.Security ??= new List<OpenApiSecurityRequirement>();
-            document.Security.Add(requirement);
-
-            return Task.CompletedTask;
-        });
-    });
-    #endregion
-    
     await builder.AddApplicationAsync<DedsiNativeHostModule>();
     
     var app = builder.Build();
@@ -72,7 +42,8 @@ try
         app.MapOpenApi();
         app.MapScalarApiReference(options =>
         {
-            options.AddPreferredSecuritySchemes("Bearer");
+            options.AddDocuments("v1");
+            options.AddPreferredSecuritySchemes("JWTBearerAuth");
         });
     }
     #endregion

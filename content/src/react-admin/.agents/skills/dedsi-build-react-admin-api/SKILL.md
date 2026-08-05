@@ -1,6 +1,6 @@
 ---
 name: dedsi-build-react-admin-api
-description: 按 DedsiNatives React Admin 项目约定创建、修改和审查类型安全的前端 API 层，包括 Axios 请求客户端、Input/Result DTO、分页契约、业务 Service 和统一导出。用于对接 FastEndpoints、修正 API 类型、增加模块接口或排查响应包装不一致。
+description: 按 DedsiNative React Admin 项目约定创建、修改和审查类型安全的前端 API 层，包括 Axios 请求客户端、Input/Result DTO、分页契约、业务 Service 和统一导出。用于对接 FastEndpoints、修正 API 类型、增加模块接口或排查响应包装不一致。
 ---
 
 # 开发 Dedsi React Admin API

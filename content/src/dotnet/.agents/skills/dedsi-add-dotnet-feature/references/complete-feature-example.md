@@ -21,14 +21,16 @@ src/
 │       ├── IProductQuery.cs
 │       ├── Events/
 │       │   └── ProductCreatedEvent.cs
-│       └── EventHandlers/
-│           └── ProductCreatedEventHandler.cs
 ├── DedsiNative.Infrastructure/
 │   └── EntityFrameworkCore/
 │       ├── Configurations/ProductConfiguration.cs
 │       ├── Repositories/ProductRepository.cs
 │       └── Queries/ProductQuery.cs
 └── DedsiNative.Host/
+    ├── Applications/
+    │   └── Products/
+    │       └── EventHandlers/
+    │           └── ProductCreatedEventHandler.cs
     └── Endpoints/
         └── ProductEndpoints/
             ├── CreateProductEndpoint.cs
@@ -176,7 +178,7 @@ public interface IProductQuery : IDedsiQuery
     /// <returns>产品分页查询结果。</returns>
     Task<ProductPagedQueryResult> GetPagedAsync(
         ProductPagedQuery query,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 }
 ```
 
@@ -186,10 +188,11 @@ public interface IProductQuery : IDedsiQuery
 ## 领域事件
 
 ```csharp
+using DedsiNative.Products.Events;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace DedsiNative.Products.Events;
+namespace DedsiNative.Host.Applications.Products.EventHandlers;
 
 /// <summary>
 /// 产品创建完成后发布的本地领域事件。

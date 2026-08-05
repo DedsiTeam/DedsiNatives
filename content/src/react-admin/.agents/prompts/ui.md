@@ -1,144 +1,154 @@
-# Dedsi React Admin UI 设计规范
+# DedsiNative React Admin 前端 UI / UX 布局与设计规范
 
-本规范定义项目 UI 重构与新页面开发的视觉语言。目标是欧美科技产品风格：扁平、简洁、现代、专业，参考现代 SaaS、AI 工具与开发者平台。
+本文档为 DedsiNative 前端管理系统（React + TypeScript + Ant Design）的标准 UI / UX 布局规范。后续所有后台管理页面在新增或重构时，均须严格遵循此规范。
 
-适用范围仅限布局、样式、响应式和交互状态。不得借 UI 调整修改业务逻辑、接口请求、数据结构或功能流程。
+---
 
-## 设计原则
+## 1. 整体页面结构规范 (Page Layout Structure)
 
-- 建立清晰的视觉层级，使用充足留白和克制的装饰。
-- 避免拟物化、过度渐变、厚重阴影和无意义动效。
-- 内容区域最大宽度控制在 `1200px` 至 `1440px`，桌面端两侧至少保留 `32px`。
-- 所有组件必须覆盖必要的 Hover、Focus、Active、Disabled、Loading、Empty 和 Error 状态。
-- 微动效时长控制在 `150ms` 至 `250ms`，优先使用淡入、颜色变化和小幅平移。
+每个功能页面应当采用标准的两卡片垂直布局（`pageContainer`）：
 
-## 色彩 Token
-
-### 品牌色
-
-| Token | 色值 | 用途 |
-|---|---|---|
-| Primary | `#315efb` | 主按钮、选中导航、聚焦外框 |
-| Primary Hover | `#244bd6` | Primary 悬停和激活状态 |
-| Primary Light | `rgba(49, 94, 251, 0.08)` | 浅色选中背景 |
-| Secondary | `#8b31fb` | 次级高亮、品牌图形 |
-| Secondary Hover | `#7023d8` | Secondary 悬停和激活状态 |
-| Secondary Light | `rgba(139, 49, 251, 0.08)` | 辅助浅色背景 |
-
-### 文本、背景与边框
-
-| Token | 色值 | 用途 |
-|---|---|---|
-| Title | `#111827` | 标题和关键数据 |
-| Body | `#374151` | 正文 |
-| Muted | `#6b7280` | 辅助说明、占位文本 |
-| Background | `#f7f9fc` | 页面背景 |
-| Card | `#ffffff` | 卡片、表单和弹窗 |
-| Border | `#e5e7eb` | 边框与分隔线 |
-
-### 语义色
-
-| 状态 | 前景色 | 推荐浅色背景 |
-|---|---|---|
-| Success | `#16a34a` | `rgba(22, 163, 74, 0.1)` |
-| Warning | `#f59e0b` | `rgba(245, 158, 11, 0.1)` |
-| Error | `#dc2626` | `rgba(220, 38, 38, 0.1)` |
-
-## 间距、尺寸与圆角
-
-采用 8px 网格。优先使用：
-
-| 级别 | 值 | 常见用途 |
-|---|---:|---|
-| XS | `8px` | 图标与文字间距、紧凑元素 |
-| SM | `16px` | 控件间距、移动端页面留白 |
-| MD | `24px` | 卡片内部区域间距 |
-| LG | `32px` | 卡片内边距、桌面端页面留白 |
-| XL | `48px` | 大区块内部间距 |
-| 2XL | `64px` | 页面章节间距 |
-
-允许在必要时使用 `4px`、`12px`、`20px` 和 `40px` 作为辅助档位，但不要产生任意间距值。
-
-- 卡片与 Modal 圆角：`12px`
-- 按钮、输入框和下拉框圆角：`8px`
-- 标准按钮与输入框高度：`42px`
-- 标签可以使用 `12px` 胶囊圆角
-
-## 阴影
-
-阴影只用于建立轻微层级：
-
-```css
---shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03);
---shadow-md: 0 4px 12px rgba(0, 0, 0, 0.04);
---shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.08);
+```
++-----------------------------------------------------------------------+
+|  Card 1: 检索与操作卡片 (headerCard)                                   |
+|  [搜索框: 按...搜索] [查询] [重置]                     [刷新] [新增用户]  |
++-----------------------------------------------------------------------+
+|  Card 2: 数据表格卡片 (tableCard)                                      |
+|  +-----------------------------------------------------------------+  |
+|  | 用户信息 | ID (ULID) | 联系电话 | 最近更新 | 操作                 |  |
+|  +-----------------------------------------------------------------+  |
+|  | [Avatar] | C01...    | 138...   | 2026... | 详情 编辑 重置密码 删除|  |
+|  +-----------------------------------------------------------------+  |
+|  显示第 1 - 10 条，共 XX 条记录                              < 1 2 3 > |
++-----------------------------------------------------------------------+
 ```
 
-普通卡片使用 `shadow-sm`；悬停卡片可过渡到 `shadow-md`；Modal 或浮层使用 `shadow-lg`。
+### 样式约束：
+- 页面外层使用 `display: flex; flex-direction: column; gap: var(--space-20);`。
+- 卡片统一直角圆角 `var(--radius-card)` (12px)，带有浅边框 `1px solid var(--color-border)` 与微阴影 `var(--shadow-sm)`。
 
-## 组件规范
+---
 
-### 按钮
+## 2. 检索与刷新交互规范 (Search & Refresh UX)
 
-- Primary：使用 `#315efb` 背景和白色文字，Hover 使用 `#244bd6`。
-- Secondary：使用 `#8b31fb` 背景和白色文字，Hover 使用 `#7023d8`。
-- Outline：白色背景与 `#e5e7eb` 边框，Hover 时边框和文字变为 Primary。
-- Disabled：透明度建议为 `0.5`，使用不可操作光标，并阻止点击。
-- 提交期间显示 Loading，并禁止重复提交。
+### 2.1 搜索草稿机制 (Draft Input Pattern)
+* **禁止**在搜索框 `onChange` 事件中直接触发远程网络请求，避免高频输入导致 API 流量轰炸与渲染卡顿。
+* 应当维护 `draftSearchText` 独立草稿状态，仅在以下情况生效并写入 `searchText`：
+  1. 用户按下 **Enter 回车键** (`onPressEnter`)。
+  2. 用户点击 **查询** 按钮。
+* 触发查询时，自动将 `pageIndex` 重置为 `1`。
 
-### 表单
+### 2.2 重置逻辑 (Reset Pattern)
+* 点击 **重置** 按钮时，同步清空草稿框 (`draftSearchText = ''`) 与实际查询条件 (`searchText = ''`)，并将 `pageIndex` 重置为 `1`。
 
-- Label 使用 Title 色、`13px` 和 `600` 字重。
-- 输入内容使用 Title 色；占位和提示使用 Muted 色。
-- Focus 使用 Primary 边框和 `0 0 0 3px rgba(49, 94, 251, 0.15)` 外圈。
-- 校验错误必须同时提供文字反馈和 Error 视觉状态，不能只依靠颜色。
-- 同一表单的控件高度、圆角和水平对齐必须一致。
+### 2.3 刷新逻辑 (Refresh Action)
+* 按钮使用 `<Button icon={<ReloadOutlined spin={loading} />}>刷新</Button>`。
+* 保持当前页码和已有查询条件重新拉取 API，且旋转图标直观反馈 Loading 状态。
 
-### 卡片
+### 2.4 新增类主操作按钮 (Create Primary Action)
 
-- 使用 Card 背景、Border 边框、`12px` 圆角和 `32px` 内边距。
-- Hover 仅做轻微阴影或边框变化，避免明显缩放。
-- 卡片之间通常使用 `24px` 或 `32px` 间距。
+* 所有语义为“新增”“新建”或“创建”的页面主操作按钮必须使用 `<Button type="primary" className="create-primary-button">`。
+* `create-primary-button` 使用纯主色背景；无边框、圆角、阴影及 Hover、Focus、Disabled 状态统一定义在 `src/index.css`，页面不得覆盖或复制这些样式。
+* 按钮应搭配与业务语义匹配的新增图标，例如 `PlusOutlined` 或 `UserAddOutlined`，不得只用图标替代文字。
+* 禁止在页面 CSS Module 或 JSX `style={{ ... }}` 中再次定义新建按钮的背景色和阴影。
 
-### 表格
+---
 
-- 表头使用浅灰背景、Muted 文字、`12px` 字号和 `600` 字重。
-- 单元格使用 `16px 20px` 内边距和底部分隔线。
-- 行 Hover 使用非常浅的页面背景色。
-- 表格必须支持窄屏横向滚动，不能挤压到内容不可读。
-- Loading、Empty 和 Error 状态必须在表格区域内清晰呈现。
+## 3. 表格列设计与数据呈现规范 (Table & Cell Presentation)
 
-### 标签与状态
+### 3.1 身份 / 主体列 (Identity Column)
+* **Avatar 动态背景色**：根据主体名称通过算法哈希生成固定的高饱和度纯色背景，中间显示名称首字母/大写字符；不得使用品牌渐变。
+* **双行信息展示**：
+  * **第一行（主名称）**：字号 14px，字重 600（`var(--color-title)`）。
+  * **第二行（辅助信息/邮箱）**：字号 12px，次要字体颜色（`var(--color-muted)`），支持文本溢出省略。
 
-- 标签使用 `12px` 字号、`4px 12px` 内边距。
-- 状态颜色必须符合语义，不把 Error 红色用于普通装饰。
-- 文字标签应保留明确状态名称，不能仅显示彩色圆点。
+### 3.2 ID 编码列 (ULID / Guid Column)
+* 统一采用等宽字体呈现（`ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`），搭配浅灰背景小标签。
+* 悬浮带有 `Tooltip` 提示 `"点击复制 ID"`，点击后调用 `copyToClipboard` 将文本写入剪贴板并提示成功的 Message。
 
-### Modal
+### 3.3 状态标签与空值显示 (Status & Nullable Tags)
+* **状态 Tag 映射**：必须使用 AntD 语义化色彩结合图标呈现：
+  * `1` 正常/启用：`<Tag color="success" icon={<CheckCircleOutlined />}>正常</Tag>`
+  * `2` 禁用/停用：`<Tag color="error" icon={<StopOutlined />}>禁用</Tag>`
+  * `3` 锁定：`<Tag color="warning" icon={<LockOutlined />}>锁定</Tag>`
+* **空值占位**：当电话、身份证或说明字段为空时，统一输出 `<Tag bordered={false} style={{ color: 'var(--color-placeholder)' }}>未填写</Tag>` 或 `-`。
 
-- 使用 `12px` 圆角、浅色边框、`32px` 内边距和 `shadow-lg`。
-- 打开与关闭采用 `150ms` 至 `250ms` 的淡入和小幅纵向平移。
-- 主操作放在右侧，危险操作必须使用 Error 语义并要求明确确认。
-- 必须支持关闭、提交中禁用和错误反馈。
+### 3.4 操作列 (Actions Column)
+* 固定在表格最右侧（`fixed: 'right'`）。
+* 使用 `<Space size={4}>` 保持紧凑间隔。
+* 按钮使用纯文本按钮 (`type="text" size="small"`) 并搭配专属色彩：
+  * **详情**：Primary 蓝色 (`var(--color-primary)`)，搭配 `<EyeOutlined />` 与 Tooltip。
+  * **编辑**：Primary 蓝色 (`var(--color-primary)`)，搭配 `<EditOutlined />` 与 Tooltip。
+  * **重置密码/高危设置**：Warning 橙色 (`var(--color-warning-strong)`)，搭配 `<LockOutlined />`，且须包裹 `Popconfirm`。
+  * **删除**：Danger 红色 (`danger`)，搭配 `<DeleteOutlined />`，须包裹二次确认 `Popconfirm`。
 
-### Toast
+---
 
-- 固定在视口右下角，桌面端边距建议 `32px`。
-- 使用卡片背景、浅色边框、左侧语义色条和 `shadow-lg`。
-- 文案应说明结果或下一步，不能只写“失败”。
+## 4. 表单弹窗规范 (Form Modal Layout)
 
-## 响应式要求
+### 4.1 弹窗与分栏结构
+* 推荐宽度：双栏表单为 `840px` ~ `860px`。
+* 内部使用 `Row` / `Col` 进行布局划分为若干逻辑卡片区（`sectionCard`），背景色使用 `var(--color-surface-subtle)`。
+* 每个 `sectionCard` 顶部包含 `sectionTitle`，由主题 Icon、标题文字及右侧辅助计数 Tag 组成；背景使用 `var(--color-surface-subtle)`，不得直接写色值。
 
-- `768px` 以下将页面水平留白收敛为 `16px`。
-- 多列卡片和表单在窄屏改为单列。
-- 导航、表格和操作按钮不得造成页面横向溢出。
-- 触控目标保持足够尺寸；主要按钮和表单控件不小于 `40px` 高。
+```tsx
+<div className={styles.sectionCard}>
+  <div className={styles.sectionTitle}>
+    <div className={styles.sectionTitleLeft}>
+      <UserOutlined style={{ color: 'var(--color-primary)' }} />
+      <span>基本资料</span>
+    </div>
+  </div>
+  {/* Form Items... */}
+</div>
+```
 
-## 实现检查清单
+### 4.2 密码与安全字段
+* 密码输入框搭配“随机生成”按钮，一键生成 20 位包含大小写字母、数字与符号的高强度密码，并同步触发表单校验。
 
-- [ ] 使用了本规范的颜色、间距和圆角 Token。
-- [ ] 页面层级清晰，留白统一，没有任意尺寸。
-- [ ] Hover、Focus、Active、Disabled 和 Loading 状态完整。
-- [ ] Loading、Empty、Error 状态均有可见反馈。
-- [ ] 桌面端与移动端布局均可用。
-- [ ] 没有引入 `any`，也没有修改业务逻辑或 API 契约。
+### 4.3 可搜索关联列表 (Selectable Position / Role List)
+* 对岗位、角色或权限等多选分配组件，顶部放置带 `SearchOutlined` 的检索 Input 框，支持按关键字实时过滤。
+* 右上角提供 `已选 X 个` 的动态 Tag 统计。
+* 列表选项支持整行高亮与整行点击切换选定（使用 Checkbox）。
+
+---
+
+## 5. 详情弹窗规范 (Detail View Modal)
+
+### 5.1 头部 Summary Banner
+弹窗顶部使用 `var(--color-primary-light)` 纯色浅背景的主体概要 Header Card，不使用品牌渐变：
+- 左侧：大尺寸 Avatar (54px)。
+- 右侧：主体名称 (18px, Bold) + 状态 Tag + 邮箱/账号说明。
+
+### 5.2 结构化 Descriptions 表格
+* 使用 `Descriptions` 控件，配置 `bordered` 与 `size="small"`。
+* 统一 Label 样式：固宽 `width: 130px`、字重 `600`、背景色 `var(--color-surface-subtle)`。
+* 编码、IP 地址使用 `<Text code>` 呈现。
+* 底部 Footer 提供行动点按钮（如 `编辑此用户`），方便管理员直接从详情切换至编辑模式。
+
+---
+
+## 6. CSS Token 与设计主题 (Design Tokens)
+
+所有页面 CSS Module 必须统一使用根样式 `index.css` 定义的变量：
+
+`src/index.css` 的 `:root` 是项目色彩的唯一事实来源。十六进制、`rgb()`、`rgba()`、`hsl()` 等字面色值只允许出现在该 Token 定义区；CSS Module、JSX/TSX 内联样式及 Ant Design 主题配置均不得硬编码色值。需要新颜色时，先按语义在 `:root` 增加可复用变量，再在消费端引用变量。
+
+| 变量名 | 推荐用途 | 默认值 |
+| :--- | :--- | :--- |
+| `var(--color-primary)` | 品牌主色、主要按钮、选中高亮 | `#4361ee` |
+| `var(--color-primary-light)`| 悬浮轻背景、选中卡片背景 | `rgb(67 97 238 / 8%)` |
+| `var(--color-secondary)` | 辅助色、次级强调 | `#4895ef` |
+| `var(--color-title)` | 主标题、重要字段文本 | `#111827` |
+| `var(--color-muted)` | 次要文本、辅助说明、图标 | `#6b7280` |
+| `var(--color-border)` | 卡片边框、分隔线 | `#e5e7eb` |
+| `var(--radius-card)` | 卡片与 Modal 圆角 | `12px` |
+| `var(--radius-btn)` | 按钮与 Input 输入框圆角 | `8px` |
+| `var(--shadow-sm)` | 卡片默认轻阴影 | `0 1px 2px 0 rgba(0, 0, 0, 0.03)` |
+| `var(--shadow-lg)` | Modal 模态框阴影 | `0 12px 24px -4px rgba(0, 0, 0, 0.08)` |
+
+---
+
+## 7. 质量与构建要求
+
+* 任何 UI/UX 调整后，必须在 `src/react-admin` 目录下运行 `bun run build` 确保 TypeScript 类型检查及 Vite 构建无任何报错。

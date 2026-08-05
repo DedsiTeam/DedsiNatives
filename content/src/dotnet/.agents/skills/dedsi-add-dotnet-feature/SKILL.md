@@ -1,6 +1,6 @@
 ---
 name: dedsi-add-dotnet-feature
-description: 按 DedsiNatives 的 .NET 10、ABP、Clean Architecture、FastEndpoints 与 EF Core PostgreSQL 约定新增完整业务功能。用于新增聚合根、业务模块、CRUD、查询、领域事件，或需要同时修改 Core、Infrastructure、Host 三层的纵向功能开发。
+description: 按 DedsiNative 的 .NET 10、ABP、Clean Architecture、FastEndpoints 与 EF Core PostgreSQL 约定新增完整业务功能。用于新增聚合根、业务模块、CRUD、查询、领域事件，或需要同时修改 Core、Infrastructure、Host 三层的纵向功能开发。
 ---
 
 # 新增 Dedsi .NET 业务功能
@@ -14,11 +14,15 @@ description: 按 DedsiNatives 的 .NET 10、ABP、Clean Architecture、FastEndpo
 必须满足以下要求：
 
 - 保持 `Core -> Infrastructure -> Host` 的依赖方向，禁止 Core 引用 EF Core、FastEndpoints 或 Host。
+- 领域事件定义与聚合发布放在 Core；所有 `EventHandler` 放在 `DedsiNative.Host/Applications/{Feature}/EventHandlers/`，通过 Core 契约协调跨聚合副作用，禁止直接操作 `DbContext`。
 - 禁止 Endpoint 直接操作 DbContext；创建、详情、更新、删除使用领域仓储，列表、分页和导出通过 Core 查询契约及 Infrastructure 查询实现。
 - 为新增公共类、接口、方法、属性和 DTO 编写清晰的中文 XML 文档注释。
+- `<summary>` 必须使用多行格式，标签和注释正文不得写在同一行；该规则同样适用于公共字段、构造函数参数和返回值说明。
 - 为复杂分支、框架约束、事务意图和非显然实现补充中文行内注释；禁止只把代码翻译成注释。
+- 领域字段约束常量必须放在聚合同目录的 `{Aggregate}Consts` 类中，实体本身不得声明 `MaxNameLength` 等长度常量；Infrastructure 映射和测试也统一引用该常量类。
 - 将同一 Endpoint 的 Request、Response、Validator（如有）和 Endpoint 放在同一个功能目录；默认共置在同一个 `.cs` 文件。
 - 使用 `CancellationToken` 贯穿异步调用。
+- 聚合根的一对多子实体集合直接定义为 `ICollection<T>` 属性并使用 `private set` 初始化；领域方法直接对该属性执行 `Add`、`Remove`、`Clear`，禁止为同一集合额外创建 `_items` 私有字段或只读包装视图。
 - 不手工编辑 EF Core 迁移和 ModelSnapshot。
 - 修改完成后至少运行后端构建；涉及模型变化时还要生成并检查迁移。
 
@@ -29,7 +33,7 @@ description: 按 DedsiNatives 的 .NET 10、ABP、Clean Architecture、FastEndpo
 3. 在 Core 创建聚合根、领域方法和仓储接口；存在列表、分页或导出需求时再创建查询接口。通过私有设置器保护状态，通过领域方法执行校验和变更。
 4. 在 Infrastructure 创建实体映射、DbSet、仓储实现和查询实现。涉及持久化时同时遵循 `$dedsi-efcore-persistence`。
 5. 在 Host 创建 FastEndpoints 端点。涉及 API 时同时遵循 `$dedsi-build-fastendpoint`。
-6. 如有副作用，在聚合中注册本地领域事件；在 Core 定义外部能力接口，在 Infrastructure 实现该接口。
+6. 如有副作用，在 Core 聚合中注册领域事件，并在 Host 的 `Applications/{Feature}/EventHandlers/` 实现处理器；外部能力接口定义在 Core，具体实现位于 Infrastructure。
 7. 按 [功能完成清单](references/feature-checklist.md) 检查三层文件、中文注释、依赖方向和遗漏项。
 8. 运行 `dotnet build`。模型有变化时生成迁移，再次构建并检查迁移只包含预期变更。
 

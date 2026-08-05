@@ -68,7 +68,12 @@ export function ProductManagement({
           <Title level={2} className={styles.title}>产品管理</Title>
           <Text type="secondary">维护产品资料、价格和启用状态。</Text>
         </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={onCreate}>
+        <Button
+          type="primary"
+          className="create-primary-button"
+          icon={<PlusOutlined />}
+          onClick={onCreate}
+        >
           新增产品
         </Button>
       </header>
@@ -132,7 +137,7 @@ export function ProductManagement({
 .card {
   border: 1px solid var(--color-border);
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgb(24 39 75 / 6%);
+  box-shadow: var(--shadow-md);
 }
 
 .toolbar {
@@ -164,5 +169,6 @@ export function ProductManagement({
 - 组件从统一 `apiServices` 出口导入业务类型，不在页面重复声明网络 DTO。
 - 纯展示组件通过具名 props 接收数据和事件，禁止偷偷发请求或改写业务状态。
 - 样式名称表达语义，不使用 `box1`、`blueText` 等依赖视觉结果的名称。
-- 颜色优先使用项目变量；新增全局变量前确认它确实会被多个页面复用。
+- 色彩必须使用项目变量；字面色值只能在 `src/index.css` 的 `:root` 中定义，缺少语义色时先增加可复用 Token。
+- 所有新增类主操作按钮直接使用全局 `create-primary-button` 类，不在页面 CSS Module 重复定义背景样式。
 - 表格在窄屏允许横向滚动，工具栏自然换行，主要操作保持清晰可达。

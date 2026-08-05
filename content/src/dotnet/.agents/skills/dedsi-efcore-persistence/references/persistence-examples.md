@@ -15,11 +15,11 @@
 文件：`EntityFrameworkCore/Configurations/ProductConfiguration.cs`
 
 ```csharp
-using DedsiIdentity.Products;
+using DedsiNative.Products;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace DedsiIdentity.EntityFrameworkCore.Configurations;
+namespace DedsiNative.EntityFrameworkCore.Configurations;
 
 /// <summary>
 /// 产品聚合根的 EF Core 映射配置。
@@ -32,7 +32,7 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
     /// <param name="builder">产品实体类型构建器。</param>
     public void Configure(EntityTypeBuilder<Product> builder)
     {
-        builder.ToTable("Products", DedsiIdentityCoreConsts.DbSchemaName);
+        builder.ToTable("Products", DedsiNativeCoreConsts.DbSchemaName);
 
         // 产品使用 26 位 ULID 字符串作为领域主键。
         builder.HasKey(product => product.Id);
@@ -99,7 +99,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
     ArgumentNullException.ThrowIfNull(modelBuilder);
 
     modelBuilder.ApplyConfigurationsFromAssembly(
-        typeof(DedsiIdentityDbContext).Assembly);
+        typeof(DedsiNativeDbContext).Assembly);
 
     base.OnModelCreating(modelBuilder);
 }
@@ -111,18 +111,18 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 ```csharp
 using Dedsi.EntityFrameworkCore.Repositories;
-using DedsiIdentity.Products;
+using DedsiNative.Products;
 using Volo.Abp.EntityFrameworkCore;
 
-namespace DedsiIdentity.EntityFrameworkCore.Repositories;
+namespace DedsiNative.EntityFrameworkCore.Repositories;
 
 /// <summary>
 /// 产品仓储的 EF Core 实现。
 /// </summary>
 /// <param name="dbContextProvider">产品数据库上下文提供者。</param>
 public sealed class ProductRepository(
-    IDbContextProvider<DedsiIdentityDbContext> dbContextProvider)
-    : DedsiDddEfCoreRepository<DedsiIdentityDbContext, Product, string>(
+    IDbContextProvider<DedsiNativeDbContext> dbContextProvider)
+    : DedsiDddEfCoreRepository<DedsiNativeDbContext, Product, string>(
         dbContextProvider),
       IProductRepository;
 ```
@@ -135,16 +135,16 @@ Query 只承载列表、分页和导出投影；单条详情通过仓储 `GetAsy
 可选筛选条件使用 `WhereIf` 链式组合。
 
 ```csharp
-using DedsiIdentity.Products;
+using DedsiNative.Products;
 using Microsoft.EntityFrameworkCore;
 
-namespace DedsiIdentity.EntityFrameworkCore.Queries;
+namespace DedsiNative.EntityFrameworkCore.Queries;
 
 /// <summary>
 /// 产品查询服务的 EF Core 实现。
 /// </summary>
-/// <param name="dbContext">DedsiIdentity 数据库上下文。</param>
-public sealed class ProductQuery(IDedsiIdentityDbContext dbContext)
+/// <param name="dbContext">DedsiNative 数据库上下文。</param>
+public sealed class ProductQuery(IDedsiNativeDbContext dbContext)
     : IProductQuery
 {
     /// <summary>
@@ -155,7 +155,7 @@ public sealed class ProductQuery(IDedsiIdentityDbContext dbContext)
     /// <returns>产品分页查询结果。</returns>
     public async Task<ProductPagedQueryResult> GetPagedAsync(
         ProductPagedQuery query,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var products = dbContext.Products
             .AsNoTracking()

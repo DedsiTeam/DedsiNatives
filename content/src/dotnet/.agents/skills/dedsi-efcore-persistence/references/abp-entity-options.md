@@ -12,7 +12,7 @@ var aggregate = await repository.GetAsync(id, true, ct);
 
 ## 配置位置
 
-在 `DedsiIdentityInfrastructureModule.ConfigureServices` 中配置，并确保引入：
+在 `DedsiNativeInfrastructureModule.ConfigureServices` 中配置，并确保引入：
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
@@ -43,7 +43,7 @@ Configure<AbpEntityOptions>(options =>
         entityOptions.DefaultWithDetailsFunc = query => query;
     });
 
-    options.Entity<DedsiIdentity.Systems.System>(entityOptions =>
+    options.Entity<DedsiNative.Systems.System>(entityOptions =>
     {
         entityOptions.DefaultWithDetailsFunc = query => query;
     });

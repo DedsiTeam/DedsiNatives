@@ -1,6 +1,6 @@
 ---
 name: dedsi-style-react-admin-ui
-description: 按 DedsiNatives React Admin 的 Ant Design 与蓝紫色视觉规范创建、修改和审查后台页面 UI。用于实现列表、详情、表单、弹窗、仪表盘、布局、响应式样式或纯视觉优化，并严格保持既有业务逻辑和 API 流程。
+description: 按 DedsiNative React Admin 的 Ant Design 与蓝色视觉规范创建、修改和审查后台页面 UI。用于实现列表、详情、表单、弹窗、仪表盘、布局、响应式样式或纯视觉优化，并严格保持既有业务逻辑和 API 流程。
 ---
 
 # 实现 Dedsi React Admin UI
@@ -13,7 +13,10 @@ description: 按 DedsiNatives React Admin 的 Ant Design 与蓝紫色视觉规�
 - UI-only 任务不得修改 API 路径、请求参数、业务规则、权限、路由语义或数据刷新流程。
 - 使用 Ant Design 现有组件和 `ConfigProvider` 主题，避免重复实现表格、弹窗、表单、分页和提示。
 - 页面样式使用 CSS Module；全局基础样式才放入 `src/index.css`。避免大段 `style={{...}}` 和无必要的 `!important`。
-- 优先使用现有 CSS 变量：主色 `#315efb`、辅助色 `#8b31fb`、8px 间距体系、卡片/弹窗 12px 圆角、输入框/按钮 8px 圆角。
+- 优先使用现有 CSS 变量：主色 `#4361ee`、辅助色 `#4895ef`、8px 间距体系、卡片/弹窗 12px 圆角、输入框/按钮 8px 圆角。
+- `src/index.css` 的 `:root` 是色彩唯一来源；十六进制、RGB/RGBA、HSL 色值只能在该 Token 定义区出现。CSS Module、JSX/TSX 和 Ant Design 主题必须消费全局 CSS 变量；缺少语义色时先新增 Token，禁止在消费端硬编码。
+- 所有表示“新增”“新建”或“创建”的页面主操作按钮必须复用全局 `create-primary-button` 类，不得在页面 CSS Module 或 JSX 中重复定义背景样式。
+- 禁止品牌主色与辅助色渐变；主要操作使用纯主色，次级强调使用辅助色或浅色 Token。
 - 为页面组件、关键展示模型和非显然交互补充中文注释；不要给显而易见的 JSX 添加逐行注释。
 - 页面必须覆盖 loading、empty、error、disabled、hover、focus 和移动端等与功能有关的状态。
 - 保持键盘可访问性、可见焦点、正确标签和足够的文字对比度。
@@ -32,7 +35,7 @@ description: 按 DedsiNatives React Admin 的 Ant Design 与蓝紫色视觉规�
 
 - 页面内容宽度遵循当前布局，复杂内容最大宽度通常在 1200–1440px。
 - 主要操作使用主色，危险操作使用 Ant Design danger 语义，不用装饰色冒充状态色。
-- 卡片保持浅色背景、克制阴影和清晰边框；不要使用过量渐变、发光或拟物效果。
+- 卡片保持浅色背景、克制阴影和清晰边框；品牌界面不使用渐变、发光或拟物效果。
 - 标题、说明、辅助文本形成稳定层级；图标不能替代必要文字。
 - 表格筛选区、操作区和分页区应在不同数据量下保持稳定。
 

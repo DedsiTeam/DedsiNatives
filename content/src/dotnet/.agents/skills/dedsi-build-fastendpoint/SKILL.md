@@ -1,6 +1,6 @@
 ---
 name: dedsi-build-fastendpoint
-description: 按 DedsiNatives 项目约定创建、修改和审查 FastEndpoints API，包括 Request、Response、Validator、Endpoint、路由、认证、分页和查询。用于在 DedsiNative.Host 的 Endpoints 目录新增 CRUD、详情、分页、导出或匿名接口。
+description: 按 DedsiNative 项目约定创建、修改和审查 FastEndpoints API，包括 Request、Response、Validator、Endpoint、路由、认证、分页和查询。用于在 DedsiNative.Host 的 Endpoints 目录新增 CRUD、详情、分页、导出或匿名接口。
 ---
 
 # 开发 Dedsi FastEndpoint
@@ -12,6 +12,7 @@ description: 按 DedsiNatives 项目约定创建、修改和审查 FastEndpoints
 - 每个 Endpoint 使用独立 `.cs` 文件。
 - 将该 Endpoint 的 Request、Response 和 Endpoint 默认定义在同一个 `.cs` 文件；需要独立 Validator 时，也必须放在同一个功能目录。
 - 为 Request、Response、Validator、Endpoint、公共属性和重写方法编写清晰的中文 XML 文档注释。
+- `<summary>` 必须使用多行格式，禁止使用 `/// <summary>说明。</summary>` 单行写法。
 - 为授权例外、特殊状态码、复杂过滤和框架限制编写中文行内注释。
 - 禁止 Endpoint 注入 `IDedsiNativeDbContext` 或具体 DbContext。
 - 创建、详情、更新和删除端点使用领域仓储；列表、分页和导出端点使用 Core 查询契约。

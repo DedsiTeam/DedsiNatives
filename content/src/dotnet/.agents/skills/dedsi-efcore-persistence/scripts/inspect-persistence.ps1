@@ -9,14 +9,14 @@ if ([string]::IsNullOrWhiteSpace($DotnetRoot)) {
 
 $resolvedRoot = Resolve-Path -LiteralPath $DotnetRoot -ErrorAction Stop
 $sourceRoot = Join-Path $resolvedRoot "src"
-$hostEndpoints = Join-Path $sourceRoot "DedsiIdentity.Host/Endpoints"
-$infrastructureRoot = Join-Path $sourceRoot "DedsiIdentity.Infrastructure"
+$hostEndpoints = Join-Path $sourceRoot "DedsiNative.Host/Endpoints"
+$infrastructureRoot = Join-Path $sourceRoot "DedsiNative.Infrastructure"
 $issues = [System.Collections.Generic.List[string]]::new()
 
 # 检查 Host Endpoint 是否绕过查询/仓储契约直接依赖数据库上下文。
 if (Test-Path -LiteralPath $hostEndpoints) {
     $dbContextReferences = Get-ChildItem -LiteralPath $hostEndpoints -Recurse -File -Filter "*.cs" |
-        Select-String -Pattern "\bI?DedsiIdentityDbContext\b"
+        Select-String -Pattern "\bI?DedsiNativeDbContext\b"
 
     foreach ($fileGroup in ($dbContextReferences | Group-Object -Property Path)) {
         $lineNumbers = ($fileGroup.Group.LineNumber | Sort-Object -Unique) -join ", "
@@ -31,7 +31,7 @@ if (-not (Test-Path -LiteralPath $configurationRoot)) {
 }
 
 # 检查 DbContext 是否继续使用程序集扫描加载 IEntityTypeConfiguration。
-$dbContextFile = Join-Path $infrastructureRoot "EntityFrameworkCore/DedsiIdentityDbContext.cs"
+$dbContextFile = Join-Path $infrastructureRoot "EntityFrameworkCore/DedsiNativeDbContext.cs"
 if (Test-Path -LiteralPath $dbContextFile) {
     $assemblyScan = Select-String -LiteralPath $dbContextFile -Pattern "ApplyConfigurationsFromAssembly" -Quiet
     if (-not $assemblyScan) {

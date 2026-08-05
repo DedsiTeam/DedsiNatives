@@ -3,7 +3,7 @@
 ## Entity Configuration
 
 - 每个聚合创建独立的 `IEntityTypeConfiguration<T>` 实现。
-- 使用 `DedsiIdentityCoreConsts.DbSchemaName` 指定 Schema。
+- 使用 `DedsiNativeCoreConsts.DbSchemaName` 指定 Schema。
 - 显式配置主键、最大长度、必填性、索引、关系、删除行为和并发令牌。
 - ULID 字符串主键配置最大长度 26。
 - 配置继承自 Dedsi 聚合根的审计字段，保持 PostgreSQL UTC 时间要求。
@@ -12,8 +12,8 @@
 
 ## DbContext
 
-- 在 `IDedsiIdentityDbContext` 与 `DedsiIdentityDbContext` 同时增加 `DbSet<T>`。
-- 保持 `[ConnectionStringName(DedsiIdentityCoreConsts.ConnectionStringName)]`。
+- 在 `IDedsiNativeDbContext` 与 `DedsiNativeDbContext` 同时增加 `DbSet<T>`。
+- 保持 `[ConnectionStringName(DedsiNativeCoreConsts.ConnectionStringName)]`。
 - 继续通过 `ApplyConfigurationsFromAssembly` 自动加载实体配置。
 - 不在 DbContext 的 `OnModelCreating` 中堆叠单个实体的字段配置。
 
@@ -36,15 +36,15 @@ public interface IProductRepository : IDedsiCqrsRepository<Product, string>;
 /// </summary>
 /// <param name="dbContextProvider">用于获取产品数据库上下文的提供者。</param>
 public sealed class ProductRepository(
-    IDbContextProvider<DedsiIdentityDbContext> dbContextProvider)
-    : DedsiDddEfCoreRepository<DedsiIdentityDbContext, Product, string>(dbContextProvider),
+    IDbContextProvider<DedsiNativeDbContext> dbContextProvider)
+    : DedsiDddEfCoreRepository<DedsiNativeDbContext, Product, string>(dbContextProvider),
       IProductRepository;
 ```
 
 ## Query
 
 - 在 Core 暴露不依赖 EF Core 的查询接口。
-- 在 Infrastructure 注入 `IDedsiIdentityDbContext` 实现查询。
+- 在 Infrastructure 注入 `IDedsiNativeDbContext` 实现查询。
 - Query 只用于列表、分页和导出等投影查询；单条详情通过仓储 `GetAsync` 加载完整聚合。
 - 把筛选、排序、分页、统计和投影放在 Query 实现中。
 - 可选筛选条件使用 `WhereIf` 逐项链式组合，并核对条件与实体属性一一对应。

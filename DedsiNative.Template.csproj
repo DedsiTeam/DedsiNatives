@@ -4,7 +4,7 @@
     <!-- NuGet 包类型必须为 Template -->
     <PackageType>Template</PackageType>
     <PackageId>DedsiNative.Template</PackageId>
-    <PackageVersion>0.1.4</PackageVersion>
+    <PackageVersion>0.1.5</PackageVersion>
     <Title>DedsiNative Clean Architecture Template</Title>
     <Authors>Cohen Wang</Authors>
     <Description>基于 ABP Framework、FastEndpoints 和 PostgreSQL 的 Clean Architecture 解决方案模板。通过 `dotnet new dedsi-native -n YourProject` 快速创建项目。</Description>
@@ -24,7 +24,8 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 
     <!-- 抑制 lib/ 文件夹缺失的警告（模板包的正常情况） -->
-    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <!-- PowerShell 文件是模板产物，不是 NuGet 安装脚本；相关告警不适用于 dotnet new 模板包。 -->
+    <NoWarn>$(NoWarn);NU5110;NU5111;NU5128</NoWarn>
 
     <!-- 输出到 nupkg 目录，避免与其他 obj/ 混淆 -->
     <PackageOutputPath>./nupkg</PackageOutputPath>

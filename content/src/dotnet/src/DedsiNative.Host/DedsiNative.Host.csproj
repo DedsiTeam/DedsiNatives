@@ -4,6 +4,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>DedsiNative</RootNamespace>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,6 +18,8 @@
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
 
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+        <!-- 固定到已修复 GHSA-v5pm-xwqc-g5wc 的 2.x 版本，覆盖上游最低依赖 2.0.0。 -->
+        <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
           <PrivateAssets>all</PrivateAssets>
@@ -29,8 +32,9 @@
         <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
         <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
 
-        <PackageReference Include="Scalar.AspNetCore" Version="2.16.16" />
+        <PackageReference Include="Scalar.AspNetCore" Version="2.16.17" />
         <PackageReference Include="FastEndpoints" Version="8.2.0" />
+        <PackageReference Include="FastEndpoints.OpenApi" Version="8.2.0" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,9 +1,12 @@
 using System.Text;
+using System.Net;
 using Dedsi.CleanArchitecture.HttpApi;
 using FastEndpoints;
+using FastEndpoints.OpenApi;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Volo.Abp;
@@ -33,7 +36,15 @@ public class DedsiNativeHostModule : AbpModule
     {
         var configuration = context.Services.GetConfiguration();
 
-        context.Services.AddFastEndpoints();
+        context.Services
+            .AddFastEndpoints()
+            .OpenApiDocument(options =>
+            {
+                options.DocumentName = "v1";
+                options.Title = "DedsiNative API";
+                options.Version = "v1";
+                options.EnableJWTBearerAuth = true;
+            });
 
         // JWT 认证
         var jwtSection = configuration.GetSection("Jwt");
@@ -53,6 +64,24 @@ public class DedsiNativeHostModule : AbpModule
                         Encoding.UTF8.GetBytes(jwtSection["Secret"]!))
                 };
             });
+
+        // 只有显式配置的可信代理才能影响 RemoteIpAddress，避免信任伪造的 X-Forwarded-For。
+        context.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
+            options.KnownIPNetworks.Clear();
+            options.KnownProxies.Clear();
+
+            foreach (var trustedProxy in configuration
+                         .GetSection("ForwardedHeaders:KnownProxies")
+                         .Get<string[]>() ?? [])
+            {
+                if (IPAddress.TryParse(trustedProxy, out var trustedAddress))
+                {
+                    options.KnownProxies.Add(trustedAddress);
+                }
+            }
+        });
 
         // PostConfigure 在所有模块 Configure 之后执行，确保 ABP/Dedsi 设置的
         // FallbackPolicy 被清除，使端点级别的 AllowAnonymous() 能正确生效。
@@ -98,9 +127,10 @@ public class DedsiNativeHostModule : AbpModule
         var app = context.GetApplicationBuilder();
         var env = context.GetEnvironment();
 
-        // FastEndpoints 异常处理程序
-        app.UseDefaultExceptionHandler();
+        // 使用通用错误原因，避免将内部异常细节暴露给调用方。
+        app.UseDefaultExceptionHandler(useGenericReason: true);
 
+        app.UseForwardedHeaders();
         app.UseHttpsRedirection();
         app.UseCorrelationId();
         app.UseStaticFiles();
@@ -116,7 +146,6 @@ public class DedsiNativeHostModule : AbpModule
         
         app.UseConfiguredEndpoints(endpoints =>
         {
-            // FastEndpoints
             endpoints.MapFastEndpoints();
         });
     }

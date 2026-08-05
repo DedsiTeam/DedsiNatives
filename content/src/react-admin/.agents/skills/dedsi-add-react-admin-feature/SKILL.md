@@ -1,6 +1,6 @@
 ---
 name: dedsi-add-react-admin-feature
-description: 按 DedsiNatives 的 React 19、TypeScript、Vite、Ant Design、Axios 与 React Router 约定新增完整后台业务功能。用于新增 CRUD 管理模块、列表/详情页面，或需要同时创建 DTO、API Service、页面、样式、路由和菜单的纵向前端功能。
+description: 按 DedsiNative 的 React 19、TypeScript、Vite、Ant Design、Axios 与 React Router 约定新增完整后台业务功能。用于新增 CRUD 管理模块、列表/详情页面，或需要同时创建 DTO、API Service、页面、样式、路由和菜单的纵向前端功能。
 ---
 
 # 新增 Dedsi React Admin 业务功能

@@ -17,14 +17,16 @@ src/
 │       ├── {Aggregate}.cs
 │       ├── I{Aggregate}Repository.cs
 │       ├── I{Aggregate}Query.cs
-│       ├── Events/
-│       └── EventHandlers/
+│       └── Events/
 ├── DedsiNative.Infrastructure/
 │   └── EntityFrameworkCore/
 │       ├── Configurations/
 │       ├── Repositories/
 │       └── Queries/
 └── DedsiNative.Host/
+    ├── Applications/
+    │   └── {Feature}/
+    │       └── EventHandlers/
     └── Endpoints/
         └── {Feature}Endpoints/
 ```
@@ -35,6 +37,7 @@ src/
 - 使用聚合方法维护业务不变量，属性使用私有设置器。
 - 外部能力在 Core 定义接口，在 Infrastructure 实现。
 - 不引用 EF Core、FastEndpoints 或 Host。
+- 只定义领域事件，不实现 EventHandler。
 
 ### Infrastructure
 
@@ -49,6 +52,7 @@ src/
 - 创建、详情、更新和删除端点依赖仓储；详情通过 `GetAsync` 加载完整聚合。
 - 列表、分页和导出端点依赖查询契约，由 Infrastructure 完成筛选、统计和投影。
 - 不直接注入或操作 DbContext。
+- 所有事件处理器位于 `Applications/{Feature}/EventHandlers/`，通过 Core 仓储或服务契约协调跨聚合副作用。
 
 ## 中文注释
 
