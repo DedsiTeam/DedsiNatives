@@ -24,6 +24,11 @@ if (-not (Test-Path -LiteralPath $selectorPath -PathType Leaf)) {
     throw "Work item selector was not found: $selectorPath"
 }
 
+$codexResolved = Get-Command $CodexCommand -ErrorAction SilentlyContinue
+if (-not $DryRun -and $null -eq $codexResolved) {
+    throw "未找到 Codex CLI 命令：$CodexCommand。请先安装并确保其在 PATH 中。"
+}
+
 & $selectorPath -WorkItemsPath $workItemsPath -Mode Validate | Out-Null
 
 $completedThisRun = 0
@@ -60,19 +65,17 @@ while ($completedThisRun -lt $MaxItems) {
 - 已尝试次数: $($candidate.Attempt)
 
 从 content 根目录执行完整的领域、后端、前端与验证闭环。严格遵守工作项协议：
-- 不得选择或修改第二个工作项；
-- ready/failed 领取时递增 attempt，in-progress 恢复时不递增；
-- 进入后端和前端阶段时，必须按变更范围完整读取并应用对应模块 `.agents/skills`；
-- 在工作项执行日志中记录实际使用的后端和前端 Skill；
-- 最终必须写回 completed、failed 或 blocked；
-- 不得提交、推送、重置 Git 或执行未经授权的破坏性操作；
-- 达到终态后立即退出，由外层执行器决定是否启动下一项。
+先完整读取根 AGENTS.md、.agents/skills/work-item-loop/SKILL.md、其协议引用和适用的模块 Skill。
+按项目 Codex 子智能体规则执行契约检查与后端/前端委派。
+领取、阶段、日志、终态、验证和权限规则仅以上述共享文件为准，不在本启动提示中重复定义。
+达到终态后立即退出，由外层执行器决定是否启动下一项。
 "@
 
     Write-Host "[$($invocations)] 准备处理 $($candidate.Id): $($candidate.Title)"
 
     if ($DryRun) {
         Write-Host "DryRun：不会启动 Codex。"
+        Write-Host "命令预览：$CodexCommand exec --cd `"$contentRoot`" --sandbox workspace-write <prompt>"
         Write-Output $prompt
         break
     }

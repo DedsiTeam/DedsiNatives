@@ -38,6 +38,8 @@ Follow these gates in order:
    - Parse the goal, business rules, scope, exclusions, and every acceptance criterion.
    - Decide whether the backend and frontend stages apply; record any non-applicable stage and its reason.
    - Identify the module skills required by the routing rules below before changing code.
+   - Before backend or frontend coding, verify the work item's contract covers route, HTTP method, authentication, request and response fields, pagination when applicable, status codes, and error structure.
+   - Record the accepted contract in the execution log. If it is incomplete, conflicting, or requires a material business decision, mark the item `blocked` and stop before implementation.
 2. **Domain**
    - Read the work item and the matching document under `docs/domains`.
    - Resolve acceptance criteria into aggregates, invariants, value objects, domain events, repository contracts, and query contracts.
@@ -49,18 +51,22 @@ Follow these gates in order:
    - Also select `src/dotnet/.agents/skills/dedsi-build-fastendpoint/SKILL.md` whenever an HTTP endpoint, request, response, validator, route, authentication rule, or status code changes.
    - Also select `src/dotnet/.agents/skills/dedsi-efcore-persistence/SKILL.md` whenever an entity mapping, DbContext, repository, query implementation, persistence field, index, concurrency rule, or migration changes.
    - Before coding, state the selected backend skill names in the work-item execution log. Do not proceed with an applicable skill unread.
-   - Implement in `src/dotnet` in this order: Core, Infrastructure, Host/FastEndpoints, tests when present.
+   - Delegate implementation to the project `backend` subagent. Give it the accepted contract, owned paths, selected skills, expected result, and validation commands. The main agent must not implement this stage directly or replace `backend` with the generic `coding` agent.
+   - Require the subagent to implement in `src/dotnet` in this order: Core, Infrastructure, Host/FastEndpoints, tests when present.
    - Do not bypass the domain layer from an endpoint.
    - Add a migration only when persistence shape changes and the required tooling/configuration is available.
+   - If subagent delegation is unavailable, mark the item `blocked`, record the environment limitation, and stop.
 4. **Frontend**
    - Route frontend work through the module skills below. Treat every selected skill as explicitly invoked: read its `SKILL.md` completely, read every reference it requires, and follow its workflow and completion checks.
    - Select `src/react-admin/.agents/skills/dedsi-add-react-admin-feature/SKILL.md` for a complete page or business feature involving DTOs, service, page, route, or menu wiring.
    - Also select `src/react-admin/.agents/skills/dedsi-build-react-admin-api/SKILL.md` whenever API DTOs, Axios calls, response contracts, pagination, or service exports change.
    - Also select `src/react-admin/.agents/skills/dedsi-style-react-admin-ui/SKILL.md` whenever a page, component, layout, form, table, modal, responsive rule, or styling changes.
    - Before coding, state the selected frontend skill names in the work-item execution log. Do not proceed with an applicable skill unread.
-   - Implement in `src/react-admin` in this order: typed DTOs, API service, pages/components, route/menu wiring.
+   - Delegate implementation to the project `frontend` subagent. Give it the same accepted contract, owned paths, selected skills, expected result, and validation commands. The main agent must not implement this stage directly or replace `frontend` with the generic `coding` agent.
+   - Require the subagent to implement in `src/react-admin` in this order: typed DTOs, API service, pages/components, route/menu wiring.
    - Read and apply the nested React `AGENTS.md`.
    - Never introduce `any`.
+   - If subagent delegation is unavailable, mark the item `blocked`, record the environment limitation, and stop.
 5. **Verify**
    - Run the checks required by the work item and `AGENTS.md`.
    - At minimum run:
@@ -71,6 +77,7 @@ Follow these gates in order:
      ```
 
    - Run focused tests or lint when relevant.
+   - Reconcile backend and frontend against the accepted contract; if the contract changed, update the execution log before coordinating revisions.
    - Review the diff for scope drift and verify every acceptance criterion with concrete evidence.
 
 Update `work-item-stage` as each implementation stage begins. The work-item analysis uses `backlog`; domain, backend, frontend, and verification use their matching stage values.

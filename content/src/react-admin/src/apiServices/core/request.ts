@@ -3,7 +3,11 @@
  * @description 封装通用请求客户端，构造函数可传入 baseURL，提供 request, get, post 泛型方法
  */
 
-import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
+import axios, {
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+} from 'axios';
 import { message } from 'antd';
 import { DefaultApiServiceUrl } from '../../configs';
 
@@ -55,11 +59,9 @@ export class HttpClient {
       (error: unknown) => Promise.reject(error)
     );
 
-    // 2. 响应拦截器 (解包数据与统一异常处理)
+    // 2. 响应拦截器统一处理异常；成功响应由泛型请求方法按准确类型解包。
     this.instance.interceptors.response.use(
-      (response) => {
-        return response.data;
-      },
+      (response) => response,
       (error: unknown) => {
         const axiosError = axios.isAxiosError<ErrorResponseBody>(error)
           ? error
@@ -97,7 +99,9 @@ export class HttpClient {
   public request<TResponse>(
     config: AxiosRequestConfig,
   ): Promise<TResponse> {
-    return this.instance.request<unknown, TResponse>(config);
+    return this.instance
+      .request<TResponse>(config)
+      .then((response) => response.data);
   }
 
   /**
@@ -109,7 +113,9 @@ export class HttpClient {
     url: string,
     config?: AxiosRequestConfig,
   ): Promise<TResponse> {
-    return this.instance.get<unknown, TResponse>(url, config);
+    return this.instance
+      .get<TResponse>(url, config)
+      .then((response) => response.data);
   }
 
   /**
@@ -123,7 +129,9 @@ export class HttpClient {
     data?: TBody,
     config?: AxiosRequestConfig<TBody>,
   ): Promise<TResponse> {
-    return this.instance.post<unknown, TResponse, TBody>(url, data, config);
+    return this.instance
+      .post<TResponse, AxiosResponse<TResponse, TBody>, TBody>(url, data, config)
+      .then((response) => response.data);
   }
 }
 

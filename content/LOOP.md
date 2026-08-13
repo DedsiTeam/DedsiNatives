@@ -5,6 +5,7 @@
 ## 组成
 
 - `AGENTS.md`：项目架构、质量和安全边界。
+- `.codex/agents/backend.toml` 与 `.codex/agents/frontend.toml`：后端和前端专职子智能体。
 - `.agents/skills/work-item-loop/SKILL.md`：单个工作项的执行流程。
 - `docs/workItems/**/*.md`：工作项状态和验收证据。
 - `agent-loop.ps1`：重复启动短生命周期 Codex Agent。
@@ -20,24 +21,40 @@ Loop 从 `content` 启动，不会依赖 Codex 向下自动发现子目录 Skill
 
 一个阶段可以叠加多个 Skill。例如全栈用户管理功能的后端通常同时应用完整功能、FastEndpoint 和 EF Core Skill；前端通常同时应用完整功能、API 和 UI Skill。实际使用的 Skill 必须写入工作项执行日志。
 
+## 子智能体路由
+
+- Loop 主智能体负责工作项领取、契约确认、阶段推进、结果整合、最终验证和状态回写。
+- 后端编程阶段必须委派项目级 `backend` 子智能体，且只允许其修改 `src/dotnet` 范围。
+- 前端编程阶段必须委派项目级 `frontend` 子智能体，且只允许其修改 `src/react-admin` 范围。
+- `logic` 只用于复杂领域或架构的只读分析；`documentation` 只整理经过主智能体核验的事实。
+- 显式 Loop 无法执行必要的子智能体委派时，将工作项写为 `blocked`，不得由主智能体绕过强制路由直接编码。
+
 ## 准备工作项
 
 1. 复制 `docs/workItems/_template.md`。
 2. 使用唯一名称，例如 `WI-0002-订单审核.md`。
 3. 填写目标、业务规则、范围和可验证的验收标准。
-4. 完成评审后，将元数据从：
+4. 涉及 API 或跨端协作时，填写接口、后端和前端契约；不适用的字段明确说明原因。
+5. 契约未完整填写、存在冲突或包含关键业务歧义时，不得进入实现阶段。
+6. 完成评审后，将元数据从：
 
-   ```html
-   <meta name="work-item-status" content="draft">
+   ```yaml
+   work-item-status: draft
    ```
 
    改为：
 
-   ```html
-   <meta name="work-item-status" content="ready">
+   ```yaml
+   work-item-status: ready
    ```
 
 `draft`、`blocked`、`completed` 和 `cancelled` 不会被自动领取。
+
+## 开发前契约检查
+
+主智能体在委派后端或前端之前检查：接口路径、HTTP 方法、认证方式、请求/响应字段、分页、状态码、错误结构，以及两端实现约束。确认后的版本写入工作项执行日志，并同时提供给 `backend` 和 `frontend`。
+
+契约发生变化时，先回写执行日志，再协调受影响的子智能体更新；不得让任一子智能体自行猜测或改变公共契约。
 
 ## 检查队列
 
