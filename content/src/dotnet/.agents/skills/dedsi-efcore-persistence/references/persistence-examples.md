@@ -131,7 +131,7 @@ public sealed class ProductRepository(
 
 文件：`EntityFrameworkCore/Queries/ProductQuery.cs`
 
-Query 只承载列表、分页和导出投影；单条详情通过仓储 `GetAsync` 加载完整聚合。
+Query 承载列表、分页、统计、导出和 DTO 投影，不返回实体、聚合根或 `IQueryable`；查询完整领域模型或聚合明细时，通过仓储 `GetAsync(id, true, cancellationToken)` 加载完整聚合。
 可选筛选条件使用 `WhereIf` 链式组合。
 
 ```csharp
@@ -190,5 +190,7 @@ public sealed class ProductQuery(IDedsiNativeDbContext dbContext)
 - 不保留示例中的 `Product` 名称。
 - DbContext 接口和实现必须同时更新。
 - 查询条件必须逐项对应正确实体属性。
-- 详情 Endpoint 注入 `IProductRepository`，列表、分页和导出 Endpoint 注入 `IProductQuery`，均不注入 DbContext。
+- 查询完整产品领域模型或聚合明细时注入 `IProductRepository` 并调用 `GetAsync(id, true, cancellationToken)`；列表、分页、统计、导出和 DTO 投影注入 `IProductQuery`。
+- Query 实现主构造函数注入 `IDedsiNativeDbContext`，Repository 实现主构造函数注入 `IDbContextProvider<DedsiNativeDbContext> dbContextProvider`；Endpoint、应用服务和事件处理器均不直接注入或操作 DbContext。
+- 创建、修改和删除必须通过 Repository；Query 默认使用 `AsNoTracking()` 并在数据库端完成查询和 DTO 投影。
 - 模型修改完成后按 `migrations.md` 生成迁移。

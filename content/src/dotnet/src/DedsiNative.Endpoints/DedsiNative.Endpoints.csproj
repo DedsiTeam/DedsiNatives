@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>DedsiNative</RootNamespace>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FastEndpoints" Version="8.2.0" />
+        <PackageReference Include="FastEndpoints.OpenApi" Version="8.2.0" />
+        <!-- 固定到已修复 GHSA-v5pm-xwqc-g5wc 的 2.x 版本，覆盖上游最低依赖 2.0.0。 -->
+        <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\DedsiNative.Infrastructure\DedsiNative.Infrastructure.csproj" />
+    </ItemGroup>
+
+</Project>

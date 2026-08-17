@@ -16,7 +16,9 @@
 │   │   ├── src/
 │   │   │   ├── DedsiNative.Core/            # 领域层：实体、领域事件、仓储接口
 │   │   │   ├── DedsiNative.Infrastructure/  # 基础设施层：EF Core 与仓储实现
-│   │   │   └── DedsiNative.Host/            # FastEndpoints API 与宿主
+│   │   │   └── DedsiNative.Endpoints/       # FastEndpoints API 接口层
+│   │   ├── host/
+│   │   │   └── DedsiNative.Host/            # 应用启动与中间件宿主
 │   │   ├── asipres/
 │   │   │   ├── DedsiNative.AppHost/         # .NET Aspire 编排项目
 │   │   │   └── DedsiNative.ServiceDefaults/ # Aspire 服务默认配置
@@ -29,10 +31,10 @@
 
 ### 1. 数据库配置与迁移
 
-1. 检查并修改 `src/dotnet/src/DedsiNative.Host/appsettings.json` 中的 PostgreSQL 数据库连接字符串。
+1. 检查并修改 `src/dotnet/host/DedsiNative.Host/appsettings.json` 中的 PostgreSQL 数据库连接字符串。
 2. 执行 EF Core 迁移创建数据库表：
    ```bash
-   dotnet ef database update --project src/dotnet/src/DedsiNative.Infrastructure --startup-project src/dotnet/src/DedsiNative.Host
+   dotnet ef database update --project src/dotnet/src/DedsiNative.Infrastructure --startup-project src/dotnet/host/DedsiNative.Host
    ```
 
 ### 2. 启动应用
@@ -45,7 +47,7 @@ dotnet run --project src/dotnet/asipres/DedsiNative.AppHost
 
 #### 方式二：独立启动后端 API
 ```bash
-dotnet run --project src/dotnet/src/DedsiNative.Host
+dotnet run --project src/dotnet/host/DedsiNative.Host
 ```
 
 #### 方式三：启动前端项目

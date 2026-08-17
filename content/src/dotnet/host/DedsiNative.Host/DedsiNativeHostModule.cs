@@ -1,8 +1,7 @@
-using System.Text;
 using System.Net;
+using System.Text;
 using Dedsi.CleanArchitecture.HttpApi;
 using FastEndpoints;
-using FastEndpoints.OpenApi;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
@@ -17,34 +16,25 @@ using Volo.Abp.Modularity;
 namespace DedsiNative;
 
 /// <summary>
-/// DedsiNative 宿主层模块，整合核心层、基础设施层及第三方框架（FastEndpoints、PostgreSQL、Autofac 等）的总入口模块。
+/// DedsiNative 宿主层模块，组合接口层并配置认证、审计、跨域和 HTTP 中间件管道。
 /// </summary>
 [DependsOn(
-    typeof(DedsiNativeCoreModule),
-    typeof(DedsiNativeInfrastructureModule),
-    
+    typeof(DedsiNativeEndpointsModule),
+
     typeof(DedsiCleanArchitectureHttpApiModule),
     typeof(AbpAutofacModule)
 )]
 public class DedsiNativeHostModule : AbpModule
 {
     /// <summary>
-    /// 配置宿主层所需的所有服务，包括数据库、审计日志、时钟、JSON 序列化及跨域策略。
+    /// 配置宿主层所需的认证、审计日志、代理转发与跨域服务。
     /// </summary>
-    /// <param name="context">服务配置上下文，提供服务注册和配置能力。</param>
+    /// <param name="context">
+    /// 服务配置上下文，提供服务注册和配置能力。
+    /// </param>
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var configuration = context.Services.GetConfiguration();
-
-        context.Services
-            .AddFastEndpoints()
-            .OpenApiDocument(options =>
-            {
-                options.DocumentName = "v1";
-                options.Title = "DedsiNative API";
-                options.Version = "v1";
-                options.EnableJWTBearerAuth = true;
-            });
 
         // JWT 认证
         var jwtSection = configuration.GetSection("Jwt");
@@ -89,7 +79,7 @@ public class DedsiNativeHostModule : AbpModule
         {
             options.FallbackPolicy = null;
         });
-        
+
         // 日志
         Configure<AbpAuditingOptions>(options =>
         {
@@ -121,12 +111,12 @@ public class DedsiNativeHostModule : AbpModule
     /// <summary>
     /// 在应用程序初始化阶段配置 ASP.NET Core 中间件管道，包括异常处理、路由、跨域、认证及 FastEndpoints 等中间件的注册顺序。
     /// </summary>
-    /// <param name="context">应用程序初始化上下文，提供对 <see cref="IApplicationBuilder"/> 和 <see cref="IWebHostEnvironment"/> 的访问。</param>
+    /// <param name="context">
+    /// 应用程序初始化上下文，提供对 <see cref="IApplicationBuilder"/> 的访问。
+    /// </param>
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
         var app = context.GetApplicationBuilder();
-        var env = context.GetEnvironment();
-
         // 使用通用错误原因，避免将内部异常细节暴露给调用方。
         app.UseDefaultExceptionHandler(useGenericReason: true);
 
@@ -141,9 +131,9 @@ public class DedsiNativeHostModule : AbpModule
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseAuditing();
-        
+
         app.UseUnitOfWork();
-        
+
         app.UseConfiguredEndpoints(endpoints =>
         {
             endpoints.MapFastEndpoints();

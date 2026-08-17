@@ -7,8 +7,8 @@
 - [ ] 属性使用私有设置器，修改通过领域方法完成。
 - [ ] 业务输入使用 ABP `Check` 或明确的领域校验。
 - [ ] 仓储接口继承项目使用的 Dedsi CQRS 仓储基接口。
-- [ ] 存在列表、分页或导出需求时，查询接口继承 `IDedsiQuery`，且不暴露 EF Core 类型。
-- [ ] 单条详情不在查询接口重复定义，通过仓储加载完整聚合。
+- [ ] 存在列表、分页、统计、导出或 DTO 投影需求时，查询接口继承 `IDedsiQuery`，且不返回实体、聚合根、`IQueryable` 或其他 EF Core 类型。
+- [ ] 完整领域模型或聚合明细不在 Query 中重复加载，通过仓储 `GetAsync(id, true, cancellationToken)` 查询。
 - [ ] 领域事件由聚合注册，处理器不反向污染聚合。
 - [ ] 所有公共 API 具有准确的中文 XML 文档。
 
@@ -18,15 +18,19 @@
 - [ ] 配置表、Schema、主键、长度、必填性、审计字段和并发令牌。
 - [ ] DbContext 接口与实现同步增加 DbSet。
 - [ ] 仓储和查询实现放在约定目录。
+- [ ] Query 实现的主构造函数注入对应的 DbContext 接口（本项目为 `IDedsiNativeDbContext`），未注入具体 DbContext。
+- [ ] Repository 实现的主构造函数注入 `IDbContextProvider<DedsiNativeDbContext> dbContextProvider`。
+- [ ] Query 默认使用 `AsNoTracking()`，并在数据库端完成筛选、排序、分页、统计和 DTO 投影。
 - [ ] 外部服务实现放在 Infrastructure。
 - [ ] 模型变化通过 `dotnet ef migrations add` 生成迁移。
 
-## Host
+## Endpoints
 
-- [ ] Endpoint 位于 `Endpoints/{Feature}Endpoints/`。
+- [ ] Endpoint 位于 `DedsiNative.Endpoints/{Feature}Endpoints/`。
 - [ ] 每个 Endpoint 独立文件；其 Request、Response 和 Endpoint 默认写在同一文件。
 - [ ] 同一 Endpoint 的相关 DTO、Validator 和实现至少位于同一功能目录。
-- [ ] 创建、详情、更新、删除使用仓储；列表、分页、导出使用查询契约；未注入 DbContext。
+- [ ] 创建、修改、删除及完整聚合查询使用仓储；列表、分页、统计、导出和 DTO 投影使用查询契约。
+- [ ] Endpoint、应用服务和事件处理器未直接注入或操作 DbContext。
 - [ ] 路由、HTTP 方法、认证、响应和取消令牌处理完整。
 - [ ] Request、Response、Endpoint 具有中文 XML 文档。
 

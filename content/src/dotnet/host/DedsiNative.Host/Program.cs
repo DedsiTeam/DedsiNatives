@@ -28,9 +28,9 @@ try
                 .WriteTo.Async(c => c.Console())
                 .WriteTo.Async(c => c.OpenTelemetry());
         });
-    
+
     await builder.AddApplicationAsync<DedsiNativeHostModule>();
-    
+
     var app = builder.Build();
 
     app.MapDefaultEndpoints();
@@ -50,7 +50,7 @@ try
 
 
     await app.RunAsync();
-    
+
     return 0;
 }
 catch (Exception ex)

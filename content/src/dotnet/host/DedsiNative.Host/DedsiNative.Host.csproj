@@ -9,8 +9,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\asipres\DedsiNative.ServiceDefaults\DedsiNative.ServiceDefaults.csproj" />
-      <ProjectReference Include="..\DedsiNative.Core\DedsiNative.Core.csproj" />
-      <ProjectReference Include="..\DedsiNative.Infrastructure\DedsiNative.Infrastructure.csproj" />
+      <ProjectReference Include="..\..\src\DedsiNative.Endpoints\DedsiNative.Endpoints.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -34,7 +33,6 @@
 
         <PackageReference Include="Scalar.AspNetCore" Version="2.16.17" />
         <PackageReference Include="FastEndpoints" Version="8.2.0" />
-        <PackageReference Include="FastEndpoints.OpenApi" Version="8.2.0" />
     </ItemGroup>
 
     <ItemGroup>

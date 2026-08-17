@@ -3,14 +3,13 @@
 ## 目录布局
 
 ```text
-DedsiNative.Host/
-└── Endpoints/
-    └── ProductEndpoints/
-        ├── CreateProductEndpoint.cs
-        ├── GetProductEndpoint.cs
-        ├── UpdateProductEndpoint.cs
-        ├── DeleteProductEndpoint.cs
-        └── PagedProductEndpoint.cs
+DedsiNative.Endpoints/
+└── ProductEndpoints/
+    ├── CreateProductEndpoint.cs
+    ├── GetProductEndpoint.cs
+    ├── UpdateProductEndpoint.cs
+    ├── DeleteProductEndpoint.cs
+    └── PagedProductEndpoint.cs
 ```
 
 一个 Endpoint 文件默认共置它自己的 DTO：
@@ -82,10 +81,18 @@ public sealed class CreateProductEndpoint(IProductRepository productRepository)
 
 ## 查询
 
-- 单条详情通过 `I{Feature}Repository.GetAsync` 加载完整聚合。
-- 列表、分页和导出在 Core 定义 `I{Feature}Query`，在 Infrastructure 实现查询和 EF Core 投影。
+- 查询完整领域模型或聚合明细时，通过 `I{Feature}Repository.GetAsync(id, true, cancellationToken)` 加载完整聚合，不在 Query 中重复实现完整聚合加载。
+- 列表、分页、统计、导出和 DTO 投影在 Core 定义 `I{Feature}Query`，在 Infrastructure 实现查询和 EF Core 投影。
 - 分页 Query 使用 `WhereIf` 逐项组合可选筛选条件。
 - Endpoint 只负责接收查询参数、调用仓储或查询服务并发送响应。
-- 为只读查询使用 `AsNoTracking()`。
+- Query 实现必须通过主构造函数注入对应的 DbContext 接口（本项目为 `IDedsiNativeDbContext`），禁止注入具体的 `DedsiNativeDbContext`。
+- Query 默认使用 `AsNoTracking()`，在数据库端完成筛选、排序、分页、统计和 DTO 投影，且不返回实体、聚合根或 `IQueryable`。
 - 先完成过滤再统计总数；非导出模式才应用排序和分页。
 - 对每一个筛选字段检查对应实体属性，禁止复制粘贴后保留错误属性。
+
+## 写入
+
+- 创建、修改和删除必须通过 `I{Feature}Repository` 完成。
+- 修改或删除前可由 Repository 加载完整聚合，再调用领域方法改变状态。
+- Repository 实现必须通过主构造函数注入 `IDbContextProvider<DedsiNativeDbContext> dbContextProvider`。
+- Endpoint、应用服务和事件处理器不得直接注入或操作 DbContext。

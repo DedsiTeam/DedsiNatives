@@ -19,6 +19,8 @@
 
 ## Repository
 
+Repository 负责完整聚合的加载以及创建、修改和删除。修改或删除前可通过 Repository 加载完整聚合，再调用领域方法改变状态。Repository 实现必须通过主构造函数注入 `IDbContextProvider<DedsiNativeDbContext> dbContextProvider`。
+
 在 Core 定义：
 
 ```csharp
@@ -44,12 +46,18 @@ public sealed class ProductRepository(
 ## Query
 
 - 在 Core 暴露不依赖 EF Core 的查询接口。
-- 在 Infrastructure 注入 `IDedsiNativeDbContext` 实现查询。
-- Query 只用于列表、分页和导出等投影查询；单条详情通过仓储 `GetAsync` 加载完整聚合。
+- 在 Infrastructure 实现 Query，并通过主构造函数注入对应的 DbContext 接口（本项目为 `IDedsiNativeDbContext`）；禁止注入具体的 `DedsiNativeDbContext`。
+- Query 用于列表、分页、统计、导出和 DTO 投影查询；查询完整领域模型或聚合明细时通过仓储 `GetAsync(id, true, cancellationToken)` 加载完整聚合，不得在 Query 中重复实现。
 - 把筛选、排序、分页、统计和投影放在 Query 实现中。
 - 可选筛选条件使用 `WhereIf` 逐项链式组合，并核对条件与实体属性一一对应。
-- 使用 `AsNoTracking()` 执行只读查询。
-- 返回 DTO 或面向应用的查询结果，不把 IQueryable 暴露到 Host。
+- 默认使用 `AsNoTracking()` 执行只读查询，并尽量在数据库端完成筛选、排序、分页、统计和 DTO 投影。
+- 返回 DTO 或面向应用的查询结果，不返回 EF Core 实体、聚合根或 `IQueryable`。
+
+Endpoint、应用服务和事件处理器不得直接注入或操作 DbContext。它们必须按以下边界选择数据访问契约：
+
+- DTO、列表、分页、统计和导出：Query。
+- 完整领域模型或聚合明细：Repository 的 `GetAsync(id, true, cancellationToken)`。
+- 创建、修改和删除：Repository。
 
 ## 中文注释
 

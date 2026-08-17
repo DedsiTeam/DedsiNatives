@@ -13,7 +13,7 @@ public class PagedUserRequest : DedsiPagedRequestDto
     /// 按用户名称模糊筛选，为空时不过滤。
     /// </summary>
     public string? Name { get; set; }
-    
+
     /// <summary>
     /// 按邮箱地址模糊筛选，为空时不过滤。
     /// </summary>

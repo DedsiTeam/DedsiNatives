@@ -7,7 +7,7 @@
 ```powershell
 dotnet ef migrations add <MigrationName> `
   --project src/DedsiNative.Infrastructure `
-  --startup-project src/DedsiNative.Host `
+  --startup-project host/DedsiNative.Host `
   --context DedsiNativeDbContext `
   --output-dir EntityFrameworkCore/Migrations
 ```
@@ -19,7 +19,7 @@ dotnet ef migrations add <MigrationName> `
 ```powershell
 dotnet ef database update `
   --project src/DedsiNative.Infrastructure `
-  --startup-project src/DedsiNative.Host `
+  --startup-project host/DedsiNative.Host `
   --context DedsiNativeDbContext
 ```
 

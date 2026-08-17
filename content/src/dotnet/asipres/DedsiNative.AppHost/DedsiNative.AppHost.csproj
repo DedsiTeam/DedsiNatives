@@ -9,11 +9,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\DedsiNative.Host\DedsiNative.Host.csproj" />
+      <ProjectReference Include="..\..\host\DedsiNative.Host\DedsiNative.Host.csproj" />
     </ItemGroup>
     
     <ItemGroup>
         <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="$(AspireVersion)" />
+        <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="$(AspireVersion)" />
     </ItemGroup>
 
 </Project>

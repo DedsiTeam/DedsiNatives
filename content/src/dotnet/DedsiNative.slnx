@@ -3,9 +3,12 @@
     <Project Path="asipres/DedsiNative.AppHost/DedsiNative.AppHost.csproj" />
     <Project Path="asipres/DedsiNative.ServiceDefaults/DedsiNative.ServiceDefaults.csproj" />
   </Folder>
+  <Folder Name="/host/">
+    <Project Path="host/DedsiNative.Host/DedsiNative.Host.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/DedsiNative.Core/DedsiNative.Core.csproj" />
-    <Project Path="src/DedsiNative.Host/DedsiNative.Host.csproj" />
+    <Project Path="src/DedsiNative.Endpoints/DedsiNative.Endpoints.csproj" />
     <Project Path="src/DedsiNative.Infrastructure/DedsiNative.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">

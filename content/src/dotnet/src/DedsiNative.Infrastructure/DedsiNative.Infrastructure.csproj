@@ -9,6 +9,7 @@
     <ItemGroup>
         <PackageReference Include="Dedsi.CleanArchitecture.Infrastructure" Version="$(DedsiFrameworkVersion)" />
         <PackageReference Include="Volo.Abp.EntityFrameworkCore.PostgreSql" Version="$(AbpFrameworkVersion)" />
+        <PackageReference Include="Volo.Abp.EventBus.RabbitMQ" Version="$(AbpFrameworkVersion)" />
     </ItemGroup>
 
     <ItemGroup>

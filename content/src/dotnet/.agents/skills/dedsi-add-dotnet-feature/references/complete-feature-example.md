@@ -13,31 +13,33 @@
 ## 文件结构
 
 ```text
-src/
-├── DedsiNative.Core/
-│   └── Products/
-│       ├── Product.cs
-│       ├── IProductRepository.cs
-│       ├── IProductQuery.cs
-│       ├── Events/
-│       │   └── ProductCreatedEvent.cs
-├── DedsiNative.Infrastructure/
-│   └── EntityFrameworkCore/
-│       ├── Configurations/ProductConfiguration.cs
-│       ├── Repositories/ProductRepository.cs
-│       └── Queries/ProductQuery.cs
-└── DedsiNative.Host/
-    ├── Applications/
-    │   └── Products/
-    │       └── EventHandlers/
-    │           └── ProductCreatedEventHandler.cs
-    └── Endpoints/
-        └── ProductEndpoints/
-            ├── CreateProductEndpoint.cs
-            ├── GetProductEndpoint.cs
-            ├── UpdateProductEndpoint.cs
-            ├── DeleteProductEndpoint.cs
-            └── PagedProductEndpoint.cs
+├── src/
+│   ├── DedsiNative.Core/
+│   │   └── Products/
+│   │       ├── Product.cs
+│   │       ├── IProductRepository.cs
+│   │       ├── IProductQuery.cs
+│   │       └── Events/
+│   │           └── ProductCreatedEvent.cs
+│   ├── DedsiNative.Infrastructure/
+│   │   └── EntityFrameworkCore/
+│   │       ├── Configurations/ProductConfiguration.cs
+│   │       ├── Repositories/ProductRepository.cs
+│   │       └── Queries/ProductQuery.cs
+│   └── DedsiNative.Endpoints/
+│       ├── Applications/
+│       │   └── Products/
+│       │       └── EventHandlers/
+│       │           └── ProductCreatedEventHandler.cs
+│       └── ProductEndpoints/
+│           ├── CreateProductEndpoint.cs
+│           ├── GetProductEndpoint.cs
+│           ├── UpdateProductEndpoint.cs
+│           ├── DeleteProductEndpoint.cs
+│           └── PagedProductEndpoint.cs
+└── host/DedsiNative.Host/
+    ├── DedsiNativeHostModule.cs
+    └── Program.cs
 ```
 
 同时更新 `IDedsiNativeDbContext`、`DedsiNativeDbContext` 并生成 EF Core 迁移。
@@ -166,7 +168,7 @@ public sealed record ProductPagedQueryResult(
     IReadOnlyList<ProductQueryItem> Items);
 
 /// <summary>
-/// 产品查询接口，隔离 Host 与 EF Core。
+/// 产品查询接口，隔离接口层与 EF Core。
 /// </summary>
 public interface IProductQuery : IDedsiQuery
 {
@@ -182,8 +184,8 @@ public interface IProductQuery : IDedsiQuery
 }
 ```
 
-查询契约仅承载列表、分页和导出等投影查询。单条产品详情通过
-`IProductRepository.GetAsync` 加载完整聚合，不在 `IProductQuery` 中增加详情投影方法。
+查询契约承载列表、分页、统计、导出和 DTO 投影查询，不返回产品实体、聚合根或 `IQueryable`。查询完整产品领域模型或聚合明细时，通过
+`IProductRepository.GetAsync(id, true, cancellationToken)` 加载完整聚合，不在 `IProductQuery` 中增加重复的完整聚合加载方法。
 
 ## 领域事件
 
@@ -192,7 +194,7 @@ using DedsiNative.Products.Events;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace DedsiNative.Host.Applications.Products.EventHandlers;
+namespace DedsiNative.Endpoints.Applications.Products.EventHandlers;
 
 /// <summary>
 /// 产品创建完成后发布的本地领域事件。
@@ -221,7 +223,9 @@ public sealed class ProductCreatedEventHandler
 ## 输出要求
 
 - Infrastructure 代码必须遵循 `$dedsi-efcore-persistence` 的示例。
-- Host Endpoint 必须遵循 `$dedsi-build-fastendpoint` 的示例。
-- 创建、详情、更新和删除 Endpoint 使用领域仓储；列表、分页和导出 Endpoint 使用查询契约。
+- Endpoints 项目中的 Endpoint 必须遵循 `$dedsi-build-fastendpoint` 的示例。
+- 创建、修改、删除及完整聚合查询使用领域仓储；列表、分页、统计、导出和 DTO 投影使用查询契约。
+- Query 实现在 Infrastructure 中通过主构造函数注入 `IDedsiNativeDbContext`，禁止注入具体的 `DedsiNativeDbContext`；Repository 实现通过主构造函数注入 `IDbContextProvider<DedsiNativeDbContext> dbContextProvider`。
+- Query 默认使用 `AsNoTracking()`，在数据库端完成筛选、排序、分页、统计和 DTO 投影；Endpoint、应用服务和事件处理器不得直接操作 DbContext。
 - 实际功能不需要领域事件时，不创建空事件和空处理器。
 - 不生成没有业务用途的接口、DTO 或占位服务。

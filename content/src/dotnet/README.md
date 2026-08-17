@@ -18,7 +18,7 @@ dotnet new dedsi-native -n YourProjectName -o ./YourProjectName
 
 ### 配置数据库
 
-修改生成项目中的 `src/YourProjectName.Host/appsettings.json`：
+修改生成项目中的 `host/YourProjectName.Host/appsettings.json`：
 
 ```json
 {
@@ -35,13 +35,13 @@ cd YourProjectName
 
 dotnet ef migrations add InitialCreate \
   --project src/YourProjectName.Infrastructure \
-  --startup-project src/YourProjectName.Host \
+  --startup-project host/YourProjectName.Host \
   --context YourProjectNameDbContext \
   --output-dir EntityFrameworkCore/Migrations
 
 dotnet ef database update \
   --project src/YourProjectName.Infrastructure \
-  --startup-project src/YourProjectName.Host
+  --startup-project host/YourProjectName.Host
 ```
 
 ## 技术栈
@@ -61,7 +61,9 @@ YourProjectName/
 ├── src/
 │   ├── YourProjectName.Core/           # 领域层：实体、仓储接口、领域事件
 │   ├── YourProjectName.Infrastructure/ # 基础设施层：EF Core、仓储实现
-│   └── YourProjectName.Host/           # 宿主层：API 端点、模块注册
+│   └── YourProjectName.Endpoints/      # 接口层：API 端点与 OpenAPI 注册
+├── host/
+│   └── YourProjectName.Host/           # 宿主层：启动配置与中间件
 ├── asipres/
 │   ├── YourProjectName.AppHost/        # Aspire AppHost
 │   └── YourProjectName.ServiceDefaults/# Aspire 服务默认值

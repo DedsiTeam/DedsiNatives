@@ -5,17 +5,21 @@
 ## 1. 架构分层规范
 
 - **领域层 (`src/dotnet/src/DedsiNative.Core`)**
-  - 仅包含领域实体 (Entity / AggregateRoot)、值对象 (Value Object)、领域事件 (Domain Event) 与仓储接口 (Repository Interface)。
+  - 仅包含领域实体 (Entity / AggregateRoot)、值对象 (Value Object)、领域事件 (Domain Event) 与仓储/查询接口 (Repository / Query Interface)。
   - **禁止** 引入任何基础设施或宿主框架的依赖（如 EF Core、FastEndpoints 等）。
 
 - **基础设施层 (`src/dotnet/src/DedsiNative.Infrastructure`)**
   - 实现领域层定义的仓储接口、EF Core `DbContext` 映射以及外部服务（如 EmailSender、文件存储等）。
   - 所有数据库实体映射应当放在 `EntityFrameworkCore/Configurations/` 目录下。
 
-- **宿主与 API 层 (`src/dotnet/src/DedsiNative.Host`)**
+- **接口层 (`src/dotnet/src/DedsiNative.Endpoints`)**
   - 使用 FastEndpoints 编写 HTTP 接口，代替传统 ASP.NET Core 控制器 (Controller)。
-  - Endpoint 按功能模块归类到 `Endpoints/{Module}/` 目录下。
-  - 通过 ABP 模块 (`DedsiNativeHostModule`) 统一注册依赖注入与中间件。
+  - Endpoint 按功能模块归类到 `{Module}Endpoints/` 目录下。
+  - 通过 ABP 模块 (`DedsiNativeEndpointsModule`) 统一注册接口发现与 OpenAPI 文档服务。
+
+- **宿主层 (`src/dotnet/host/DedsiNative.Host`)**
+  - 负责应用启动、认证授权、跨域、审计、日志与中间件管道。
+  - 通过 ABP 模块 (`DedsiNativeHostModule`) 组合接口层及宿主能力。
 
 - **编排层 (`src/dotnet/asipres/`)**
   - 使用 .NET Aspire 进行多服务统一编排与遥测监控（OpenTelemetry / HealthCheck）。
@@ -32,12 +36,24 @@
 - **领域文档约定**：创建或完善 `docs/domains/*.md` 时，必须使用 `.agents/skills/create-domain-doc/SKILL.md`（`create-domain-doc`），并按照 `docs/domains/用户.md` 的结构生成和校验文档。不得绕过该 Skill 直接创建领域文档。
 - **数据库迁移**：模型新增或更新后，使用 `dotnet-ef` 工具生成与更新迁移：
   ```bash
-  dotnet ef migrations add <MigrationName> --project src/dotnet/src/DedsiNative.Infrastructure --startup-project src/dotnet/src/DedsiNative.Host
-  dotnet ef database update --project src/dotnet/src/DedsiNative.Infrastructure --startup-project src/dotnet/src/DedsiNative.Host
+  dotnet ef migrations add <MigrationName> --project src/dotnet/src/DedsiNative.Infrastructure --startup-project src/dotnet/host/DedsiNative.Host
+  dotnet ef database update --project src/dotnet/src/DedsiNative.Infrastructure --startup-project src/dotnet/host/DedsiNative.Host
   ```
 - **FastEndpoints 规范**：
   - Endpoint 应当是无状态的、职责单一的类，重写 `Configure()` 和 `HandleAsync()` 方法。
   - 请求与响应定义推荐使用结构化的 DTO。
+
+### 2.1 查询与持久化访问规范
+
+- **Query 职责**：列表、分页、统计、导出以及 DTO 投影查询必须通过 Query 服务完成。Query 接口定义在 `DedsiNative.Core`，实现在 `DedsiNative.Infrastructure`。
+- **Query 注入**：Query 实现类必须在主构造函数中注入对应的 DbContext 接口，例如 `ProductQuery(IDedsiNativeDbContext dbContext)`；禁止注入具体的 `DedsiNativeDbContext`。
+- **Query 行为**：只读查询默认使用 `AsNoTracking()`，筛选、排序、分页、统计和 DTO 投影应在数据库端完成。Query 不得返回 EF Core 实体、聚合根或 `IQueryable`。
+- **Repository 注入**：Repository 实现类必须在主构造函数中注入 `IDbContextProvider<DedsiNativeDbContext> dbContextProvider`。
+- **完整聚合查询**：查询完整领域模型或聚合明细时，必须调用 `Repository.GetAsync(id, true, cancellationToken)`，通过 `DefaultWithDetailsFunc` 加载完整聚合；不得在 Query 中重复实现完整聚合加载，也不得在调用方直接编写 `Include()`。
+- **写入边界**：创建、修改和删除必须通过 Repository 完成。修改或删除前可由 Repository 加载完整聚合，再调用领域方法改变状态。
+- **直接数据访问限制**：Endpoint、应用服务和事件处理器不得直接注入或操作 DbContext。
+
+判断原则：DTO、列表、分页、统计和导出使用 Query；完整领域模型或聚合明细以及创建、修改、删除使用 Repository。
 
 ## 3. 前端开发约定
 

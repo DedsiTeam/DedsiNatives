@@ -11,7 +11,7 @@
 
 ## 创建端点
 
-文件：`Endpoints/ProductEndpoints/CreateProductEndpoint.cs`
+文件：`DedsiNative.Endpoints/ProductEndpoints/CreateProductEndpoint.cs`
 
 ```csharp
 using DedsiNative.Products;
@@ -69,7 +69,7 @@ public sealed class CreateProductEndpoint(IProductRepository productRepository)
 
 ## 详情端点
 
-文件：`Endpoints/ProductEndpoints/GetProductEndpoint.cs`
+文件：`DedsiNative.Endpoints/ProductEndpoints/GetProductEndpoint.cs`
 
 ```csharp
 using DedsiNative.Products;
@@ -118,13 +118,13 @@ public sealed class GetProductEndpoint(IProductRepository productRepository)
 }
 ```
 
-详情 Endpoint 必须通过仓储 `GetAsync` 加载完整聚合；不要改用 Query 投影单条详情。
+需要查询完整产品领域模型或聚合明细时，Endpoint 必须通过仓储 `GetAsync(id, true, cancellationToken)` 加载完整聚合；不要在 Query 中重复实现完整聚合加载。
 
 ## 分页查询端点
 
-分页 Endpoint 使用 Query 契约；Infrastructure Query 使用 `WhereIf` 组合可选筛选条件。
+分页 Endpoint 使用 Query 契约；列表、分页、统计、导出和 DTO 投影同样属于 Query 职责。Infrastructure Query 通过主构造函数注入对应的 DbContext 接口，默认使用 `AsNoTracking()`，使用 `WhereIf` 组合可选筛选条件，并在数据库端完成筛选、排序、分页、统计和 DTO 投影。Query 不得注入具体 DbContext，也不得返回实体、聚合根或 `IQueryable`。
 
-文件：`Endpoints/ProductEndpoints/PagedProductEndpoint.cs`
+文件：`DedsiNative.Endpoints/ProductEndpoints/PagedProductEndpoint.cs`
 
 ```csharp
 using Dedsi.Ddd.Application.Contracts.Dtos;
@@ -162,7 +162,7 @@ public sealed class PagedProductResponse
     : DedsiPagedResultDto<PagedProductRowResponse>;
 
 /// <summary>
-/// 产品分页查询端点，通过查询契约隔离 Host 与 EF Core。
+/// 产品分页查询端点，通过查询契约隔离接口层与 EF Core。
 /// </summary>
 /// <param name="productQuery">产品查询服务。</param>
 public sealed class PagedProductEndpoint(IProductQuery productQuery)
