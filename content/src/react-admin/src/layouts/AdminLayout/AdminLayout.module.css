@@ -33,14 +33,14 @@
   height: 34px;
   min-width: 34px;
   border-radius: var(--radius-btn);
-  background: var(--gradient-brand);
-  color: #ffffff;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   font-weight: 700;
   font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(49, 94, 251, 0.25);
+  box-shadow: var(--shadow-primary-sm);
 }
 
 .logoTitle {

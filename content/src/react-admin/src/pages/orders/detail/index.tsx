@@ -105,6 +105,12 @@ const mockOrderDetail: OrderDetailResultDto = {
   adminRemark: '已安排优先仓储拣货，预计今天 17:00 前安排顺丰揽收。',
 };
 
+const primaryTagStyle = {
+  color: 'var(--color-primary)',
+  background: 'var(--color-primary-light)',
+  borderColor: 'var(--color-border)',
+};
+
 export function OrderDetail() {
   const [order, setOrder] = useState<OrderDetailResultDto>(mockOrderDetail);
   const [loading, setLoading] = useState<boolean>(false);
@@ -151,7 +157,7 @@ export function OrderDetail() {
         <span>
           <strong>{text}</strong>
           <br />
-          <span style={{ fontSize: 12, color: '#6b7280' }}>
+          <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>
             {record.spec} (SKU: {record.skuCode})
           </span>
         </span>
@@ -169,7 +175,7 @@ export function OrderDetail() {
       dataIndex: 'quantity',
       key: 'quantity',
       align: 'center',
-      render: (qty: number) => <Tag color="blue">x {qty}</Tag>,
+      render: (qty: number) => <Tag style={primaryTagStyle}>x {qty}</Tag>,
     },
     {
       title: '小计',
@@ -195,7 +201,7 @@ export function OrderDetail() {
       title: '操作人',
       dataIndex: 'operator',
       key: 'operator',
-      render: (text: string) => <Tag color="geekblue">{text}</Tag>,
+      render: (text: string) => <Tag style={primaryTagStyle}>{text}</Tag>,
     },
     {
       title: '处理时间',
@@ -214,10 +220,10 @@ export function OrderDetail() {
               返回
             </Button>
             <div>
-              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: '#111827' }}>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: 'var(--color-title)' }}>
                 订单编号：{order.orderId}
               </h2>
-              <span style={{ fontSize: 13, color: '#6b7280' }}>
+              <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>
                 下单时间：{order.createdAt}
               </span>
             </div>
@@ -237,7 +243,7 @@ export function OrderDetail() {
               type="primary"
               icon={<CarOutlined />}
               onClick={() => setIsShipModalOpen(true)}
-              style={{ borderRadius: 8, backgroundColor: '#315efb' }}
+              style={{ borderRadius: 8 }}
             >
               立即发货
             </Button>
@@ -251,13 +257,13 @@ export function OrderDetail() {
             <Statistic title="商品总额" value={order.totalAmount} precision={2} prefix="¥" />
           </Col>
           <Col xs={12} sm={6}>
-            <Statistic title="优惠抵扣" value={order.discountAmount} precision={2} prefix="- ¥" valueStyle={{ color: '#dc2626' }} />
+            <Statistic title="优惠抵扣" value={order.discountAmount} precision={2} prefix="- ¥" valueStyle={{ color: 'var(--color-error)' }} />
           </Col>
           <Col xs={12} sm={6}>
-            <Statistic title="配送运费" value="包邮 (¥0.00)" valueStyle={{ color: '#16a34a', fontSize: 16 }} />
+            <Statistic title="配送运费" value="包邮 (¥0.00)" valueStyle={{ color: 'var(--color-success)', fontSize: 16 }} />
           </Col>
           <Col xs={12} sm={6}>
-            <Statistic title="实付总额" value={order.actualAmount} precision={2} prefix="¥" valueStyle={{ color: '#315efb', fontWeight: 700 }} />
+            <Statistic title="实付总额" value={order.actualAmount} precision={2} prefix="¥" valueStyle={{ color: 'var(--color-primary)', fontWeight: 700 }} />
           </Col>
         </Row>
       </Card>
@@ -273,7 +279,7 @@ export function OrderDetail() {
               <Descriptions.Item label="联系电话">{order.receiverPhone}</Descriptions.Item>
               <Descriptions.Item label="快递公司">{order.logisticsCompany}</Descriptions.Item>
               <Descriptions.Item label="快递单号">
-                <Tag color="blue">{order.trackingNumber}</Tag>
+                <Tag style={primaryTagStyle}>{order.trackingNumber}</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="收货地址" span={2}>
                 {order.receiverAddress}
@@ -283,9 +289,9 @@ export function OrderDetail() {
             <div style={{ fontWeight: 600, marginBottom: 12, marginTop: 12 }}>物流轨迹节点：</div>
             <Timeline
               items={[
-                { color: 'green', children: '顺丰速运已揽收，准备分拨发货 (2026-07-27 11:30)' },
-                { color: 'blue', children: '买家支付成功，订单已进入仓储拣货流程 (2026-07-27 10:17)' },
-                { color: 'gray', children: '买家提交订单成功 (2026-07-27 10:15)' },
+                { color: 'var(--color-success)', children: '顺丰速运已揽收，准备分拨发货 (2026-07-27 11:30)' },
+                { color: 'var(--color-info)', children: '买家支付成功，订单已进入仓储拣货流程 (2026-07-27 10:17)' },
+                { color: 'var(--color-muted)', children: '买家提交订单成功 (2026-07-27 10:15)' },
               ]}
             />
           </Card>
@@ -308,14 +314,14 @@ export function OrderDetail() {
               <Avatar size={48} src={order.buyerAvatar} icon={<UserOutlined />} />
               <div>
                 <div style={{ fontWeight: 700, fontSize: 16 }}>{order.buyerName}</div>
-                <Tag color="purple">{order.memberLevel}</Tag>
+                <Tag style={primaryTagStyle}>{order.memberLevel}</Tag>
               </div>
             </div>
             <Descriptions column={1} size="small" bordered>
               <Descriptions.Item label="客户账号">{order.buyerAccount}</Descriptions.Item>
               <Descriptions.Item label="电子邮箱">{order.buyerEmail}</Descriptions.Item>
               <Descriptions.Item label="信用评级">
-                <Tag color="green"><SafetyCertificateOutlined /> A+ 极佳</Tag>
+                <Tag color="success"><SafetyCertificateOutlined /> A+ 极佳</Tag>
               </Descriptions.Item>
             </Descriptions>
           </Card>
@@ -330,8 +336,8 @@ export function OrderDetail() {
 
           <Card title="客服沟通与处理备注" style={{ borderRadius: 12 }}>
             <div style={{ marginBottom: 12 }}>
-              <span style={{ color: '#6b7280', fontSize: 13 }}>买家留言：</span>
-              <div style={{ padding: 8, background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: 6, fontSize: 13, marginTop: 4 }}>
+              <span style={{ color: 'var(--color-muted)', fontSize: 13 }}>买家留言：</span>
+              <div style={{ padding: 8, background: 'var(--color-warning-light)', border: '1px solid var(--color-warning-border)', borderRadius: 6, fontSize: 13, marginTop: 4 }}>
                 {order.customerRemark}
               </div>
             </div>

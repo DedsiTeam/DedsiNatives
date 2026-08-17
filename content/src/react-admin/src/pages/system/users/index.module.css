@@ -16,7 +16,7 @@
 .formControl:focus,
 .formControl:focus-within {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgb(49 94 251 / 15%);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 @media (max-width: 768px) {

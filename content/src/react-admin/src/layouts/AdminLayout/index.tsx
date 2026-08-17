@@ -150,7 +150,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               <div className={styles.userInfo}>
                 <Avatar
                   size="default"
-                  style={{ backgroundColor: '#315efb', cursor: 'pointer' }}
+                  style={{ backgroundColor: 'var(--color-primary)', cursor: 'pointer' }}
                 >
                   Admin
                 </Avatar>

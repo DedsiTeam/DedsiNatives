@@ -7,7 +7,7 @@ namespace DedsiNative.EntityFrameworkCore.Configurations;
 /// <summary>
 /// 用户实体的 EF Core 数据库映射配置，定义表名、主键及所有字段的列约束。
 /// </summary>
-public class UserConfiguration : IEntityTypeConfiguration<User>
+public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 {
     /// <summary>
     /// 配置 <see cref="User"/> 实体到数据库的映射规则，包括表名、主键和每个字段的约束。
@@ -28,13 +28,29 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         // ── User 自有字段 ─────────────────────────────────────────
         // Name：用户名称，必填，最大长度 64
         builder.Property(x => x.Name)
-            .HasMaxLength(User.MaxNameLength)
+            .HasMaxLength(UserConsts.MaxNameLength)
             .IsRequired();
 
         // Email：用户邮箱地址，必填，最大长度 256
         builder.Property(x => x.Email)
-            .HasMaxLength(User.MaxEmailLength)
+            .HasMaxLength(UserConsts.MaxEmailLength)
             .IsRequired();
+
+        builder.Property(x => x.Account)
+            .HasMaxLength(UserConsts.MaxAccountLength)
+            .IsRequired(false);
+
+        // 登录账号必须全局唯一；PostgreSQL 唯一索引允许多个尚未开通登录的空账号。
+        builder.HasIndex(x => x.Account)
+            .IsUnique();
+
+        builder.Property(x => x.PasswordHash)
+            .HasMaxLength(UserConsts.MaxPasswordHashLength)
+            .IsRequired(false);
+
+        builder.Property(x => x.PasswordSalt)
+            .HasMaxLength(UserConsts.MaxPasswordSaltLength)
+            .IsRequired(false);
 
         // ── 继承自 DedsiAggregateRoot 的审计字段 ──────────────────
         // CreationTime：记录创建时间，统一存储为 UTC
@@ -56,5 +72,23 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(40)
             .IsRequired(false)
             .IsConcurrencyToken();
+
+        var creationTime = new DateTime(2026, 8, 17, 0, 0, 0, DateTimeKind.Utc);
+
+        // 种子使用确定性的密码材料，避免模型快照因随机盐变化而产生重复迁移。
+        builder.HasData(new
+        {
+            Id = "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            Name = "超级管理员",
+            Email = "admin@dedsinative.local",
+            Account = "15833084138",
+            PasswordHash = "DqpyFntIjpkXAwEXsqcW5PDBfi27fXEnDcuC4v4f3/Q=",
+            PasswordSalt = "XMTFCyq7q+8jOGe5ihk1eA==",
+            ExtraProperties = new Volo.Abp.Data.ExtraPropertyDictionary(),
+            ConcurrencyStamp = (string?)null,
+            CreatorId = Guid.Empty,
+            CreatorName = "system",
+            CreationTime = creationTime
+        });
     }
 }

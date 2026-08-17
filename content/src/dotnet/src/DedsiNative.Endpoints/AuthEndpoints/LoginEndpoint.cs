@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using DedsiNative.Users;
 using FastEndpoints;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -25,14 +26,19 @@ public sealed record LoginResponse(string Token, DateTime ExpiresAt);
 
 /// <summary>
 /// 登录端点，处理 POST /api/auth/login 请求。
-/// 验证用户凭证（当前为硬编码），签发 JWT Token。
+/// 验证数据库用户凭证并签发 JWT Token。
 /// </summary>
-public class LoginEndpoint(IConfiguration configuration) : Endpoint<LoginRequest, LoginResponse>
+/// <param name="configuration">
+/// JWT 签发配置。
+/// </param>
+/// <param name="userQuery">
+/// 用户认证只读查询服务。
+/// </param>
+public sealed class LoginEndpoint(
+    IConfiguration configuration,
+    IUserQuery userQuery)
+    : Endpoint<LoginRequest, LoginResponse>
 {
-    // ── 硬编码用户（临时，后续替换为数据库查询）──────────────────
-    private const string HardcodedUsername = "admin";
-    private const string HardcodedPassword = "Admin@123";
-
     /// <summary>
     /// 配置端点路由，匿名访问。
     /// </summary>
@@ -49,8 +55,15 @@ public class LoginEndpoint(IConfiguration configuration) : Endpoint<LoginRequest
     /// <param name="ct">取消令牌。</param>
     public override async Task HandleAsync(LoginRequest req, CancellationToken ct)
     {
-        // 验证凭证
-        if (req.Username != HardcodedUsername || req.Password != HardcodedPassword)
+        var account = req.Username?.Trim() ?? string.Empty;
+        var user = await userQuery.FindLoginByAccountAsync(account, ct);
+
+        // 账号不存在与密码错误保持相同响应，避免对外暴露账号是否存在。
+        if (user is null
+            || !UserPasswordHasher.Verify(
+                req.Password,
+                user.PasswordHash,
+                user.PasswordSalt))
         {
             await Send.UnauthorizedAsync(ct);
             return;
@@ -67,8 +80,8 @@ public class LoginEndpoint(IConfiguration configuration) : Endpoint<LoginRequest
         // 构建 Claims
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub,  Guid.NewGuid().ToString()),
-            new(AbpClaimTypes.Name, HardcodedUsername)
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+            new(AbpClaimTypes.Name, user.Name)
         };
 
         // 签发 Token

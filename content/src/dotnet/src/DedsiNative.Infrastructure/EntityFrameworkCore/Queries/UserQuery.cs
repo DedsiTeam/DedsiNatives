@@ -44,4 +44,22 @@ public sealed class UserQuery(IDedsiNativeDbContext dbContext) : IUserQuery
 
         return new UserPagedQueryResult(totalCount, items);
     }
+
+    /// <inheritdoc />
+    public Task<UserLoginQueryResult?> FindLoginByAccountAsync(
+        string account,
+        CancellationToken cancellationToken = default)
+    {
+        return dbContext.Users
+            .AsNoTracking()
+            .Where(user => user.Account == account
+                && user.PasswordHash != null
+                && user.PasswordSalt != null)
+            .Select(user => new UserLoginQueryResult(
+                user.Id,
+                user.Name,
+                user.PasswordHash!,
+                user.PasswordSalt!))
+            .SingleOrDefaultAsync(cancellationToken);
+    }
 }

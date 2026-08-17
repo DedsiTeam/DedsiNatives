@@ -10,16 +10,6 @@ namespace DedsiNative.Users;
 public class User : DedsiAggregateRoot<string>
 {
     /// <summary>
-    /// 用户名称允许的最大长度，与数据库字段约束保持一致。
-    /// </summary>
-    public const int MaxNameLength = 64;
-
-    /// <summary>
-    /// 用户邮箱允许的最大长度，与数据库字段约束保持一致。
-    /// </summary>
-    public const int MaxEmailLength = 256;
-
-    /// <summary>
     /// 受保护的无参构造函数，供 ORM 框架反射实例化使用，禁止业务代码直接调用。
     /// </summary>
     protected User()
@@ -50,6 +40,21 @@ public class User : DedsiAggregateRoot<string>
     public string Email { get; private set; } = string.Empty;
 
     /// <summary>
+    /// 登录账号；尚未开通登录能力的普通用户为空。
+    /// </summary>
+    public string? Account { get; private set; }
+
+    /// <summary>
+    /// PBKDF2-SHA512 密码哈希；不持久化明文密码。
+    /// </summary>
+    public string? PasswordHash { get; private set; }
+
+    /// <summary>
+    /// 生成密码哈希所使用的随机盐值。
+    /// </summary>
+    public string? PasswordSalt { get; private set; }
+
+    /// <summary>
     /// 修改用户名称。
     /// </summary>
     /// <param name="name">新的用户名称，不能为空或纯空白字符。</param>
@@ -59,7 +64,7 @@ public class User : DedsiAggregateRoot<string>
         Name = Check.NotNullOrWhiteSpace(
             name,
             nameof(name),
-            MaxNameLength);
+            UserConsts.MaxNameLength);
         return this;
     }
 
@@ -73,7 +78,30 @@ public class User : DedsiAggregateRoot<string>
         Email = Check.NotNullOrWhiteSpace(
             email,
             nameof(email),
-            MaxEmailLength);
+            UserConsts.MaxEmailLength);
+        return this;
+    }
+
+    /// <summary>
+    /// 设置用户登录账号和密码材料。
+    /// </summary>
+    /// <param name="account">
+    /// 登录账号，不能为空或纯空白字符。
+    /// </param>
+    /// <param name="password">
+    /// 待安全哈希的明文密码，不能为空或纯空白字符。
+    /// </param>
+    /// <returns>
+    /// 返回当前用户实体，支持链式调用。
+    /// </returns>
+    public User SetLoginCredentials(string account, string password)
+    {
+        Account = Check.NotNullOrWhiteSpace(
+            account,
+            nameof(account),
+            UserConsts.MaxAccountLength);
+
+        (PasswordHash, PasswordSalt) = UserPasswordHasher.Hash(password);
         return this;
     }
 }

@@ -35,23 +35,8 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  // 快捷填入测试演示数据 (对应后端硬编码凭证: admin / Admin@123)
-  const fillDemoAccount = () => {
-    form.setFieldsValue({
-      username: 'admin',
-      password: 'Admin@123',
-      remember: true,
-    });
-    message.info('已自动填充测试管理员账号 (admin / Admin@123)');
-  };
-
   return (
     <div className={styles.loginContainer}>
-      {/* 动态科技背景网格与微流体动画 */}
-      <div className={styles.gridPattern} />
-      <div className={styles.orb1} />
-      <div className={styles.orb2} />
-
       {/* 居中核心登录卡片 */}
       <div className={styles.loginCard}>
         {/* 顶部 Logo 与系统名称 */}
@@ -72,23 +57,23 @@ export const LoginPage: React.FC = () => {
         >
           <Form.Item
             name="username"
-            label={<span style={{ fontWeight: 600, color: '#374151', fontSize: 13 }}>账号名</span>}
+            label={<span style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: 13 }}>账号名</span>}
             rules={[{ required: true, message: '请输入您的账号名' }]}
           >
             <Input
-              prefix={<UserOutlined style={{ color: '#9ca3af', marginRight: 4 }} />}
-              placeholder="例如: admin"
+              prefix={<UserOutlined style={{ color: 'var(--color-placeholder)', marginRight: 4 }} />}
+              placeholder="请输入账号名"
               style={{ borderRadius: 8 }}
             />
           </Form.Item>
 
           <Form.Item
             name="password"
-            label={<span style={{ fontWeight: 600, color: '#374151', fontSize: 13 }}>登录密码</span>}
+            label={<span style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: 13 }}>登录密码</span>}
             rules={[{ required: true, message: '请输入您的登录密码' }]}
           >
             <Input.Password
-              prefix={<LockOutlined style={{ color: '#9ca3af', marginRight: 4 }} />}
+              prefix={<LockOutlined style={{ color: 'var(--color-placeholder)', marginRight: 4 }} />}
               placeholder="••••••••"
               style={{ borderRadius: 8 }}
             />
@@ -96,14 +81,14 @@ export const LoginPage: React.FC = () => {
 
           <div className={styles.extraOptions}>
             <Form.Item name="remember" valuePropName="checked" noStyle>
-              <Checkbox style={{ color: '#6b7280', fontSize: 13 }}>记住登录状态</Checkbox>
+              <Checkbox style={{ color: 'var(--color-muted)', fontSize: 13 }}>记住登录状态</Checkbox>
             </Form.Item>
-            <Link style={{ color: '#315efb', fontSize: 13 }} onClick={() => message.info('请联系系统管理员重置密码')}>
+            <Link style={{ color: 'var(--color-primary)', fontSize: 13 }} onClick={() => message.info('请联系系统管理员重置密码')}>
               忘记密码？
             </Link>
           </div>
 
-          <Form.Item style={{ marginBottom: 16 }}>
+          <Form.Item>
             <Button
               type="primary"
               htmlType="submit"
@@ -114,12 +99,6 @@ export const LoginPage: React.FC = () => {
               立即登录
             </Button>
           </Form.Item>
-
-          <div style={{ textAlign: 'center', marginTop: 8 }}>
-            <Button type="link" size="small" onClick={fillDemoAccount} style={{ color: '#8b31fb', fontSize: 13 }}>
-              一键填入演示账号
-            </Button>
-          </div>
         </Form>
       </div>
 

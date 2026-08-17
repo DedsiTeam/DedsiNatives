@@ -2,26 +2,55 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* AGENTS.md 规范色彩 Token */
-  --color-primary: #315efb;
-  --color-primary-hover: #244bd6;
-  --color-primary-light: rgba(49, 94, 251, 0.08);
+  /* 品牌色 */
+  --color-primary: #512bd4;
+  --color-primary-hover: #4322b8;
+  --color-primary-active: #371c99;
+  --color-primary-light: #eee9ff;
+  --color-primary-soft: #f6f3ff;
+  --color-primary-subtle: #faf9ff;
+  --color-on-primary: #ffffff;
 
-  --color-secondary: #8b31fb;
-  --color-secondary-hover: #7023d8;
-  --color-secondary-light: rgba(139, 49, 251, 0.08);
-
-  --color-title: #111827;
-  --color-body: #374151;
-  --color-muted: #6b7280;
-
-  --color-bg: #f7f9fc;
+  /* 页面与表面 */
+  --color-bg: #f7f7fc;
   --color-card: #ffffff;
-  --color-border: #e5e7eb;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f5f3f8;
+  --color-table-header: #f8f7fb;
+  --color-table-hover: #faf9fd;
+  --color-border: #e7e3f0;
+  --color-border-strong: #d9d3e3;
 
-  --color-success: #16a34a;
-  --color-warning: #f59e0b;
-  --color-error: #dc2626;
+  /* 文字与图标 */
+  --color-title: #171321;
+  --color-body: #3f3a4a;
+  --color-text: #3f3a4a;
+  --color-muted: #706a7d;
+  --color-placeholder: #9b96a6;
+  --color-disabled: #aaa5b4;
+
+  /* 业务状态 */
+  --color-success: #15803d;
+  --color-success-light: #f0fdf4;
+  --color-warning: #b45309;
+  --color-warning-light: #fff7ed;
+  --color-warning-border: #fed7aa;
+  --color-error: #b42318;
+  --color-error-light: #fef3f2;
+  --color-info: #2563eb;
+  --color-info-light: #eff6ff;
+
+  /* 半透明效果与阴影 */
+  --color-focus-ring: rgb(81 43 212 / 22%);
+  --color-scrollbar: rgb(23 19 33 / 15%);
+  --color-scrollbar-hover: rgb(23 19 33 / 25%);
+  --shadow-primary-sm: 0 2px 8px rgb(81 43 212 / 22%);
+  --shadow-primary-md: 0 4px 12px rgb(81 43 212 / 24%);
+  --shadow-primary-lg: 0 6px 16px rgb(81 43 212 / 30%);
+  --shadow-sm: 0 1px 2px 0 rgb(23 19 33 / 4%);
+  --shadow-md: 0 4px 12px 0 rgb(23 19 33 / 6%);
+  --shadow-lg: 0 12px 24px -4px rgb(23 19 33 / 10%);
+  --shadow-text-on-image: 0 1px 3px rgb(0 0 0 / 45%);
 
   /* 8px 梯级间距 */
   --space-4: 4px;
@@ -37,11 +66,6 @@
   --radius-card: 12px;
   --radius-btn: 8px;
 
-  /* 品牌渐变与阴影 */
-  --gradient-brand: linear-gradient(135deg, #315efb 0%, #8b31fb 100%);
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.08);
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -73,11 +97,11 @@ html, body, #root {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--color-scrollbar);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--color-scrollbar-hover);
 }
 
 /* 优化 Table 分页器：分为左右两部分，左侧显示数据总数与页码文字，右侧显示分页按钮 */
@@ -91,6 +115,37 @@ html, body, #root {
 
 .ant-table-wrapper .ant-table-pagination .ant-pagination-total-text {
   margin-right: auto !important;
-  color: #6b7280;
+  color: var(--color-muted);
   font-size: 13px;
+}
+
+.create-primary-button {
+  color: var(--color-on-primary) !important;
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  border-radius: var(--radius-btn) !important;
+  box-shadow: var(--shadow-primary-sm);
+}
+
+.create-primary-button:hover,
+.create-primary-button:focus-visible {
+  color: var(--color-on-primary) !important;
+  background: var(--color-primary-hover) !important;
+  border-color: var(--color-primary-hover) !important;
+}
+
+.create-primary-button:focus-visible {
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.create-primary-button:active {
+  background: var(--color-primary-active) !important;
+  border-color: var(--color-primary-active) !important;
+}
+
+.create-primary-button:disabled {
+  color: var(--color-disabled) !important;
+  background: var(--color-surface-subtle) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: none;
 }

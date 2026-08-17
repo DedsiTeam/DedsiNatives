@@ -232,7 +232,7 @@ export const UserManagement: React.FC = () => {
       title: '用户标识 (ID)',
       dataIndex: 'id',
       key: 'id',
-      render: (text) => <span style={{ fontFamily: 'monospace', color: '#6b7280' }}>{text}</span>,
+      render: (text) => <span style={{ fontFamily: 'monospace', color: 'var(--color-muted)' }}>{text}</span>,
     },
     {
       title: '用户名称',
@@ -240,10 +240,10 @@ export const UserManagement: React.FC = () => {
       key: 'name',
       render: (text) => (
         <Space size={12}>
-          <Avatar style={{ backgroundColor: '#315efb' }} icon={<UserOutlined />}>
+          <Avatar style={{ backgroundColor: 'var(--color-primary)' }} icon={<UserOutlined />}>
             {text ? text[0] : 'U'}
           </Avatar>
-          <span style={{ fontWeight: 600, color: '#111827' }}>{text}</span>
+          <span style={{ fontWeight: 600, color: 'var(--color-title)' }}>{text}</span>
         </Space>
       ),
     },
@@ -251,7 +251,7 @@ export const UserManagement: React.FC = () => {
       title: '电子邮箱',
       dataIndex: 'email',
       key: 'email',
-      render: (text) => <span style={{ color: '#374151' }}>{text}</span>,
+      render: (text) => <span style={{ color: 'var(--color-text)' }}>{text}</span>,
     },
     {
       title: '操作',
@@ -264,7 +264,7 @@ export const UserManagement: React.FC = () => {
             icon={<EyeOutlined />}
             size="small"
             onClick={() => openDetailModal(record)}
-            style={{ color: '#315efb' }}
+            style={{ color: 'var(--color-primary)' }}
           >
             详情
           </Button>
@@ -273,7 +273,7 @@ export const UserManagement: React.FC = () => {
             icon={<EditOutlined />}
             size="small"
             onClick={() => openModal(record)}
-            style={{ color: '#315efb' }}
+            style={{ color: 'var(--color-primary)' }}
           >
             编辑
           </Button>
@@ -305,7 +305,7 @@ export const UserManagement: React.FC = () => {
           <Space size={12}>
             <Input
               placeholder="按用户名称模糊搜索..."
-              prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+              prefix={<SearchOutlined style={{ color: 'var(--color-placeholder)' }} />}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               onPressEnter={() => {
@@ -321,7 +321,7 @@ export const UserManagement: React.FC = () => {
                 setPageIndex(1);
                 fetchUsers();
               }}
-              style={{ borderRadius: 8, backgroundColor: '#315efb', color: '#fff' }}
+              style={{ borderRadius: 8 }}
               type="primary"
             >
               查询
@@ -339,7 +339,7 @@ export const UserManagement: React.FC = () => {
             type="primary"
             icon={<UserAddOutlined />}
             onClick={() => openModal()}
-            style={{ borderRadius: 8, backgroundColor: '#315efb' }}
+            className="create-primary-button"
           >
             新增用户
           </Button>
@@ -418,7 +418,7 @@ export const UserManagement: React.FC = () => {
             key="close"
             type="primary"
             onClick={() => setIsDetailModalOpen(false)}
-            style={{ borderRadius: 8, backgroundColor: '#315efb' }}
+            style={{ borderRadius: 8 }}
           >
             关闭
           </Button>,
@@ -432,8 +432,8 @@ export const UserManagement: React.FC = () => {
               column={1}
               bordered
               size="small"
-              labelStyle={{ width: 120, fontWeight: 600, color: '#374151', backgroundColor: '#f9fafb' }}
-              contentStyle={{ color: '#111827' }}
+              labelStyle={{ width: 120, fontWeight: 600, color: 'var(--color-text)', backgroundColor: 'var(--color-surface-subtle)' }}
+              contentStyle={{ color: 'var(--color-title)' }}
             >
               <Descriptions.Item label="用户唯一 ID">{detailUser.id}</Descriptions.Item>
               <Descriptions.Item label="用户名称">{detailUser.name}</Descriptions.Item>

@@ -38,6 +38,27 @@ public sealed record UserPagedQueryResult(
     IReadOnlyList<UserQueryItem> Items);
 
 /// <summary>
+/// 登录认证所需的安全用户投影。
+/// </summary>
+/// <param name="Id">
+/// 用户唯一标识。
+/// </param>
+/// <param name="Name">
+/// 用户名称。
+/// </param>
+/// <param name="PasswordHash">
+/// PBKDF2-SHA512 密码哈希。
+/// </param>
+/// <param name="PasswordSalt">
+/// 生成密码哈希所使用的盐值。
+/// </param>
+public sealed record UserLoginQueryResult(
+    string Id,
+    string Name,
+    string PasswordHash,
+    string PasswordSalt);
+
+/// <summary>
 /// 用户只读查询契约，隔离 Core 与具体持久化技术。
 /// </summary>
 public interface IUserQuery : IDedsiQuery
@@ -50,5 +71,21 @@ public interface IUserQuery : IDedsiQuery
     /// <returns>用户分页查询结果。</returns>
     Task<UserPagedQueryResult> GetPagedAsync(
         UserPagedQuery query,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 按登录账号查询认证所需的安全投影。
+    /// </summary>
+    /// <param name="account">
+    /// 已去除首尾空白的登录账号。
+    /// </param>
+    /// <param name="cancellationToken">
+    /// 用于取消异步查询的令牌。
+    /// </param>
+    /// <returns>
+    /// 账号存在且已配置密码时返回登录投影，否则返回空。
+    /// </returns>
+    Task<UserLoginQueryResult?> FindLoginByAccountAsync(
+        string account,
         CancellationToken cancellationToken = default);
 }

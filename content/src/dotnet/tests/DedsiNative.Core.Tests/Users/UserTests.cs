@@ -58,7 +58,7 @@ public sealed class UserTests
     [Fact]
     public void Constructor_Should_Reject_Name_That_Is_Too_Long()
     {
-        var name = new string('A', User.MaxNameLength + 1);
+        var name = new string('A', UserConsts.MaxNameLength + 1);
 
         Assert.Throws<ArgumentException>(
             () => new User(
@@ -73,7 +73,7 @@ public sealed class UserTests
     [Fact]
     public void Constructor_Should_Reject_Email_That_Is_Too_Long()
     {
-        var email = new string('a', User.MaxEmailLength + 1);
+        var email = new string('a', UserConsts.MaxEmailLength + 1);
 
         Assert.Throws<ArgumentException>(
             () => new User(
@@ -96,8 +96,31 @@ public sealed class UserTests
         Assert.Throws<ArgumentException>(() => user.ChangeName(" "));
         Assert.Throws<ArgumentException>(() => user.ChangeEmail(string.Empty));
         Assert.Throws<ArgumentException>(
-            () => user.ChangeName(new string('A', User.MaxNameLength + 1)));
+            () => user.ChangeName(new string('A', UserConsts.MaxNameLength + 1)));
         Assert.Throws<ArgumentException>(
-            () => user.ChangeEmail(new string('a', User.MaxEmailLength + 1)));
+            () => user.ChangeEmail(new string('a', UserConsts.MaxEmailLength + 1)));
+    }
+
+    /// <summary>
+    /// 设置登录资料时应只保存可验证的密码哈希和盐值。
+    /// </summary>
+    [Fact]
+    public void SetLoginCredentials_Should_Hash_Password()
+    {
+        const string password = "Admin123..@";
+        var user = new User(
+            Ulid.NewUlid().ToString(),
+            "超级管理员",
+            "admin@dedsinative.local");
+
+        user.SetLoginCredentials("15833084138", password);
+
+        Assert.Equal("15833084138", user.Account);
+        Assert.NotEqual(password, user.PasswordHash);
+        Assert.False(string.IsNullOrWhiteSpace(user.PasswordSalt));
+        Assert.True(UserPasswordHasher.Verify(
+            password,
+            user.PasswordHash!,
+            user.PasswordSalt!));
     }
 }

@@ -30,6 +30,10 @@ namespace DedsiNative.EntityFrameworkCore.Migrations
                         .HasMaxLength(26)
                         .HasColumnType("character varying(26)");
 
+                    b.Property<string>("Account")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasMaxLength(40)
@@ -61,9 +65,35 @@ namespace DedsiNative.EntityFrameworkCore.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<string>("PasswordHash")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("PasswordSalt")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("Account")
+                        .IsUnique();
+
                     b.ToTable("Users", "DedsiNative");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                            Account = "15833084138",
+                            CreationTime = new DateTime(2026, 8, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatorId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            CreatorName = "system",
+                            Email = "admin@dedsinative.local",
+                            ExtraProperties = "{}",
+                            Name = "超级管理员",
+                            PasswordHash = "DqpyFntIjpkXAwEXsqcW5PDBfi27fXEnDcuC4v4f3/Q=",
+                            PasswordSalt = "XMTFCyq7q+8jOGe5ihk1eA=="
+                        });
                 });
 
             modelBuilder.Entity("Volo.Abp.EntityFrameworkCore.DistributedEvents.IncomingEventRecord", b =>
