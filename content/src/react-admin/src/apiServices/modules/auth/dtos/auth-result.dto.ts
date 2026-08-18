@@ -1,6 +1,6 @@
 /**
  * @file 认证模块 - 响应结果 DTO 声明
- * @description 对接后端 DedsiNative.Host 的 FastEndpoints 登录接口响应规范
+ * @description 对接后端 DedsiNative.Endpoints 的 FastEndpoints 登录接口响应规范
  */
 
 /**

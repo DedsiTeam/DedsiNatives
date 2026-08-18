@@ -52,7 +52,7 @@
   --shadow-lg: 0 12px 24px -4px rgb(23 19 33 / 10%);
   --shadow-text-on-image: 0 1px 3px rgb(0 0 0 / 45%);
 
-  /* 8px 梯级间距 */
+  /* 4px 基础网格间距 */
   --space-4: 4px;
   --space-8: 8px;
   --space-12: 12px;

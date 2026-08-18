@@ -5,10 +5,12 @@
 ## 组成
 
 - `AGENTS.md`：项目架构、质量和安全边界。
+- `.codex/agents/work-item-loop.toml`：单项闭环编排子智能体。
 - `.codex/agents/backend.toml` 与 `.codex/agents/frontend.toml`：后端和前端专职子智能体。
+- `.codex/agents/logic.toml` 与 `.codex/agents/documentation.toml`：只读深度分析与事实文档整理子智能体。
 - `.agents/skills/work-item-loop/SKILL.md`：单个工作项的执行流程。
 - `docs/workItems/**/*.md`：工作项状态和验收证据。
-- `agent-loop.ps1`：重复启动短生命周期 Codex Agent。
+- `agent-loop.mjs`：跨平台重复启动短生命周期 Codex Agent，仅依赖 Node.js 内置模块。
 
 每个 Agent 调用只处理一个工作项。连续处理由外层脚本负责，避免一个上下文无限增长。
 
@@ -16,8 +18,8 @@
 
 Loop 从 `content` 启动，不会依赖 Codex 向下自动发现子目录 Skill。进入实现阶段后，`work-item-loop` 会通过明确路径加载模块工作流：
 
-- .NET 阶段：按变更范围使用 `src/dotnet/.agents/skills/` 下的完整功能、FastEndpoint、EF Core Skill。
-- React 阶段：按变更范围使用 `src/react-admin/.agents/skills/` 下的完整功能、API、UI Skill。
+- .NET 阶段：读取 `.agents/rules/dotnet.md`，并按变更范围使用 `.agents/skills/` 下的完整功能、FastEndpoint、EF Core Skill。
+- React 阶段：读取 `.agents/rules/react-admin.md`，并按变更范围使用 `.agents/skills/` 下的完整功能、API、UI Skill。
 
 一个阶段可以叠加多个 Skill。例如全栈用户管理功能的后端通常同时应用完整功能、FastEndpoint 和 EF Core Skill；前端通常同时应用完整功能、API 和 UI Skill。实际使用的 Skill 必须写入工作项执行日志。
 
@@ -60,23 +62,23 @@ Loop 从 `content` 启动，不会依赖 Codex 向下自动发现子目录 Skill
 
 验证全部工作项元数据：
 
-```powershell
-pwsh -NoProfile -File .agents/skills/work-item-loop/scripts/Get-WorkItem.ps1 `
-  -WorkItemsPath docs/workItems -Mode Validate
+```bash
+node .agents/skills/work-item-loop/scripts/get-work-item.mjs \
+  --work-items-path docs/workItems --mode validate
 ```
 
 查看完整队列：
 
-```powershell
-pwsh -NoProfile -File .agents/skills/work-item-loop/scripts/Get-WorkItem.ps1 `
-  -WorkItemsPath docs/workItems -Mode List
+```bash
+node .agents/skills/work-item-loop/scripts/get-work-item.mjs \
+  --work-items-path docs/workItems --mode list
 ```
 
 查看下一项：
 
-```powershell
-pwsh -NoProfile -File .agents/skills/work-item-loop/scripts/Get-WorkItem.ps1 `
-  -WorkItemsPath docs/workItems -Mode Next
+```bash
+node .agents/skills/work-item-loop/scripts/get-work-item.mjs \
+  --work-items-path docs/workItems --mode next
 ```
 
 ## 在 Codex 中受控执行
@@ -93,24 +95,26 @@ pwsh -NoProfile -File .agents/skills/work-item-loop/scripts/Get-WorkItem.ps1 `
 使用 $work-item-loop 处理 docs/workItems/WI-0002-订单审核.md。
 ```
 
-## 用 PowerShell 驱动
+预览、列表和验证命令只读，不会领取工作项、增加尝试次数或写入执行日志。
+
+## 用 Node.js 驱动
 
 先预览选择结果和 Prompt，不启动 Agent：
 
-```powershell
-./agent-loop.ps1 -DryRun
+```bash
+node agent-loop.mjs --dry-run
 ```
 
 处理一个工作项：
 
-```powershell
-./agent-loop.ps1 -MaxItems 1 -MaxRetries 3
+```bash
+node agent-loop.mjs --max-items 1 --max-retries 3
 ```
 
 连续处理最多三个工作项：
 
-```powershell
-./agent-loop.ps1 -MaxItems 3 -MaxRetries 3
+```bash
+node agent-loop.mjs --max-items 3 --max-retries 3
 ```
 
 执行器使用：
@@ -127,7 +131,7 @@ Loop 在以下情况停止：
 
 - 队列为空
 - 工作项进入 `blocked`
-- `failed` 达到最大重试次数
+- 没有可执行工作项；达到重试上限的 `failed` 项会被跳过，不会阻塞后续 `ready` 项
 - 工作项元数据非法或 ID 重复
 - 同时出现多个 `in-progress`
 - Agent 返回后没有写入终态

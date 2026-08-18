@@ -15,6 +15,6 @@ export class AuthApiService {
    * @returns 包含 JWT Token 与过期时间的响应数据对象
    */
   static async login(data: LoginInputDto): Promise<LoginResultDto> {
-    return request.post<LoginResultDto>('/api/auth/login', data);
+    return request.post<LoginResultDto, LoginInputDto>('/api/auth/login', data);
   }
 }

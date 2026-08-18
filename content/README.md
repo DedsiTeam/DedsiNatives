@@ -61,11 +61,15 @@ bun dev       # 或 npm run dev
 
 本项目已配置通用开发规范，详见 [AGENTS.md](AGENTS.md)。
 
+项目 Skills、后端/前端规则与 UI 提示词统一存放在 [`.agents/`](.agents/)；`src/` 目录只包含产品源代码。
+
+模板配置只包含 `CHANGE_ME` 占位符。运行宿主前请通过环境变量提供实际敏感配置：`ConnectionStrings__DedsiNativeDB`、`ConnectionStrings__DedsiNativeRabbitMQ` 和 `Jwt__Secret`；通过 Aspire 启动时还需配置 `Parameters__PostgresPassword`、`Parameters__RabbitMqUserName` 和 `Parameters__RabbitMqPassword`。不要把真实值提交到仓库。
+
 ## 文档存放规范
 
 `docs/` 目录使用 Markdown（`.md`）维护工作项和领域文档。
 
-前端 UI 规范请参考：[src/react-admin/.agents/prompts/ui.md](src/react-admin/.agents/prompts/ui.md)。
+前端 UI 规范请参考：[.agents/prompts/ui.md](.agents/prompts/ui.md)。
 
 ## 工作项 Agent Loop
 
@@ -77,12 +81,12 @@ bun dev       # 或 npm run dev
 
 预览下一项但不启动 Agent：
 
-```powershell
-./agent-loop.ps1 -DryRun
+```bash
+node agent-loop.mjs --dry-run
 ```
 
 连续处理最多三个已就绪工作项：
 
-```powershell
-./agent-loop.ps1 -MaxItems 3 -MaxRetries 3
+```bash
+node agent-loop.mjs --max-items 3 --max-retries 3
 ```

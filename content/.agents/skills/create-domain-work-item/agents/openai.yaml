@@ -1,4 +1,4 @@
 interface:
   display_name: "创建领域工作项"
-  short_description: "必须指定领域模型文档创建单一领域完整全栈工作项草稿"
-  default_prompt: "使用 $create-domain-work-item 根据 docs/domains/字典.md 创建一个整体工作项。"
+  short_description: "根据指定领域文档创建可独立验收的全栈工作项草稿"
+  default_prompt: "使用 $create-domain-work-item 根据 docs/domains/用户.md 创建可独立验收的全栈工作项。"

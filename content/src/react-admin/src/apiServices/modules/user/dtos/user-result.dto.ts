@@ -1,6 +1,6 @@
 /**
  * @file 用户模块 - 响应结果 Result DTO 声明
- * @description 对接后端 DedsiNative.Host FastEndpoints 接口 (UserEndpoints) 响应参数规范
+ * @description 对接后端 DedsiNative.Endpoints FastEndpoints 接口 (UserEndpoints) 响应参数规范
  */
 
 /**

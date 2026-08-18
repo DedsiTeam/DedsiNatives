@@ -2,6 +2,8 @@
 
 本项目是基于 Clean Architecture、ABP Framework 和 FastEndpoints 的领域驱动设计 (DDD) 应用。在进行代码新增、修改或重构时，请遵循以下开发规范。
 
+`content/` 是完整项目根。所有项目 Skill 及面向源码层的 Agent 规则与提示词统一位于 `.agents/`；`src/` 仅保存产品源代码，不放置 `.agents`、`AGENTS.md` 或其他 AI 提示词文件。
+
 ## 1. 架构分层规范
 
 - **领域层 (`src/dotnet/src/DedsiNative.Core`)**
@@ -15,6 +17,7 @@
 - **接口层 (`src/dotnet/src/DedsiNative.Endpoints`)**
   - 使用 FastEndpoints 编写 HTTP 接口，代替传统 ASP.NET Core 控制器 (Controller)。
   - Endpoint 按功能模块归类到 `{Module}Endpoints/` 目录下。
+  - 应用编排与领域事件处理器放在 `Applications/{Feature}/EventHandlers/`；处理器只依赖 Core 契约，不直接操作 DbContext。
   - 通过 ABP 模块 (`DedsiNativeEndpointsModule`) 统一注册接口发现与 OpenAPI 文档服务。
 
 - **宿主层 (`src/dotnet/host/DedsiNative.Host`)**
@@ -29,6 +32,8 @@
 
 ## 2. 后端开发约定
 
+- 修改 `src/dotnet/` 前必须完整读取 `.agents/rules/dotnet.md`。
+- **秘密与配置**：不得在源码、模板、工作项、日志或 Agent 输出中写入真实密码、令牌、连接字符串或私钥。宿主配置中的敏感占位符必须通过环境变量覆盖，例如 `ConnectionStrings__DedsiNativeDB`、`ConnectionStrings__DedsiNativeRabbitMQ`、`Jwt__Secret`。
 - **代码与文档**：新增公共类和接口需提供清晰的中文注释 / XML 文档。
 - **领域常量约定**：领域实体中不得声明 `MaxNameLength`、`MaxDescriptionLength`、`MaxEmailLength` 等字段约束常量。请在对应领域目录创建 `{Aggregate}Consts`（例如 `Users/UserConsts.cs`），由聚合、基础设施映射和测试统一引用。
 - **主键约定**：领域模型主键默认使用 26 位 ULID；只有存在明确的系统兼容性、外部接口或数据库约束等特殊情况时，才使用 Guid 或其他类型，并记录特殊原因。
@@ -57,6 +62,7 @@
 
 ## 3. 前端开发约定
 
+- 修改 `src/react-admin/` 前必须完整读取 `.agents/rules/react-admin.md`；涉及 UI、布局或样式时还必须读取 `.agents/prompts/ui.md`。
 - **类型安全**：禁止使用 `any`，所有 API 接口输入输出均需定义对应的 TypeScript interface / type。
 - **模块化**：页面存放在 `src/pages/`，通用布局存放在 `src/layouts/`。
 
@@ -67,11 +73,11 @@
 
 ## 5. 工作项 Agent Loop
 
-- 当用户要求“执行 Loop”“处理下一个工作项”“继续/恢复工作项”或显式调用 `$work-item-loop` 时，必须使用 `.agents/skills/work-item-loop/SKILL.md`。
+- 当用户要求执行、继续、恢复、预览、检查或验证工作项队列，或显式调用 `$work-item-loop` 时，必须使用 `.agents/skills/work-item-loop/SKILL.md`。预览、检查和验证仅执行只读选择器，不得领取或修改工作项。
 - `docs/workItems/**/*.md` 是工作项事实来源；允许按领域建立子目录，`_` 开头的文件不进入队列。
 - 单次 Agent 调用只处理一个工作项，严格按“领域模型 → .NET 后端 → React 前端 → 验证 → 状态回写”执行。
-- 进入 .NET 阶段时，必须按变更范围加载并应用 `src/dotnet/.agents/skills/` 下对应 Skill；进入 React 阶段时，必须按变更范围加载并应用 `src/react-admin/.agents/skills/` 下对应 Skill。
-- 模块 Skill 位于 Loop CWD 的子目录，不依赖 Codex 自动发现；`work-item-loop` 必须通过明确路径完整读取并执行其工作流。
+- 进入 .NET 或 React 阶段时，必须按变更范围加载并应用 `.agents/skills/` 下对应 Skill。
+- 所有模块 Skill 都集中在内容根 `.agents/skills/`；`work-item-loop` 必须通过明确路径完整读取并执行其工作流。
 - 仅自动领取 `ready`、`failed` 或唯一的 `in-progress` 工作项。不得自动解除 `blocked`、重开 `completed` 或执行 `draft`。
 - 完成实现后必须把工作项写入 `completed`、`failed` 或 `blocked` 终态，并追加不含秘密的验证日志。
 - Loop 不授权自动提交、推送、重置 Git、删除迁移或执行破坏性数据库操作。
@@ -85,9 +91,9 @@
 
 | 场景 | 自定义代理 | 模型角色 | 自动委派规则 |
 |---|---|---|---|
-| 范围清晰的功能实现、缺陷修复、局部重构、测试补充或独立模块验证 | `coding` | Terra / medium | 子任务边界、负责文件和验收命令可以明确时自动委派 |
-| 后端领域能力、接口、持久化与 FastEndpoints 实现 | `backend` | Terra / high | 变更仅属于 `src/dotnet`，或 Loop 进入后端编程阶段时委派 |
-| 前端页面、API 消费、路由与 UI 交互实现 | `frontend` | Terra / high | 变更仅属于 `src/react-admin`，或 Loop 进入前端编程阶段时委派 |
+| 执行、继续或恢复单个工作项 Loop | `work-item-loop` | Sol / high | 需要把单个工作项交给专职编排角色持续推进到终态时使用；预览和验证仅执行只读 Node 选择器 |
+| 后端领域能力、接口、持久化与 FastEndpoints 实现 | `backend` | Terra / medium | 变更仅属于 `src/dotnet`，或 Loop 进入后端编程阶段时委派 |
+| 前端页面、API 消费、路由与 UI 交互实现 | `frontend` | Terra / medium | 变更仅属于 `src/react-admin`，或 Loop 进入前端编程阶段时委派 |
 | 格式明确的文档整理、结构化摘要、说明文档、执行日志或事实材料归档 | `documentation` | Luna / medium | 不涉及关键领域决策，且主代理已读取适用 Skill 和事实来源时自动委派 |
 | 复杂领域建模、架构权衡、疑难根因分析、关键代码审查或高风险方案评估 | `logic` | Sol / high / read-only | 需要深度推理或独立复核时自动委派；该代理只读，不承担代码修改 |
 
@@ -110,9 +116,10 @@
 
 ### 6.4 Work Item Loop 路由
 
-- 完整 Loop 始终由 Sol 主代理持续统筹，并负责工作项领取、阶段推进、终态判断和状态回写，不得把整个 Loop 交给单个子代理后提前结束主任务。
+- 完整 Loop 始终由 Sol 主代理或专职 `work-item-loop` 代理持续统筹，并负责工作项领取、阶段推进、终态判断和状态回写；调用方必须等待它进入终态，不得在其仍执行时提前结束任务。
+- 已经处于 `work-item-loop` 身份的代理不得再次委派 `work-item-loop`，以免形成递归编排。
 - 领域模型或架构存在复杂不变量时，自动使用 `logic` 做只读分析或复核。
-- 后端编程阶段必须委派 `backend`，前端编程阶段必须委派 `frontend`；主代理不得直接落地这两个阶段的代码，也不得用通用 `coding` 代替专职代理。
+- 后端编程阶段必须委派 `backend`，前端编程阶段必须委派 `frontend`；主代理不得直接落地这两个阶段的代码，也不得用其他通用代理代替专职代理。
 - 普通任务无法委派时可由主代理在原授权范围内完成；显式 Work Item Loop 无法执行上述强制委派时，必须将工作项写为 `blocked` 并记录原因。
 - 文档格式化、验证日志整理等工作可使用 `documentation`，但领域事实、验收结论和终态必须由主代理核验。
 - 只要工作项尚未进入 `completed`、`failed` 或满足协议要求的 `blocked`，主代理不得因某个子代理或某个阶段完成而输出最终回复。

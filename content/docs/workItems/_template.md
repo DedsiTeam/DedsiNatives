@@ -7,7 +7,7 @@ work-item-priority: medium
 work-item-domain: 替换为领域名称
 work-item-scope: full-stack
 work-item-attempt: 0
-work-item-updated-at: "2026-07-28T16:00:00+08:00"
+work-item-updated-at: "YYYY-MM-DDTHH:mm:ss+08:00"
 ---
 
 # WI-XXXX · 替换为工作项标题
@@ -62,7 +62,8 @@ work-item-updated-at: "2026-07-28T16:00:00+08:00"
 
 - 领域层：聚合、值对象、领域事件、仓储或查询契约的变化
 - 基础设施：EF Core 映射、仓储实现、索引和数据库迁移要求
-- Host/API：Endpoint、Request/Response、Validator、路由和权限要求
+- Endpoints/API：Endpoint、Request/Response、Validator、应用事件处理器、路由和权限要求
+- Host 接线：模块组合、认证、中间件或宿主配置要求；无变化时明确说明
 - 数据规则：唯一性、状态流转、并发、审计和分页规则
 
 ### 前端实现约束

@@ -1,6 +1,6 @@
 /**
  * @file 用户模块 - 请求输入 Input DTO 声明
- * @description 对接后端 DedsiNative.Host FastEndpoints 接口 (UserEndpoints) 请求参数规范
+ * @description 对接后端 DedsiNative.Endpoints FastEndpoints 接口 (UserEndpoints) 请求参数规范
  */
 
 import type { PageInputDto } from '../../../core/base-dto';
