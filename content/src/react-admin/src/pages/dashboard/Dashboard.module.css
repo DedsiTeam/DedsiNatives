@@ -1,0 +1,112 @@
+.dashboardContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.welcomeCard {
+  border-radius: var(--radius-lg);
+  background: var(--color-pure-white);
+  border: 1px solid var(--color-cool-gray) !important;
+  box-shadow: var(--shadow-subtle);
+}
+
+.welcomeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.welcomeTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-deep-black);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.welcomeSubtitle {
+  font-size: 13px;
+  color: var(--color-slate-gray);
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+.statCard {
+  border-radius: var(--radius-lg);
+  background: var(--color-pure-white);
+  border: 1px solid var(--color-cool-gray) !important;
+  transition: all 0.2s ease;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong) !important;
+  box-shadow: var(--shadow-md);
+}
+
+.quickActionCard {
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  background: var(--color-pure-white);
+  border: 1px solid var(--color-cool-gray);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quickActionCard:hover {
+  background: var(--color-surface-subtle);
+  border-color: var(--color-deep-black);
+  box-shadow: 0 4px 12px rgba(9, 10, 15, 0.08);
+}
+
+.quickActionIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.quickActionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-deep-black);
+}
+
+.quickActionDesc {
+  font-size: 11px;
+  color: var(--color-neutral-gray);
+}
+
+.healthBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.healthBadgeOnline {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+  border: 1px solid var(--color-success-border);
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-success-text);
+}

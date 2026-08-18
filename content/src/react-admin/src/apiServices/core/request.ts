@@ -74,7 +74,12 @@ export class HttpClient {
 
         switch (status) {
           case 401:
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('current_user');
             message.error('登录状态已过期，请重新登录');
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login';
+            }
             break;
           case 403:
             message.error('您没有权限访问该资源');

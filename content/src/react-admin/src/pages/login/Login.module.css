@@ -2,28 +2,37 @@
   width: 100vw;
   height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   background-color: var(--color-bg);
-  background-image: url('../../assets/bg-1.jpeg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
   position: relative;
   overflow: hidden;
+  padding: 24px;
+}
+
+/* 1. 动态科技网格纹理背景 */
+.gridPattern {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(9, 10, 15, 0.08) 1px, transparent 0);
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* 居中核心登录卡片 */
 .loginCard {
-  width: 420px;
-  box-sizing: border-box;
-  background: var(--color-card);
-  border-radius: var(--radius-card);
+  width: 100%;
+  max-width: 420px;
+  background: var(--color-pure-white);
+  border-radius: var(--radius-xl);
   padding: 40px 36px;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-border);
+  box-shadow: 0 12px 32px -4px rgba(9, 10, 15, 0.08), 0 0 0 1px rgba(9, 10, 15, 0.04);
+  border: 1px solid var(--color-cool-gray);
   z-index: 2;
-  animation: cardEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: cardEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* 品牌 Header */
@@ -32,57 +41,57 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .logoBadge {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-card);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-lg);
+  background: var(--color-deep-black);
+  color: var(--color-pure-white);
   font-weight: 700;
-  font-size: 24px;
+  font-size: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-primary-md);
-  margin-bottom: 16px;
+  box-shadow: var(--shadow-primary-sm);
+  margin-bottom: 14px;
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .logoBadge:hover {
-  transform: scale(1.05) rotate(5deg);
+  transform: scale(1.05);
 }
 
 .brandName {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  color: var(--color-title);
+  color: var(--color-deep-black);
   letter-spacing: -0.02em;
   margin-bottom: 4px;
 }
 
 .subTitle {
-  font-size: 14px;
-  color: var(--color-muted);
+  font-size: 13px;
+  color: var(--color-slate-gray);
 }
 
 .submitBtn {
   width: 100%;
-  height: 44px;
-  font-size: 15px;
+  height: 40px;
+  font-size: 14px;
   font-weight: 600;
   border-radius: var(--radius-btn);
-  background-color: var(--color-primary) !important;
+  background-color: var(--color-deep-black) !important;
   border: none;
-  box-shadow: var(--shadow-primary-md);
+  box-shadow: var(--shadow-primary-sm);
   transition: var(--transition);
 }
 
 .submitBtn:hover {
-  background-color: var(--color-primary-hover) !important;
-  box-shadow: var(--shadow-primary-lg);
+  background-color: var(--color-slate-gray) !important;
+  box-shadow: var(--shadow-primary-md);
   transform: translateY(-1px);
 }
 
@@ -90,26 +99,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 /* 页脚版权声明 */
 .footer {
-  position: absolute;
-  right: 0;
-  bottom: 24px;
-  left: 0;
-  font-size: 13px;
-  color: var(--color-on-primary);
+  margin-top: 24px;
+  font-size: 12px;
+  color: var(--color-neutral-gray);
   text-align: center;
-  text-shadow: var(--shadow-text-on-image);
   z-index: 2;
 }
 
 @keyframes cardEntrance {
   from {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;

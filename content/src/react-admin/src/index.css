@@ -1,71 +1,84 @@
-/* 导入 Inter 字体 (欧美现代科技风格) */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* 导入 Inter 字体与 JetBrains Mono 代码字体 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  /* 品牌色 */
-  --color-primary: #512bd4;
-  --color-primary-hover: #4322b8;
-  --color-primary-active: #371c99;
-  --color-primary-light: #eee9ff;
-  --color-primary-soft: #f6f3ff;
-  --color-primary-subtle: #faf9ff;
-  --color-on-primary: #ffffff;
+  /* ─────────────────────────────────────────────────────────────
+     1. 主色与中性色（黑白灰体系）
+     ───────────────────────────────────────────────────────────── */
+  --color-deep-black: #090a0f;   /* 主色 (colorPrimary)、主标题、高对比度文字 */
+  --color-slate-gray: #1e293b;   /* 次级标题、正文文字、悬停交互色 */
+  --color-neutral-gray: #64748b; /* 辅助说明、占位符、弱边框 */
+  --color-cool-gray: #e2e8f0;    /* 分割线、描边、次级背景填充 */
+  --color-pure-white: #ffffff;   /* 页面底色、卡片背景、反白文字 */
 
-  /* 页面与表面 */
-  --color-bg: #f7f7fc;
-  --color-card: #ffffff;
-  --color-surface: #ffffff;
-  --color-surface-subtle: #f5f3f8;
-  --color-table-header: #f8f7fb;
-  --color-table-hover: #faf9fd;
-  --color-border: #e7e3f0;
-  --color-border-strong: #d9d3e3;
+  /* 2. 品牌主色体系 (Primary: #090A0F) */
+  --color-primary: var(--color-deep-black);
+  --color-primary-hover: var(--color-slate-gray);
+  --color-primary-active: #000000;
+  --color-primary-light: #f1f5f9;
+  --color-primary-soft: #f8fafc;
+  --color-on-primary: var(--color-pure-white);
 
-  /* 文字与图标 */
-  --color-title: #171321;
-  --color-body: #3f3a4a;
-  --color-text: #3f3a4a;
-  --color-muted: #706a7d;
-  --color-placeholder: #9b96a6;
-  --color-disabled: #aaa5b4;
+  /* 3. 语义映射别名 */
+  --color-bg: #f8fafc;
+  --color-card: var(--color-pure-white);
+  --color-surface: var(--color-pure-white);
+  --color-surface-subtle: #f8fafc;
+  --color-surface-active: #f1f5f9;
+  --color-table-header: #f8fafc;
+  --color-table-hover: #fbfaff;
+  --color-border: var(--color-cool-gray);
+  --color-border-strong: var(--color-neutral-gray);
 
-  /* 业务状态 */
-  --color-success: #15803d;
-  --color-success-light: #f0fdf4;
-  --color-warning: #b45309;
-  --color-warning-light: #fff7ed;
-  --color-warning-border: #fed7aa;
-  --color-error: #b42318;
-  --color-error-light: #fef3f2;
-  --color-info: #2563eb;
-  --color-info-light: #eff6ff;
+  --color-title: var(--color-deep-black);
+  --color-text: var(--color-slate-gray);
+  --color-body: var(--color-slate-gray);
+  --color-muted: var(--color-neutral-gray);
+  --color-placeholder: var(--color-neutral-gray);
+  --color-disabled: #cbd5e1;
 
-  /* 半透明效果与阴影 */
-  --color-focus-ring: rgb(81 43 212 / 22%);
-  --color-scrollbar: rgb(23 19 33 / 15%);
-  --color-scrollbar-hover: rgb(23 19 33 / 25%);
-  --shadow-primary-sm: 0 2px 8px rgb(81 43 212 / 22%);
-  --shadow-primary-md: 0 4px 12px rgb(81 43 212 / 24%);
-  --shadow-primary-lg: 0 6px 16px rgb(81 43 212 / 30%);
-  --shadow-sm: 0 1px 2px 0 rgb(23 19 33 / 4%);
-  --shadow-md: 0 4px 12px 0 rgb(23 19 33 / 6%);
-  --shadow-lg: 0 12px 24px -4px rgb(23 19 33 / 10%);
-  --shadow-text-on-image: 0 1px 3px rgb(0 0 0 / 45%);
+  /* 状态色体系 */
+  --color-success: #16a34a;
+  --color-success-bg: #f0fdf4;
+  --color-success-border: #bbf7d0;
+  --color-success-text: #15803d;
 
-  /* 4px 基础网格间距 */
-  --space-4: 4px;
-  --space-8: 8px;
-  --space-12: 12px;
-  --space-16: 16px;
-  --space-20: 20px;
-  --space-24: 24px;
-  --space-32: 32px;
-  --space-48: 48px;
+  --color-error: #dc2626;
+  --color-error-bg: #fef2f2;
+  --color-error-border: #fecaca;
+  --color-error-text: #b91c1c;
 
-  /* 圆角规范 */
-  --radius-card: 12px;
-  --radius-btn: 8px;
+  --color-warning: #d97706;
+  --color-warning-bg: #fffbeb;
+  --color-warning-border: #fde68a;
+  --color-warning-text: #b45309;
 
+  --color-info: #0284c7;
+  --color-info-bg: #f0f9ff;
+  --color-info-border: #bae6fd;
+  --color-info-text: #0369a1;
+
+  /* ─────────────────────────────────────────────────────────────
+     4. 规范度量 (Metrics, Elevation & Radii)
+     ───────────────────────────────────────────────────────────── */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-card: var(--radius-lg);
+  --radius-btn: var(--radius-md);
+
+  --shadow-subtle: 0 1px 2px 0 rgba(9, 10, 15, 0.05);
+  --shadow-floating-modal: 0 12px 32px -4px rgba(9, 10, 15, 0.12), 0 0 0 1px rgba(9, 10, 15, 0.05);
+  --color-focus-ring: rgba(9, 10, 15, 0.12);
+  --shadow-primary-sm: 0 2px 8px rgba(9, 10, 15, 0.2);
+  --shadow-primary-md: 0 4px 12px rgba(9, 10, 15, 0.25);
+  --shadow-sm: 0 1px 3px 0 rgba(9, 10, 15, 0.04), 0 1px 2px 0 rgba(9, 10, 15, 0.02);
+  --shadow-md: 0 4px 12px 0 rgba(9, 10, 15, 0.06);
+  --shadow-lg: 0 12px 24px -4px rgba(9, 10, 15, 0.08);
+
+  --color-scrollbar: rgba(9, 10, 15, 0.15);
+  --color-scrollbar-hover: rgba(9, 10, 15, 0.25);
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -82,13 +95,18 @@ html, body, #root {
   padding: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: var(--color-bg);
-  color: var(--color-body);
+  color: var(--color-text);
   line-height: 1.5;
-  font-size: 14px;
+  font-size: 13px;
   -webkit-font-smoothing: antialiased;
 }
 
-/* 自定义美化滚动条 */
+/* 统一代码字体 */
+code, pre, kbd {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* 美化滚动条 */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -104,7 +122,7 @@ html, body, #root {
   background: var(--color-scrollbar-hover);
 }
 
-/* 优化 Table 分页器：分为左右两部分，左侧显示数据总数与页码文字，右侧显示分页按钮 */
+/* 优化 Table 分页器 */
 .ant-table-wrapper .ant-table-pagination.ant-pagination {
   display: flex !important;
   justify-content: space-between !important;
@@ -116,15 +134,17 @@ html, body, #root {
 .ant-table-wrapper .ant-table-pagination .ant-pagination-total-text {
   margin-right: auto !important;
   color: var(--color-muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
+/* 主操作按钮规范 (Primary: #090A0F 黑底白字) */
 .create-primary-button {
   color: var(--color-on-primary) !important;
   background: var(--color-primary) !important;
   border-color: var(--color-primary) !important;
   border-radius: var(--radius-btn) !important;
   box-shadow: var(--shadow-primary-sm);
+  font-weight: 500;
 }
 
 .create-primary-button:hover,
@@ -132,10 +152,11 @@ html, body, #root {
   color: var(--color-on-primary) !important;
   background: var(--color-primary-hover) !important;
   border-color: var(--color-primary-hover) !important;
+  box-shadow: var(--shadow-primary-md);
 }
 
 .create-primary-button:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-focus-ring);
+  box-shadow: var(--shadow-subtle), 0 0 0 2px var(--color-focus-ring);
 }
 
 .create-primary-button:active {
@@ -148,4 +169,76 @@ html, body, #root {
   background: var(--color-surface-subtle) !important;
   border-color: var(--color-border) !important;
   box-shadow: none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   5. 浅色系 Tag 规范 (radius-sm = 4px)
+   ───────────────────────────────────────────────────────────── */
+.ant-tag {
+  border-radius: var(--radius-sm) !important;
+  padding: 1px 7px !important;
+  font-weight: 500 !important;
+  font-size: 11px !important;
+  line-height: 18px !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  transition: all 0.2s ease !important;
+}
+
+/* 成功 / 启用 / 正常 */
+.ant-tag-success,
+.ant-tag-green {
+  background-color: var(--color-success-bg) !important;
+  border-color: var(--color-success-border) !important;
+  color: var(--color-success-text) !important;
+}
+
+/* 失败 / 禁用 / 异常 / 错误 */
+.ant-tag-error,
+.ant-tag-red {
+  background-color: var(--color-error-bg) !important;
+  border-color: var(--color-error-border) !important;
+  color: var(--color-error-text) !important;
+}
+
+/* 警告 / 锁定 / 预警 */
+.ant-tag-warning,
+.ant-tag-gold,
+.ant-tag-orange {
+  background-color: var(--color-warning-bg) !important;
+  border-color: var(--color-warning-border) !important;
+  color: var(--color-warning-text) !important;
+}
+
+/* 信息 / 处理中 / 系统 */
+.ant-tag-processing,
+.ant-tag-blue,
+.ant-tag-info {
+  background-color: var(--color-info-bg) !important;
+  border-color: var(--color-info-border) !important;
+  color: var(--color-info-text) !important;
+}
+
+/* 权限 / 角色 */
+.ant-tag-purple {
+  background-color: #f5f3ff !important;
+  border-color: #ddd6fe !important;
+  color: #6d28d9 !important;
+}
+
+/* 组织机构 / 青色 */
+.ant-tag-cyan {
+  background-color: #ecfeff !important;
+  border-color: #a5f3fc !important;
+  color: #0e7490 !important;
+}
+
+/* 默认 / 禁用说明 */
+.ant-tag-default {
+  background-color: #f8fafc !important;
+  border-color: var(--color-cool-gray) !important;
+  color: var(--color-slate-gray) !important;
 }

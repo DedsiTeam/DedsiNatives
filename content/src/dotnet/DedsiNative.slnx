@@ -13,5 +13,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/DedsiNative.Core.Tests/DedsiNative.Core.Tests.csproj" />
+    <Project Path="tests/DedsiNative.Host.Tests/DedsiNative.Host.Tests.csproj" />
   </Folder>
 </Solution>

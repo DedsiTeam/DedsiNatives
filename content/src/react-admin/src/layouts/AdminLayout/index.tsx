@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import {
   Menu,
   Avatar,
@@ -11,13 +11,13 @@ import {
   DashboardOutlined,
   UserOutlined,
   SettingOutlined,
-  ShoppingOutlined,
-  BarChartOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   LogoutOutlined,
   LockOutlined,
   SafetyCertificateOutlined,
+  BookOutlined,
+  AuditOutlined,
 } from '@ant-design/icons';
 import styles from './AdminLayout.module.css';
 import './menu-compat.css';
@@ -26,7 +26,46 @@ interface AdminLayoutProps {
   children?: React.ReactNode;
 }
 
-const menuItems: MenuProps['items'] = [
+/**
+ * 布局展示所需的当前用户资料。
+ */
+interface CurrentUser {
+  /** 用户姓名。 */
+  name: string;
+  /** 用户邮箱。 */
+  email: string;
+  /** 用户登录账号。 */
+  account: string;
+  /** 当前用户拥有的权限编码。 */
+  permissions: string[];
+}
+
+/**
+ * 从本地登录会话读取布局可展示的用户资料。
+ */
+function getCurrentUser(): CurrentUser {
+  try {
+    const storedUser = localStorage.getItem('current_user');
+    const parsedUser: unknown = storedUser ? JSON.parse(storedUser) : null;
+    if (typeof parsedUser !== 'object' || parsedUser === null) {
+      return { name: '', email: '', account: '', permissions: [] };
+    }
+
+    const user = parsedUser as Partial<CurrentUser>;
+    return {
+      name: typeof user.name === 'string' ? user.name : '',
+      email: typeof user.email === 'string' ? user.email : '',
+      account: typeof user.account === 'string' ? user.account : '',
+      permissions: Array.isArray(user.permissions)
+        ? user.permissions.filter((permission): permission is string => typeof permission === 'string')
+        : [],
+    };
+  } catch {
+    return { name: '', email: '', account: '', permissions: [] };
+  }
+}
+
+const getMenuItems = (canViewLoginAudits: boolean): MenuProps['items'] => [
   {
     key: '/dashboard',
     icon: <DashboardOutlined />,
@@ -37,43 +76,59 @@ const menuItems: MenuProps['items'] = [
     icon: <SettingOutlined />,
     label: '系统管理',
     children: [
+      { key: '/system/systems', icon: <SettingOutlined />, label: '系统管理' },
+      { key: '/system/permissions', icon: <SafetyCertificateOutlined />, label: '权限管理' },
+      { key: '/system/menus', icon: <SettingOutlined />, label: '菜单管理' },
+      { key: '/system/positions', icon: <SafetyCertificateOutlined />, label: '岗位管理' },
       { key: '/system/users', icon: <UserOutlined />, label: '用户管理' },
-      { key: '/system/roles', icon: <SafetyCertificateOutlined />, label: '角色权限' },
+      { key: '/system/dictionaries', icon: <BookOutlined />, label: '字典管理' },
+      ...(canViewLoginAudits
+        ? [{ key: '/system/login-audits', icon: <AuditOutlined />, label: '登录审计' }]
+        : []),
     ],
   },
-  {
-    key: '/orders',
-    icon: <ShoppingOutlined />,
-    label: '订单中心',
-  },
-  {
-    key: '/analytics',
-    icon: <BarChartOutlined />,
-    label: '数据分析',
-  },
-  {
-    key: '/settings',
-    icon: <SettingOutlined />,
-    label: '偏好设置',
-  },
 ];
+
+const pageTitles: Record<string, string> = {
+  '/dashboard': '仪表盘',
+  '/system/users': '用户管理',
+  '/system/systems': '系统管理',
+  '/system/permissions': '权限管理',
+  '/system/positions': '岗位管理',
+  '/system/menus': '菜单管理',
+  '/system/dictionaries': '字典管理',
+  '/system/login-audits': '登录审计',
+  '/profile': '个人中心',
+  '/change-password': '修改密码',
+};
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
+  const token = localStorage.getItem('access_token');
+  const currentUser = getCurrentUser();
+
+  // 未登录或没有有效用户信息时，自动重定向至登录页
+  if (!token || !currentUser.account) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  const menuItems = getMenuItems(currentUser.permissions.includes('LoginAudits.View'));
+
   // 当前选中的菜单项
   const selectedKeys = [location.pathname || '/dashboard'];
+  const currentPageTitle = pageTitles[selectedKeys[0]] ?? '页面';
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {
     navigate(e.key);
   };
 
   const handleUserMenuClick: MenuProps['onClick'] = (e) => {
-    if (e.key === 'logout') {
-      navigate('/login');
-    }
+    if (e.key === 'profile') navigate('/profile');
+    else if (e.key === 'password') navigate('/change-password');
+    else if (e.key === 'logout') { localStorage.removeItem('access_token'); localStorage.removeItem('current_user'); navigate('/login'); }
   };
 
   // 用户下拉菜单项
@@ -140,7 +195,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             <Breadcrumb
               items={[
                 { title: '首页' },
-                { title: selectedKeys[0].replace('/', '') || '仪表盘' },
+                { title: currentPageTitle },
               ]}
             />
           </div>
@@ -152,11 +207,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                   size="default"
                   style={{ backgroundColor: 'var(--color-primary)', cursor: 'pointer' }}
                 >
-                  Admin
+                  {(currentUser.name || currentUser.account || 'U').charAt(0).toUpperCase()}
                 </Avatar>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span className={styles.userName}>超级管理员</span>
-                  <span className={styles.userRole}>admin@dedsi.com</span>
+                  <span className={styles.userName}>{currentUser.name || currentUser.account || '未登录用户'}</span>
+                  <span className={styles.userRole}>{currentUser.email || currentUser.account || '-'}</span>
                 </div>
               </div>
             </Dropdown>

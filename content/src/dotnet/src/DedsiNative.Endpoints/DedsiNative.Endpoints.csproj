@@ -8,11 +8,18 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+        <Using Include="Microsoft.AspNetCore.Http" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="FastEndpoints" Version="8.2.0" />
         <PackageReference Include="FastEndpoints.OpenApi" Version="8.2.0" />
-        <!-- 固定到已修复 GHSA-v5pm-xwqc-g5wc 的 2.x 版本，覆盖上游最低依赖 2.0.0。 -->
         <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.2" />
+        <PackageReference Include="Dedsi.CleanArchitecture.HttpApi" Version="$(DedsiFrameworkVersion)" />
     </ItemGroup>
 
     <ItemGroup>

@@ -9,7 +9,7 @@
  */
 
 import request from '../../core/request';
-import type { UserQueryInputDto, CreateUserInputDto, UpdateUserInputDto } from './dtos/user-input.dto';
+import type { UserQueryInputDto, CreateUserInputDto, UpdateUserInputDto, UpdateUserPositionsInputDto } from './dtos/user-input.dto';
 import type { UserResultDto, UserPageResultDto } from './dtos/user-result.dto';
 
 export class UserApiService {
@@ -65,6 +65,24 @@ export class UserApiService {
   static async deleteUser(id: string): Promise<boolean> {
     return request.post<boolean>(
       `/api/user/delete/${encodeURIComponent(id)}`,
+    );
+  }
+
+  /**
+   * 将指定用户的密码恢复为系统默认密码。
+   * @param id 用户唯一 ID。
+   */
+  static async resetPassword(id: string): Promise<boolean> {
+    return request.post<boolean>(
+      `/api/user/resetPassword/${encodeURIComponent(id)}`,
+    );
+  }
+
+  /** 替换用户的岗位关联。 */
+  static async updatePositions(id: string, data: UpdateUserPositionsInputDto): Promise<boolean> {
+    return request.post<boolean, UpdateUserPositionsInputDto>(
+      `/api/user/positions/${encodeURIComponent(id)}`,
+      data,
     );
   }
 }

@@ -12,7 +12,7 @@ public sealed class UserQuery(IDedsiNativeDbContext dbContext) : IUserQuery
     /// <inheritdoc />
     public async Task<UserPagedQueryResult> GetPagedAsync(
         UserPagedQuery query,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var name = query.Name?.Trim();
         var email = query.Email?.Trim();
@@ -39,27 +39,11 @@ public sealed class UserQuery(IDedsiNativeDbContext dbContext) : IUserQuery
             .Select(user => new UserQueryItem(
                 user.Id,
                 user.Name,
-                user.Email))
+                user.Email,
+                user.Phone,
+                user.LastUpdatedAt))
             .ToListAsync(cancellationToken);
 
         return new UserPagedQueryResult(totalCount, items);
-    }
-
-    /// <inheritdoc />
-    public Task<UserLoginQueryResult?> FindLoginByAccountAsync(
-        string account,
-        CancellationToken cancellationToken = default)
-    {
-        return dbContext.Users
-            .AsNoTracking()
-            .Where(user => user.Account == account
-                && user.PasswordHash != null
-                && user.PasswordSalt != null)
-            .Select(user => new UserLoginQueryResult(
-                user.Id,
-                user.Name,
-                user.PasswordHash!,
-                user.PasswordSalt!))
-            .SingleOrDefaultAsync(cancellationToken);
     }
 }

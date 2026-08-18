@@ -7,7 +7,7 @@ namespace DedsiNative.EntityFrameworkCore.Configurations;
 /// <summary>
 /// 用户实体的 EF Core 数据库映射配置，定义表名、主键及所有字段的列约束。
 /// </summary>
-public sealed class UserConfiguration : IEntityTypeConfiguration<User>
+public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     /// <summary>
     /// 配置 <see cref="User"/> 实体到数据库的映射规则，包括表名、主键和每个字段的约束。
@@ -21,9 +21,7 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         // ── 主键 ──────────────────────────────────────────────────
         // Id：用户唯一标识，使用 ULID 字符串，最大长度 26 位
         builder.HasKey(x => x.Id);
-        builder.Property(x => x.Id)
-            .HasMaxLength(26)
-            .IsRequired();
+        builder.Property(x => x.Id).IsRequired();
 
         // ── User 自有字段 ─────────────────────────────────────────
         // Name：用户名称，必填，最大长度 64
@@ -36,21 +34,56 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(UserConsts.MaxEmailLength)
             .IsRequired();
 
-        builder.Property(x => x.Account)
-            .HasMaxLength(UserConsts.MaxAccountLength)
-            .IsRequired(false);
+        builder.Property(x => x.Phone).HasMaxLength(32).IsRequired(false);
+        builder.Property(x => x.IdCardNumber).HasMaxLength(32).IsRequired(false);
+        builder.Property(x => x.LastUpdatedAt).IsRequired();
+        builder.Property(x => x.LastLoginTime).IsRequired(false);
+        builder.Property(x => x.LastLoginIp).HasMaxLength(64).IsRequired(false);
+        builder.Property(x => x.SoftDeletedAt).IsRequired(false);
 
-        // 登录账号必须全局唯一；PostgreSQL 唯一索引允许多个尚未开通登录的空账号。
-        builder.HasIndex(x => x.Account)
-            .IsUnique();
+        var defaultUserId = Guid.Parse("01951500-0000-7000-8000-000000000001");
 
-        builder.Property(x => x.PasswordHash)
-            .HasMaxLength(UserConsts.MaxPasswordHashLength)
-            .IsRequired(false);
+        // 登录信息是用户聚合内的一对一子实体，随用户聚合统一跟踪和保存。
+        builder.OwnsOne(user => user.LoginInfo, loginInfoBuilder =>
+        {
+            loginInfoBuilder.ToTable("UserLoginInfos", DedsiNativeCoreConsts.DbSchemaName);
+            loginInfoBuilder.WithOwner().HasForeignKey(loginInfo => loginInfo.UserId);
+            loginInfoBuilder.HasKey(loginInfo => loginInfo.UserId);
+            loginInfoBuilder.Property(loginInfo => loginInfo.Account).HasMaxLength(128).IsRequired();
+            loginInfoBuilder.HasIndex(loginInfo => loginInfo.Account).IsUnique();
+            loginInfoBuilder.Property(loginInfo => loginInfo.PasswordHash).HasMaxLength(512).IsRequired();
+            loginInfoBuilder.Property(loginInfo => loginInfo.PasswordSalt).HasMaxLength(256).IsRequired();
+            loginInfoBuilder.Property(loginInfo => loginInfo.Status).HasConversion<string>().HasMaxLength(16).IsRequired();
 
-        builder.Property(x => x.PasswordSalt)
-            .HasMaxLength(UserConsts.MaxPasswordSaltLength)
-            .IsRequired(false);
+            loginInfoBuilder.HasData(new
+            {
+                UserId = defaultUserId,
+                Account = "CohenWang",
+                PasswordHash = "W/2szOheNj12boeq2Lb+T8mtJsWknqskgTxfEcbPV68=",
+                PasswordSalt = "AQIDBAUGBwgJCgsMDQ4PEA==",
+                Status = AccountStatus.Normal
+            });
+        });
+
+        // 岗位关联是用户聚合内的集合子实体，以用户和岗位标识组成复合主键。
+        builder.OwnsMany(user => user.Positions, positionBuilder =>
+        {
+            positionBuilder.ToTable("UserPositions", DedsiNativeCoreConsts.DbSchemaName);
+            positionBuilder.WithOwner().HasForeignKey(position => position.UserId);
+            positionBuilder.HasKey(position => new { position.UserId, position.PositionId });
+            positionBuilder.Property(position => position.PositionId).HasMaxLength(26).IsRequired();
+            positionBuilder.Property(position => position.PositionName).HasMaxLength(128).IsRequired();
+
+            positionBuilder.HasData(new
+            {
+                UserId = defaultUserId,
+                PositionId = "01ARZ3NDEKTSV4RRFFQ69G5FB0",
+                PositionName = "系统管理员"
+            });
+        });
+        
+        builder.Navigation(user => user.LoginInfo).AutoInclude();
+        builder.Navigation(user => user.Positions).AutoInclude();
 
         // ── 继承自 DedsiAggregateRoot 的审计字段 ──────────────────
         // CreationTime：记录创建时间，统一存储为 UTC
@@ -73,22 +106,17 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired(false)
             .IsConcurrencyToken();
 
-        var creationTime = new DateTime(2026, 8, 17, 0, 0, 0, DateTimeKind.Utc);
-
-        // 种子使用确定性的密码材料，避免模型快照因随机盐变化而产生重复迁移。
         builder.HasData(new
         {
-            Id = "01ARZ3NDEKTSV4RRFFQ69G5FAV",
-            Name = "超级管理员",
-            Email = "admin@dedsinative.local",
-            Account = "15833084138",
-            PasswordHash = "DqpyFntIjpkXAwEXsqcW5PDBfi27fXEnDcuC4v4f3/Q=",
-            PasswordSalt = "XMTFCyq7q+8jOGe5ihk1eA==",
-            ExtraProperties = new Volo.Abp.Data.ExtraPropertyDictionary(),
-            ConcurrencyStamp = (string?)null,
+            Id = defaultUserId,
+            Name = "CohenWang",
+            Email = "cohenwang@example.com",
+            LastUpdatedAt = new DateTime(2026, 8, 18, 0, 0, 0),
+            CreationTime = new DateTime(2026, 8, 18, 0, 0, 0),
             CreatorId = Guid.Empty,
             CreatorName = "system",
-            CreationTime = creationTime
+            ExtraProperties = new Volo.Abp.Data.ExtraPropertyDictionary(),
+            ConcurrencyStamp = (string?)null
         });
     }
 }

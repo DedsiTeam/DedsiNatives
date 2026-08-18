@@ -1,0 +1,15 @@
+.page {
+  width: min(100%, 720px);
+  margin-inline: auto;
+}
+.card { border: 1px solid var(--color-border); border-radius: var(--radius-card); box-shadow: var(--shadow-sm); }
+.content { width: min(100%, 560px); margin-inline: auto; }
+.heading { margin-bottom: 24px; }
+.heading h3 { margin: 0; color: var(--color-title); }
+.heading p { margin: 8px 0 0; color: var(--color-muted); }
+.notice { margin: 24px 0; }
+.form { width: 100%; }
+
+@media (max-width: 768px) {
+  .content { width: 100%; }
+}

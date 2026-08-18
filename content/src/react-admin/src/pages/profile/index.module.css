@@ -1,0 +1,18 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: min(100%, 960px);
+  margin-inline: auto;
+}
+.profileCard, .card { border: 1px solid var(--color-border); border-radius: var(--radius-card); box-shadow: var(--shadow-sm); }
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px;
+}
+.avatar { background: var(--color-primary); }
+.name { margin: 0 !important; color: var(--color-title) !important; }
+.email { margin: 4px 0 0 !important; color: var(--color-muted) !important; }

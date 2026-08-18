@@ -1,0 +1,83 @@
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+.toolbarCard,
+.tableCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.toolbar,
+.filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+}
+
+.toolbar {
+  justify-content: space-between;
+}
+
+.timeRange {
+  width: 320px;
+}
+
+.selectFilter {
+  width: 132px;
+}
+
+.textFilter {
+  width: 148px;
+}
+
+.ipFilter {
+  width: 144px;
+}
+
+.identityCell,
+.detailSummary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.detailSummary {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-16);
+  padding: var(--space-16);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-card);
+  background: var(--color-primary-light);
+}
+
+.userAgent {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+  .toolbar,
+  .filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .toolbar > :last-child {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .timeRange,
+  .selectFilter,
+  .textFilter,
+  .ipFilter {
+    width: 100%;
+  }
+}

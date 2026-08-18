@@ -20,3 +20,39 @@ export * from './modules/order/dtos/order-result.dto';
 export * from './modules/auth/auth.service';
 export * from './modules/auth/dtos/auth-input.dto';
 export * from './modules/auth/dtos/auth-result.dto';
+
+// 5. 导出系统业务模块及其 DTO
+export * from './modules/system/system.service';
+export * from './modules/system/dtos/system-input.dto';
+export * from './modules/system/dtos/system-result.dto';
+
+// 6. 导出权限业务模块及其 DTO
+export * from './modules/permission/permission.service';
+export * from './modules/permission/dtos/permission-input.dto';
+export * from './modules/permission/dtos/permission-result.dto';
+
+// 7. 导出岗位业务模块及其 DTO
+export * from './modules/position/position.service';
+export * from './modules/position/dtos/position-input.dto';
+export * from './modules/position/dtos/position-result.dto';
+export * from './modules/menu/menu.service';
+export * from './modules/menu/dtos/menu-input.dto';
+export * from './modules/menu/dtos/menu-result.dto';
+export * from './modules/dictionary/dictionary.service';
+export * from './modules/dictionary/dtos/dictionary-input.dto';
+export * from './modules/dictionary/dtos/dictionary-result.dto';
+export type { UpdateUserPositionsInputDto } from './modules/user/dtos/user-input.dto';
+export type { UserPositionResultDto } from './modules/user/dtos/user-result.dto';
+export { ProfileApiService } from './modules/profile/profile.service';
+export type { ChangePasswordInputDto, ProfileResultDto } from './modules/profile/profile.service';
+export { LoginAuditApiService } from './modules/login-audit/login-audit.service';
+export {
+  LoginReason,
+  LoginResult,
+} from './modules/login-audit/dtos/login-audit-input.dto';
+export type { LoginAuditQueryInputDto } from './modules/login-audit/dtos/login-audit-input.dto';
+export type {
+  LoginAuditPageResultDto,
+  LoginAuditResultDto,
+  LoginAuditRowResultDto,
+} from './modules/login-audit/dtos/login-audit-result.dto';

@@ -1,5 +1,4 @@
 using Dedsi.Ddd.Domain.Entities;
-using DedsiNative.Users.Events;
 using Volo.Abp;
 
 namespace DedsiNative.Users;
@@ -7,7 +6,7 @@ namespace DedsiNative.Users;
 /// <summary>
 /// 用户聚合根实体，包含用户基本信息及相关业务操作。
 /// </summary>
-public class User : DedsiAggregateRoot<string>
+public class User : DedsiAggregateRoot<Guid>
 {
     /// <summary>
     /// 受保护的无参构造函数，供 ORM 框架反射实例化使用，禁止业务代码直接调用。
@@ -22,11 +21,11 @@ public class User : DedsiAggregateRoot<string>
     /// <param name="id">用户唯一标识（ULID 字符串）。</param>
     /// <param name="name">用户名称，不能为空或纯空白字符。</param>
     /// <param name="email">用户邮箱地址，不能为空或纯空白字符。</param>
-    public User(string id, string name, string email) : base(id)
+    public User(Guid id, string name, string email) : base(id)
     {
         ChangeName(name);
         ChangeEmail(email);
-        AddLocalEvent(new UserCreatedEvent(Id, Name, Email));
+        LastUpdatedAt = DateTime.Now;
     }
 
     /// <summary>
@@ -39,20 +38,137 @@ public class User : DedsiAggregateRoot<string>
     /// </summary>
     public string Email { get; private set; } = string.Empty;
 
-    /// <summary>
-    /// 登录账号；尚未开通登录能力的普通用户为空。
-    /// </summary>
-    public string? Account { get; private set; }
+    /// <summary>用户联系电话。</summary>
+    public string? Phone { get; private set; }
+
+    /// <summary>用户身份证号码。</summary>
+    public string? IdCardNumber { get; private set; }
+
+    /// <summary>最后更新时间。</summary>
+    public DateTime LastUpdatedAt { get; private set; }
+
+    /// <summary>最后登录时间。</summary>
+    public DateTime? LastLoginTime { get; private set; }
+
+    /// <summary>最后登录 IP 地址。</summary>
+    public string? LastLoginIp { get; private set; }
+
+    /// <summary>软删除时间；为空表示未删除。</summary>
+    public DateTime? SoftDeletedAt { get; private set; }
+
+    /// <summary>用户登录信息。</summary>
+    public UserLoginInfo? LoginInfo { get; private set; }
+
+    /// <summary>用户关联的岗位集合。</summary>
+    public ICollection<UserPosition> Positions { get; private set; } = [];
+
+    /// <summary>设置用户联系电话。</summary>
+    public User ChangePhone(string? phone) { Phone = phone?.Trim(); LastUpdatedAt = DateTime.Now; return this; }
+
+    /// <summary>设置用户身份证号码。</summary>
+    public User ChangeIdCardNumber(string? idCardNumber) { IdCardNumber = idCardNumber?.Trim(); LastUpdatedAt = DateTime.Now; return this; }
+
+    /// <summary>记录用户最后一次成功登录。</summary>
+    public User RecordLogin(DateTime loginTime, string? ipAddress)
+    {
+        LastLoginTime = loginTime;
+        LastLoginIp = ipAddress?.Trim();
+        LastUpdatedAt = DateTime.Now;
+        return this;
+    }
+
+    /// <summary>标记用户为软删除。</summary>
+    public User MarkAsSoftDeleted(DateTime? deletedAt = null)
+    {
+        SoftDeletedAt = deletedAt ?? DateTime.Now;
+        LastUpdatedAt = DateTime.Now;
+        return this;
+    }
+
+    /// <summary>绑定用户登录信息。</summary>
+    public User SetLoginInfo(UserLoginInfo loginInfo)
+    {
+        ArgumentNullException.ThrowIfNull(loginInfo);
+        if (loginInfo.UserId != Id) throw new ArgumentException("登录信息必须属于当前用户。", nameof(loginInfo));
+        LoginInfo = loginInfo;
+        LastUpdatedAt = DateTime.Now;
+        return this;
+    }
 
     /// <summary>
-    /// PBKDF2-SHA512 密码哈希；不持久化明文密码。
+    /// 将用户登录密码更新为已经安全处理的密码材料。
     /// </summary>
-    public string? PasswordHash { get; private set; }
+    /// <param name="passwordHash">新的密码哈希。</param>
+    /// <param name="passwordSalt">新的密码盐值。</param>
+    /// <returns>当前用户聚合根。</returns>
+    public User ResetPassword(string passwordHash, string passwordSalt)
+    {
+        if (SoftDeletedAt is not null)
+        {
+            throw new BusinessException("User:CannotResetPasswordForSoftDeletedUser");
+        }
+
+        if (LoginInfo is null)
+        {
+            throw new BusinessException("User:LoginInfoNotFound");
+        }
+
+        LoginInfo.ResetPassword(passwordHash, passwordSalt);
+        LastUpdatedAt = DateTime.Now;
+        return this;
+    }
 
     /// <summary>
-    /// 生成密码哈希所使用的随机盐值。
+    /// 为用户关联岗位。
     /// </summary>
-    public string? PasswordSalt { get; private set; }
+    /// <param name="positionId">岗位唯一标识，必须是 26 位 ULID。</param>
+    /// <param name="positionName">岗位名称快照。</param>
+    /// <returns>当前用户聚合根。</returns>
+    public User AssignPosition(string positionId, string positionName)
+    {
+        var normalizedId = ValidatePositionId(positionId);
+        if (Positions.Any(item => item.PositionId == normalizedId))
+        {
+            throw new ArgumentException("用户不能重复关联同一岗位。", nameof(positionId));
+        }
+
+        Positions.Add(new UserPosition(Id, normalizedId, positionName));
+        LastUpdatedAt = DateTime.Now;
+        return this;
+    }
+
+    /// <summary>
+    /// 移除用户与指定岗位的关联。
+    /// </summary>
+    /// <param name="positionId">岗位唯一标识。</param>
+    /// <returns>当前用户聚合根。</returns>
+    public User RemovePosition(string positionId)
+    {
+        var normalizedId = ValidatePositionId(positionId);
+        var relation = Positions.SingleOrDefault(item => item.PositionId == normalizedId);
+        if (relation is not null)
+        {
+            Positions.Remove(relation);
+            LastUpdatedAt = DateTime.Now;
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// 清空用户的全部岗位关联。
+    /// </summary>
+    /// <returns>当前用户聚合根。</returns>
+    public User ClearPositions()
+    {
+        if (Positions.Count > 0)
+        {
+            Positions.Clear();
+            LastUpdatedAt = DateTime.Now;
+        }
+
+        return this;
+    }
 
     /// <summary>
     /// 修改用户名称。
@@ -65,6 +181,7 @@ public class User : DedsiAggregateRoot<string>
             name,
             nameof(name),
             UserConsts.MaxNameLength);
+        LastUpdatedAt = DateTime.Now;
         return this;
     }
 
@@ -79,29 +196,19 @@ public class User : DedsiAggregateRoot<string>
             email,
             nameof(email),
             UserConsts.MaxEmailLength);
+        LastUpdatedAt = DateTime.Now;
         return this;
     }
 
-    /// <summary>
-    /// 设置用户登录账号和密码材料。
-    /// </summary>
-    /// <param name="account">
-    /// 登录账号，不能为空或纯空白字符。
-    /// </param>
-    /// <param name="password">
-    /// 待安全哈希的明文密码，不能为空或纯空白字符。
-    /// </param>
-    /// <returns>
-    /// 返回当前用户实体，支持链式调用。
-    /// </returns>
-    public User SetLoginCredentials(string account, string password)
+    private static string ValidatePositionId(string positionId)
     {
-        Account = Check.NotNullOrWhiteSpace(
-            account,
-            nameof(account),
-            UserConsts.MaxAccountLength);
+        if (string.IsNullOrWhiteSpace(positionId)
+            || positionId.Length != 26
+            || !Ulid.TryParse(positionId, out _))
+        {
+            throw new ArgumentException("岗位标识必须是合法的 26 位 ULID。", nameof(positionId));
+        }
 
-        (PasswordHash, PasswordSalt) = UserPasswordHasher.Hash(password);
-        return this;
+        return positionId;
     }
 }

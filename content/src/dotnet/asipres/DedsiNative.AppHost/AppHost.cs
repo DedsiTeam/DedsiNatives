@@ -16,7 +16,7 @@ var postgres = builder.AddPostgres("dedsinative-postgres", password: postgresPas
 var dedsiNativeDB = postgres.AddDatabase("DedsiNativeDB");
 
 // RabbitMQ 作为 ABP 分布式事件总线的传输层。持久容器保留本地开发期间的队列与消息。
-var rabbitMq = builder.AddRabbitMQ("DedsiNativeRabbitMQ", rabbitMqUserName, rabbitMqPassword, port: 11424)
+var rabbitMq = builder.AddRabbitMQ("DedsiNativeRabbitMQ", rabbitMqUserName, rabbitMqPassword, port: 14321)
     .WithManagementPlugin(port: 15672)
     .WithLifetime(ContainerLifetime.Persistent);
 #endregion

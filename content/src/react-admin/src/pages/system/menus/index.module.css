@@ -1,0 +1,20 @@
+.page { display: flex; flex-direction: column; gap: var(--space-20); }
+.headerCard, .tableCard { border: 1px solid var(--color-border); border-radius: var(--radius-card); box-shadow: var(--shadow-sm); }
+.toolbar { display: flex; justify-content: space-between; gap: 16px; }
+.search { width: min(360px, 100%); }
+.sectionCard { margin-bottom: 16px; padding: 16px; background: var(--color-surface-subtle); border-radius: var(--radius-btn); }
+.sectionTitle { margin-bottom: 12px; color: var(--color-title); font-weight: 600; }
+.numberInput { width: 100%; }
+/* 菜单状态开关在编辑弹窗中保持四等分，避免被内容宽度挤在左侧。 */
+:global(.ant-modal .ant-modal-body > form > .ant-space) {
+  display: flex !important;
+  justify-content: space-between;
+  width: 100%;
+  gap: 24px;
+}
+:global(.ant-modal .ant-modal-body > form > .ant-space .ant-form-item) { margin-bottom: 0; }
+@media (max-width: 768px) {
+  .toolbar { flex-direction: column; }
+  .search { width: 100%; }
+  :global(.ant-modal .ant-modal-body > form > .ant-space) { flex-wrap: wrap; justify-content: flex-start; }
+}

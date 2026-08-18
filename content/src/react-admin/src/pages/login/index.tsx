@@ -25,7 +25,8 @@ export const LoginPage: React.FC = () => {
 
       if (res && res.token) {
         localStorage.setItem('access_token', res.token);
-        message.success({ content: `欢迎回来，${values.username}！`, key: 'login' });
+        localStorage.setItem('current_user', JSON.stringify(res.user));
+        message.success({ content: `欢迎回来，${res.user.name}！`, key: 'login' });
         navigate('/dashboard');
       }
     } catch {
@@ -37,6 +38,11 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className={styles.loginContainer}>
+      {/* 动态科技背景网格与微流体动画 */}
+      <div className={styles.gridPattern} />
+      <div className={styles.orb1} />
+      <div className={styles.orb2} />
+
       {/* 居中核心登录卡片 */}
       <div className={styles.loginCard}>
         {/* 顶部 Logo 与系统名称 */}
@@ -57,19 +63,19 @@ export const LoginPage: React.FC = () => {
         >
           <Form.Item
             name="username"
-            label={<span style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: 13 }}>账号名</span>}
+            label={<span style={{ fontWeight: 600, color: 'var(--color-body)', fontSize: 13 }}>账号名</span>}
             rules={[{ required: true, message: '请输入您的账号名' }]}
           >
             <Input
               prefix={<UserOutlined style={{ color: 'var(--color-placeholder)', marginRight: 4 }} />}
-              placeholder="请输入账号名"
+              placeholder="例如: admin"
               style={{ borderRadius: 8 }}
             />
           </Form.Item>
 
           <Form.Item
             name="password"
-            label={<span style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: 13 }}>登录密码</span>}
+            label={<span style={{ fontWeight: 600, color: 'var(--color-body)', fontSize: 13 }}>登录密码</span>}
             rules={[{ required: true, message: '请输入您的登录密码' }]}
           >
             <Input.Password
@@ -88,7 +94,7 @@ export const LoginPage: React.FC = () => {
             </Link>
           </div>
 
-          <Form.Item>
+          <Form.Item style={{ marginBottom: 16 }}>
             <Button
               type="primary"
               htmlType="submit"

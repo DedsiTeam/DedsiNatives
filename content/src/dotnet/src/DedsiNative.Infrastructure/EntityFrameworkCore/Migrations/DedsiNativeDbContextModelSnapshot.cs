@@ -24,15 +24,11 @@ namespace DedsiNative.EntityFrameworkCore.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("DedsiNative.Users.User", b =>
+            modelBuilder.Entity("DedsiNative.Dictionaries.Dictionary", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(26)
                         .HasColumnType("character varying(26)");
-
-                    b.Property<string>("Account")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -41,7 +37,547 @@ namespace DedsiNative.EntityFrameworkCore.Migrations
                         .HasColumnName("ConcurrencyStamp");
 
                     b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatorName")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("SystemId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("SystemName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SystemId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("Dictionaries", "DedsiNative");
+                });
+
+            modelBuilder.Entity("DedsiNative.Dictionaries.DictionaryItem", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("DictionaryId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("ParentId")
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<int>("Sort")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
+
+                    b.HasIndex("DictionaryId", "Code")
+                        .IsUnique();
+
+                    b.HasIndex("DictionaryId", "ParentId");
+
+                    b.ToTable("DictionaryItems", "DedsiNative");
+                });
+
+            modelBuilder.Entity("DedsiNative.LoginAudits.LoginAudit", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("Account")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ClientIp")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("FailureDescription")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("LoginTimeUtc")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("Result")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LoginTimeUtc");
+
+                    b.HasIndex("Account", "LoginTimeUtc");
+
+                    b.HasIndex("UserId", "LoginTimeUtc");
+
+                    b.ToTable("LoginAudits", "DedsiNative");
+                });
+
+            modelBuilder.Entity("DedsiNative.Menus.Menu", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Component")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatorName")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("ExternalUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsAffix")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDisabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsExternal")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("KeepAlive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ParentId")
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("PermissionId")
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("PermissionName")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Redirect")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("RoutePath")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Sort")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SystemId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("SystemName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.HasIndex("SystemId", "Code")
+                        .IsUnique();
+
+                    b.HasIndex("SystemId", "ParentId");
+
+                    b.ToTable("Menus", "DedsiNative");
+                });
+
+            modelBuilder.Entity("DedsiNative.Permissions.Permission", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatorName")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("SystemId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("SystemName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SystemId");
+
+                    b.ToTable("Permissions", "DedsiNative");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "01ARZ3NDEKTSV4RRFFQ69G5FB2",
+                            CreationTime = new DateTime(2026, 8, 4, 10, 30, 0, 0, DateTimeKind.Unspecified),
+                            CreatorId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            CreatorName = "system",
+                            Description = "查看登录审计列表和详情。",
+                            ExtraProperties = "{}",
+                            IsEnabled = true,
+                            Name = "LoginAudits.View",
+                            SystemId = "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                            SystemName = "身份管理系统"
+                        });
+                });
+
+            modelBuilder.Entity("DedsiNative.Positions.Position", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatorName")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("SystemId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("SystemName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SystemId");
+
+                    b.ToTable("Positions", "DedsiNative");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "01ARZ3NDEKTSV4RRFFQ69G5FB0",
+                            CreationTime = new DateTime(2026, 8, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatorId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            CreatorName = "system",
+                            Description = "拥有身份管理系统的基础管理权限。",
+                            ExtraProperties = "{}",
+                            IsEnabled = true,
+                            Name = "系统管理员",
+                            SystemId = "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                            SystemName = "身份管理系统"
+                        });
+                });
+
+            modelBuilder.Entity("DedsiNative.Positions.PositionOrganization", b =>
+                {
+                    b.Property<string>("PositionId")
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("OrganizationId")
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("OrganizationName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.HasKey("PositionId", "OrganizationId");
+
+                    b.ToTable("PositionOrganizations", "DedsiNative");
+                });
+
+            modelBuilder.Entity("DedsiNative.Positions.PositionPermission", b =>
+                {
+                    b.Property<string>("PositionId")
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("PermissionId")
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("PermissionName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("SystemId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("SystemName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.HasKey("PositionId", "PermissionId");
+
+                    b.ToTable("PositionPermissions", "DedsiNative");
+
+                    b.HasData(
+                        new
+                        {
+                            PositionId = "01ARZ3NDEKTSV4RRFFQ69G5FB0",
+                            PermissionId = "01ARZ3NDEKTSV4RRFFQ69G5FB2",
+                            PermissionName = "LoginAudits.View",
+                            SystemId = "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                            SystemName = "身份管理系统"
+                        });
+                });
+
+            modelBuilder.Entity("DedsiNative.Systems.System", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatorName")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<int>("Sort")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Systems", "DedsiNative");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                            CreationTime = new DateTime(2026, 8, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatorId = new Guid("00000000-0000-0000-0000-000000000000"),
+                            CreatorName = "system",
+                            Description = "DedsiNative 基础身份与授权管理。",
+                            ExtraProperties = "{}",
+                            Name = "身份管理系统",
+                            Sort = 0
+                        });
+                });
+
+            modelBuilder.Entity("DedsiNative.Users.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uuid");
@@ -60,119 +596,221 @@ namespace DedsiNative.EntityFrameworkCore.Migrations
                         .HasColumnType("text")
                         .HasColumnName("ExtraProperties");
 
+                    b.Property<string>("IdCardNumber")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("LastLoginIp")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("LastLoginTime")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("LastUpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<string>("PasswordHash")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                    b.Property<string>("Phone")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
 
-                    b.Property<string>("PasswordSalt")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                    b.Property<DateTime?>("SoftDeletedAt")
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Account")
-                        .IsUnique();
 
                     b.ToTable("Users", "DedsiNative");
 
                     b.HasData(
                         new
                         {
-                            Id = "01ARZ3NDEKTSV4RRFFQ69G5FAV",
-                            Account = "15833084138",
-                            CreationTime = new DateTime(2026, 8, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Id = new Guid("01951500-0000-7000-8000-000000000001"),
+                            CreationTime = new DateTime(2026, 8, 18, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreatorId = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatorName = "system",
-                            Email = "admin@dedsinative.local",
+                            Email = "cohenwang@example.com",
                             ExtraProperties = "{}",
-                            Name = "超级管理员",
-                            PasswordHash = "DqpyFntIjpkXAwEXsqcW5PDBfi27fXEnDcuC4v4f3/Q=",
-                            PasswordSalt = "XMTFCyq7q+8jOGe5ihk1eA=="
+                            LastUpdatedAt = new DateTime(2026, 8, 18, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "CohenWang"
                         });
                 });
 
-            modelBuilder.Entity("Volo.Abp.EntityFrameworkCore.DistributedEvents.IncomingEventRecord", b =>
+            modelBuilder.Entity("DedsiNative.Dictionaries.Dictionary", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("CreationTime");
-
-                    b.Property<byte[]>("EventData")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
-                    b.Property<string>("EventName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("ExtraProperties")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("ExtraProperties");
-
-                    b.Property<DateTime?>("HandledTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("MessageId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("NextRetryTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("RetryCount")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MessageId")
-                        .IsUnique();
-
-                    b.HasIndex("Status", "CreationTime");
-
-                    b.ToTable("AbpEventInbox", (string)null);
+                    b.HasOne("DedsiNative.Systems.System", null)
+                        .WithMany()
+                        .HasForeignKey("SystemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
-            modelBuilder.Entity("Volo.Abp.EntityFrameworkCore.DistributedEvents.OutgoingEventRecord", b =>
+            modelBuilder.Entity("DedsiNative.Dictionaries.DictionaryItem", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                    b.HasOne("DedsiNative.Dictionaries.Dictionary", null)
+                        .WithMany("Items")
+                        .HasForeignKey("DictionaryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("CreationTime");
+                    b.HasOne("DedsiNative.Dictionaries.DictionaryItem", null)
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
 
-                    b.Property<byte[]>("EventData")
-                        .IsRequired()
-                        .HasColumnType("bytea");
+            modelBuilder.Entity("DedsiNative.Menus.Menu", b =>
+                {
+                    b.HasOne("DedsiNative.Menus.Menu", null)
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Property<string>("EventName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                    b.HasOne("DedsiNative.Permissions.Permission", null)
+                        .WithMany()
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Property<string>("ExtraProperties")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("ExtraProperties");
+                    b.HasOne("DedsiNative.Systems.System", null)
+                        .WithMany()
+                        .HasForeignKey("SystemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
 
-                    b.HasKey("Id");
+            modelBuilder.Entity("DedsiNative.Permissions.Permission", b =>
+                {
+                    b.HasOne("DedsiNative.Systems.System", null)
+                        .WithMany()
+                        .HasForeignKey("SystemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
 
-                    b.HasIndex("CreationTime");
+            modelBuilder.Entity("DedsiNative.Positions.Position", b =>
+                {
+                    b.HasOne("DedsiNative.Systems.System", null)
+                        .WithMany()
+                        .HasForeignKey("SystemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
 
-                    b.ToTable("AbpEventOutbox", (string)null);
+            modelBuilder.Entity("DedsiNative.Positions.PositionOrganization", b =>
+                {
+                    b.HasOne("DedsiNative.Positions.Position", null)
+                        .WithMany("Organizations")
+                        .HasForeignKey("PositionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DedsiNative.Positions.PositionPermission", b =>
+                {
+                    b.HasOne("DedsiNative.Positions.Position", null)
+                        .WithMany("Permissions")
+                        .HasForeignKey("PositionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DedsiNative.Users.User", b =>
+                {
+                    b.OwnsOne("DedsiNative.Users.UserLoginInfo", "LoginInfo", b1 =>
+                        {
+                            b1.Property<Guid>("UserId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Account")
+                                .IsRequired()
+                                .HasMaxLength(128)
+                                .HasColumnType("character varying(128)");
+
+                            b1.Property<string>("PasswordHash")
+                                .IsRequired()
+                                .HasMaxLength(512)
+                                .HasColumnType("character varying(512)");
+
+                            b1.Property<string>("PasswordSalt")
+                                .IsRequired()
+                                .HasMaxLength(256)
+                                .HasColumnType("character varying(256)");
+
+                            b1.Property<string>("Status")
+                                .IsRequired()
+                                .HasMaxLength(16)
+                                .HasColumnType("character varying(16)");
+
+                            b1.HasKey("UserId");
+
+                            b1.HasIndex("Account")
+                                .IsUnique();
+
+                            b1.ToTable("UserLoginInfos", "DedsiNative");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserId");
+
+                            b1.HasData(
+                                new
+                                {
+                                    UserId = new Guid("01951500-0000-7000-8000-000000000001"),
+                                    Account = "CohenWang",
+                                    PasswordHash = "W/2szOheNj12boeq2Lb+T8mtJsWknqskgTxfEcbPV68=",
+                                    PasswordSalt = "AQIDBAUGBwgJCgsMDQ4PEA==",
+                                    Status = "Normal"
+                                });
+                        });
+
+                    b.OwnsMany("DedsiNative.Users.UserPosition", "Positions", b1 =>
+                        {
+                            b1.Property<Guid>("UserId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("PositionId")
+                                .HasMaxLength(26)
+                                .HasColumnType("character varying(26)");
+
+                            b1.Property<string>("PositionName")
+                                .IsRequired()
+                                .HasMaxLength(128)
+                                .HasColumnType("character varying(128)");
+
+                            b1.HasKey("UserId", "PositionId");
+
+                            b1.ToTable("UserPositions", "DedsiNative");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserId");
+
+                            b1.HasData(
+                                new
+                                {
+                                    UserId = new Guid("01951500-0000-7000-8000-000000000001"),
+                                    PositionId = "01ARZ3NDEKTSV4RRFFQ69G5FB0",
+                                    PositionName = "系统管理员"
+                                });
+                        });
+
+                    b.Navigation("LoginInfo");
+
+                    b.Navigation("Positions");
+                });
+
+            modelBuilder.Entity("DedsiNative.Dictionaries.Dictionary", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("DedsiNative.Positions.Position", b =>
+                {
+                    b.Navigation("Organizations");
+
+                    b.Navigation("Permissions");
                 });
 #pragma warning restore 612, 618
         }

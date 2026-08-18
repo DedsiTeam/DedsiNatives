@@ -1,6 +1,6 @@
 /**
  * @file 认证模块 - 请求输入 DTO 声明
- * @description 对接后端 DedsiNative.Endpoints 的 FastEndpoints 登录接口参数规范
+ * @description 对接后端 DedsiIdentity.Host 的 FastEndpoints 登录接口参数规范
  */
 
 /**

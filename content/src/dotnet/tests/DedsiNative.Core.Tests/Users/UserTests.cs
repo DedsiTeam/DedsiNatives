@@ -1,5 +1,4 @@
 using DedsiNative.Users;
-using DedsiNative.Users.Events;
 using Xunit;
 
 namespace DedsiNative.Core.Tests.Users;
@@ -10,25 +9,19 @@ namespace DedsiNative.Core.Tests.Users;
 public sealed class UserTests
 {
     /// <summary>
-    /// 创建用户时应保存合法字段并登记一次创建事件。
+    /// 创建用户时应保存合法字段。
     /// </summary>
     [Fact]
-    public void Constructor_Should_Set_Properties_And_Add_Created_Event()
+    public void Constructor_Should_Set_Properties()
     {
         var user = new User(
-            Ulid.NewUlid().ToString(),
+            Guid.NewGuid(),
             "张三",
             "zhangsan@example.com");
 
         Assert.Equal("张三", user.Name);
         Assert.Equal("zhangsan@example.com", user.Email);
-        Assert.Equal(26, user.Id.Length);
-
-        var eventRecord = Assert.Single(user.GetLocalEvents());
-        var createdEvent = Assert.IsType<UserCreatedEvent>(eventRecord.EventData);
-        Assert.Equal(user.Id, createdEvent.UserId);
-        Assert.Equal(user.Name, createdEvent.Name);
-        Assert.Equal(user.Email, createdEvent.Email);
+        Assert.NotEqual(Guid.Empty, user.Id);
     }
 
     /// <summary>
@@ -47,7 +40,7 @@ public sealed class UserTests
     {
         Assert.Throws<ArgumentException>(
             () => new User(
-                Ulid.NewUlid().ToString(),
+                Guid.NewGuid(),
                 name,
                 email));
     }
@@ -62,7 +55,7 @@ public sealed class UserTests
 
         Assert.Throws<ArgumentException>(
             () => new User(
-                Ulid.NewUlid().ToString(),
+                Guid.NewGuid(),
                 name,
                 "user@example.com"));
     }
@@ -77,7 +70,7 @@ public sealed class UserTests
 
         Assert.Throws<ArgumentException>(
             () => new User(
-                Ulid.NewUlid().ToString(),
+                Guid.NewGuid(),
                 "张三",
                 email));
     }
@@ -89,7 +82,7 @@ public sealed class UserTests
     public void Change_Methods_Should_Enforce_Domain_Rules()
     {
         var user = new User(
-            Ulid.NewUlid().ToString(),
+            Guid.NewGuid(),
             "张三",
             "zhangsan@example.com");
 
@@ -102,25 +95,36 @@ public sealed class UserTests
     }
 
     /// <summary>
-    /// 设置登录资料时应只保存可验证的密码哈希和盐值。
+    /// 重置密码应只替换登录信息中的密码材料。
     /// </summary>
     [Fact]
-    public void SetLoginCredentials_Should_Hash_Password()
+    public void ResetPassword_Should_Replace_Login_Credentials()
     {
-        const string password = "Admin123..@";
-        var user = new User(
-            Ulid.NewUlid().ToString(),
-            "超级管理员",
-            "admin@dedsinative.local");
+        var user = new User(Guid.NewGuid(), "张三", "zhangsan@example.com");
+        user.SetLoginInfo(new UserLoginInfo(user.Id, "zhangsan", "old-hash", "old-salt"));
 
-        user.SetLoginCredentials("15833084138", password);
+        user.ResetPassword("new-hash", "new-salt");
 
-        Assert.Equal("15833084138", user.Account);
-        Assert.NotEqual(password, user.PasswordHash);
-        Assert.False(string.IsNullOrWhiteSpace(user.PasswordSalt));
-        Assert.True(UserPasswordHasher.Verify(
-            password,
-            user.PasswordHash!,
-            user.PasswordSalt!));
+        Assert.NotNull(user.LoginInfo);
+        Assert.Equal("new-hash", user.LoginInfo.PasswordHash);
+        Assert.Equal("new-salt", user.LoginInfo.PasswordSalt);
+    }
+
+    /// <summary>
+    /// 未设置登录信息或已软删除的用户不能重置密码。
+    /// </summary>
+    [Fact]
+    public void ResetPassword_Should_Reject_User_Without_Valid_Login_State()
+    {
+        var userWithoutLoginInfo = new User(Guid.NewGuid(), "张三", "zhangsan@example.com");
+        Assert.Throws<Volo.Abp.BusinessException>(
+            () => userWithoutLoginInfo.ResetPassword("new-hash", "new-salt"));
+
+        var softDeletedUser = new User(Guid.NewGuid(), "李四", "lisi@example.com");
+        softDeletedUser.SetLoginInfo(new UserLoginInfo(softDeletedUser.Id, "lisi", "old-hash", "old-salt"));
+        softDeletedUser.MarkAsSoftDeleted();
+
+        Assert.Throws<Volo.Abp.BusinessException>(
+            () => softDeletedUser.ResetPassword("new-hash", "new-salt"));
     }
 }

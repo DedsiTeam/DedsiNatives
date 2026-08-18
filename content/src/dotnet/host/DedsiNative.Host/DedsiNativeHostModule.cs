@@ -1,6 +1,9 @@
 using System.Net;
 using System.Text;
 using Dedsi.CleanArchitecture.HttpApi;
+using DedsiNative.Applications.Auth;
+using DedsiNative.LoginAudits;
+using DedsiNative.Serialization;
 using FastEndpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -16,18 +19,17 @@ using Volo.Abp.Modularity;
 namespace DedsiNative;
 
 /// <summary>
-/// DedsiNative 宿主层模块，组合接口层并配置认证、审计、跨域和 HTTP 中间件管道。
+/// DedsiNative 宿主层模块，整合接口层与第三方中间件（认证、审计、跨域、Autofac 等）的总入口模块。
 /// </summary>
 [DependsOn(
     typeof(DedsiNativeEndpointsModule),
-
     typeof(DedsiCleanArchitectureHttpApiModule),
     typeof(AbpAutofacModule)
 )]
 public class DedsiNativeHostModule : AbpModule
 {
     /// <summary>
-    /// 配置宿主层所需的认证、审计日志、代理转发与跨域服务。
+    /// 配置宿主层所需的认证、审计日志、代理转发、授权策略与跨域服务。
     /// </summary>
     /// <param name="context">
     /// 服务配置上下文，提供服务注册和配置能力。
@@ -55,7 +57,7 @@ public class DedsiNativeHostModule : AbpModule
                 };
             });
 
-        // 只有显式配置的可信代理才能影响 RemoteIpAddress，避免信任伪造的 X-Forwarded-For。
+        // 只有显式配置的可信代理才能影响 RemoteIpAddress，避免直接信任伪造 X-Forwarded-For。
         context.Services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
@@ -71,6 +73,15 @@ public class DedsiNativeHostModule : AbpModule
                     options.KnownProxies.Add(trustedAddress);
                 }
             }
+        });
+
+        context.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy(LoginAuditPermissions.View, policy => policy
+                .RequireAuthenticatedUser()
+                .RequireClaim(
+                    LoginAuditPermissions.ClaimType,
+                    LoginAuditPermissions.View));
         });
 
         // PostConfigure 在所有模块 Configure 之后执行，确保 ABP/Dedsi 设置的
@@ -117,7 +128,12 @@ public class DedsiNativeHostModule : AbpModule
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
         var app = context.GetApplicationBuilder();
-        // 使用通用错误原因，避免将内部异常细节暴露给调用方。
+
+        // 登录认证失败必须稳定返回空消息 HTTP 500；外层兜底同时覆盖默认处理器重新抛出的情况。
+        app.UseLoginFailureExceptionHandler();
+
+        // FastEndpoints 通用异常处理程序
+        // 登录失败使用空消息 UserFriendlyException；通用异常原因也不应泄露给外部调用者。
         app.UseDefaultExceptionHandler(useGenericReason: true);
 
         app.UseForwardedHeaders();
@@ -136,7 +152,7 @@ public class DedsiNativeHostModule : AbpModule
 
         app.UseConfiguredEndpoints(endpoints =>
         {
-            endpoints.MapFastEndpoints();
+            endpoints.MapFastEndpoints(ApiDateTimeConfiguration.Configure);
         });
     }
 }
