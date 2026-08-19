@@ -4,6 +4,32 @@
  */
 
 /**
+ * 登录响应中岗位包含的有效权限。
+ */
+export interface LoginPositionPermissionResultDto {
+  /** 权限 ID。 */
+  permissionId: string;
+  /** 权限名称。 */
+  permissionName: string;
+  /** 系统 ID。 */
+  systemId: string;
+  /** 系统名称。 */
+  systemName: string;
+}
+
+/**
+ * 登录响应中用户所属岗位及其有效权限。
+ */
+export interface LoginUserPositionResultDto {
+  /** 岗位唯一标识，26 位 ULID。 */
+  positionId: string;
+  /** 岗位名称。 */
+  positionName: string;
+  /** 岗位包含的有效权限列表。 */
+  permissions: LoginPositionPermissionResultDto[];
+}
+
+/**
  * 登录成功后返回的当前用户安全基本资料。
  */
 export interface LoginUserResultDto {
@@ -17,6 +43,8 @@ export interface LoginUserResultDto {
   account: string;
   /** 当前用户拥有的权限编码，用于前端入口可见性控制。 */
   permissions: string[];
+  /** 用户所属岗位及其对应权限列表。 */
+  positions: LoginUserPositionResultDto[];
 }
 
 /**

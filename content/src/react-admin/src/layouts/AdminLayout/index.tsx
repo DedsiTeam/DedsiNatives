@@ -22,6 +22,8 @@ import {
 import styles from './AdminLayout.module.css';
 import './menu-compat.css';
 
+import type { LoginUserPositionResultDto } from '../../apiServices';
+
 interface AdminLayoutProps {
   children?: React.ReactNode;
 }
@@ -38,6 +40,8 @@ interface CurrentUser {
   account: string;
   /** 当前用户拥有的权限编码。 */
   permissions: string[];
+  /** 用户关联的岗位列表。 */
+  positions: LoginUserPositionResultDto[];
 }
 
 /**
@@ -48,7 +52,7 @@ function getCurrentUser(): CurrentUser {
     const storedUser = localStorage.getItem('current_user');
     const parsedUser: unknown = storedUser ? JSON.parse(storedUser) : null;
     if (typeof parsedUser !== 'object' || parsedUser === null) {
-      return { name: '', email: '', account: '', permissions: [] };
+      return { name: '', email: '', account: '', permissions: [], positions: [] };
     }
 
     const user = parsedUser as Partial<CurrentUser>;
@@ -59,9 +63,10 @@ function getCurrentUser(): CurrentUser {
       permissions: Array.isArray(user.permissions)
         ? user.permissions.filter((permission): permission is string => typeof permission === 'string')
         : [],
+      positions: Array.isArray(user.positions) ? user.positions : [],
     };
   } catch {
-    return { name: '', email: '', account: '', permissions: [] };
+    return { name: '', email: '', account: '', permissions: [], positions: [] };
   }
 }
 

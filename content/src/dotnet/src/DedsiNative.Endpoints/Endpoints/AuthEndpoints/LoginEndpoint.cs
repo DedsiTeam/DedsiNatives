@@ -31,6 +31,30 @@ public sealed record LoginRequest(string Username, string Password);
 public sealed record LoginResponse(string Token, DateTime ExpiresAt, LoginUserResponse User);
 
 /// <summary>
+/// 登录响应中岗位包含的有效权限响应模型。
+/// </summary>
+/// <param name="PermissionId">权限唯一标识。</param>
+/// <param name="PermissionName">权限名称快照。</param>
+/// <param name="SystemId">权限所属系统标识。</param>
+/// <param name="SystemName">权限所属系统名称快照。</param>
+public sealed record LoginPositionPermissionResponse(
+    string PermissionId,
+    string PermissionName,
+    string SystemId,
+    string SystemName);
+
+/// <summary>
+/// 登录响应中用户所属岗位及其有效权限。
+/// </summary>
+/// <param name="PositionId">岗位唯一标识。</param>
+/// <param name="PositionName">岗位名称。</param>
+/// <param name="Permissions">岗位包含的有效权限列表。</param>
+public sealed record LoginUserPositionResponse(
+    string PositionId,
+    string PositionName,
+    IReadOnlyList<LoginPositionPermissionResponse> Permissions);
+
+/// <summary>
 /// 登录成功后返回的当前用户基本资料。
 /// </summary>
 /// <param name="Id">用户唯一标识。</param>
@@ -38,12 +62,14 @@ public sealed record LoginResponse(string Token, DateTime ExpiresAt, LoginUserRe
 /// <param name="Email">用户邮箱。</param>
 /// <param name="Account">登录账号。</param>
 /// <param name="Permissions">由用户岗位解析出的有效权限名称。</param>
+/// <param name="Positions">用户所属岗位及其对应权限列表。</param>
 public sealed record LoginUserResponse(
     Guid Id,
     string Name,
     string Email,
     string Account,
-    IReadOnlyList<string> Permissions);
+    IReadOnlyList<string> Permissions,
+    IReadOnlyList<LoginUserPositionResponse> Positions);
 
 /// <summary>
 /// 登录端点，验证数据库用户凭证、独立持久化登录审计并签发 JWT Token。
@@ -149,9 +175,16 @@ public sealed class LoginEndpoint(
 
         if (statusReason.HasValue)
         {
+            var statusMessage = loginInfo.Status switch
+            {
+                AccountStatus.Disabled => "账户已被禁用。",
+                AccountStatus.Locked => "账户已被锁定。",
+                AccountStatus.Cancelled => "账户已被注销。",
+                _ => "账户当前不可登录。"
+            };
             await RecordFailureAndThrowAsync(
                 statusReason.Value,
-                "账户当前不可登录。",
+                statusMessage,
                 account,
                 user,
                 clientIp,
@@ -195,11 +228,12 @@ public sealed class LoginEndpoint(
             return;
         }
 
+        IReadOnlyList<LoginUserPositionResponse> positions;
         IReadOnlyList<string> permissionNames;
         JwtSettings jwtSettings;
         try
         {
-            permissionNames = await GetPermissionNamesAsync(user, ct);
+            (positions, permissionNames) = await GetUserPositionsAndPermissionsAsync(user, ct);
             jwtSettings = GetJwtSettings();
         }
         catch (OperationCanceledException)
@@ -234,7 +268,7 @@ public sealed class LoginEndpoint(
         {
             // 成功审计未持久化时绝不签发 Token，日志中不记录账号、密码或令牌。
             logger.LogError(exception, "成功登录审计写入失败，已拒绝签发访问令牌。");
-            throw new UserFriendlyException("");
+            throw new UserFriendlyException("登录状态写入失败，已拒绝签发访问令牌。");
         }
 
         // 只有成功审计及最后登录信息都独立提交后，才实际签发 JWT。
@@ -248,7 +282,8 @@ public sealed class LoginEndpoint(
                 user.Name,
                 user.Email,
                 loginInfo.Account,
-                permissionNames)), ct);
+                permissionNames,
+                positions)), ct);
     }
 
     private async Task RecordFailureAndThrowAsync(
@@ -282,7 +317,7 @@ public sealed class LoginEndpoint(
             logger.LogError(exception, "失败登录审计写入失败。");
         }
 
-        throw new UserFriendlyException("");
+        throw new UserFriendlyException(safeFailureDescription);
     }
 
     private async Task RecordSystemFailureAndThrowAsync(
@@ -376,9 +411,11 @@ public sealed class LoginEndpoint(
             userAgent);
     }
 
-    private async Task<IReadOnlyList<string>> GetPermissionNamesAsync(User user, CancellationToken cancellationToken)
+    private async Task<(IReadOnlyList<LoginUserPositionResponse> Positions, IReadOnlyList<string> PermissionNames)> GetUserPositionsAndPermissionsAsync(
+        User user,
+        CancellationToken cancellationToken)
     {
-        var positionPermissions = new List<PositionPermission>();
+        var activePositions = new List<Position>();
         foreach (var userPosition in user.Positions)
         {
             var position = await positionRepository.GetAsync(
@@ -390,11 +427,15 @@ public sealed class LoginEndpoint(
                 continue;
             }
 
-            positionPermissions.AddRange(position.Permissions);
+            activePositions.Add(position);
         }
 
+        var allPositionPermissions = activePositions
+            .SelectMany(p => p.Permissions)
+            .ToList();
+
         var enabledPermissions = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var systemId in positionPermissions
+        foreach (var systemId in allPositionPermissions
                      .Select(permission => permission.SystemId)
                      .Distinct(StringComparer.Ordinal))
         {
@@ -407,12 +448,32 @@ public sealed class LoginEndpoint(
             }
         }
 
-        return positionPermissions
-            .Where(permission => enabledPermissions.ContainsKey(permission.PermissionId))
-            .Select(permission => enabledPermissions[permission.PermissionId])
+        var userPositions = new List<LoginUserPositionResponse>();
+        foreach (var position in activePositions)
+        {
+            var positionPermissions = position.Permissions
+                .Where(permission => enabledPermissions.ContainsKey(permission.PermissionId))
+                .Select(permission => new LoginPositionPermissionResponse(
+                    permission.PermissionId,
+                    enabledPermissions[permission.PermissionId],
+                    permission.SystemId,
+                    permission.SystemName))
+                .ToList();
+
+            userPositions.Add(new LoginUserPositionResponse(
+                position.Id,
+                position.Name,
+                positionPermissions));
+        }
+
+        var permissionNames = userPositions
+            .SelectMany(p => p.Permissions)
+            .Select(p => p.PermissionName)
             .Distinct(StringComparer.Ordinal)
             .OrderBy(permissionName => permissionName, StringComparer.Ordinal)
             .ToList();
+
+        return (userPositions, permissionNames);
     }
 
     private (string Token, DateTime ExpiresAt) CreateToken(

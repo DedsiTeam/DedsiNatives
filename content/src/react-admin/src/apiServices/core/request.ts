@@ -12,11 +12,55 @@ import { message } from 'antd';
 import { DefaultApiServiceUrl } from '../../configs';
 
 /**
- * 后端通用错误响应中可能包含的消息字段。
+ * 后端通用错误响应模型。
  */
 interface ErrorResponseBody {
-  /** 可向用户展示的错误消息。 */
+  /** HTTP 状态码或业务错误码。 */
+  code?: number;
+  /** 错误消息提示。 */
   message?: string;
+  /** 服务器时间。 */
+  serviceTime?: string;
+  /** 兼容状态描述字段。 */
+  status?: string;
+  /** 兼容原因描述字段。 */
+  reason?: string;
+  /** 额外提示说明。 */
+  note?: string;
+}
+
+/**
+ * 解析非 200 响应中的错误文本（将 code + message 告知用户）。
+ */
+function parseErrorMessage(data: unknown, httpStatus?: number, defaultMessage?: string): string {
+  if (typeof data === 'object' && data !== null) {
+    const errorBody = data as ErrorResponseBody;
+    const code = errorBody.code ?? httpStatus;
+
+    if (errorBody.message && typeof errorBody.message === 'string' && errorBody.message.trim()) {
+      const msg = errorBody.message.trim();
+      return code !== undefined ? `[${code}] ${msg}` : msg;
+    }
+
+    const parts: string[] = [];
+    if (errorBody.status && typeof errorBody.status === 'string' && errorBody.status.trim()) {
+      parts.push(errorBody.status.trim());
+    }
+    if (errorBody.reason && typeof errorBody.reason === 'string' && errorBody.reason.trim()) {
+      parts.push(errorBody.reason.trim());
+    }
+
+    if (parts.length > 0) {
+      const msg = parts.join(' ');
+      return code !== undefined ? `[${code}] ${msg}` : msg;
+    }
+  } else if (typeof data === 'string' && data.trim()) {
+    const msg = data.trim();
+    return httpStatus !== undefined ? `[${httpStatus}] ${msg}` : msg;
+  }
+
+  const fallback = defaultMessage || '网络请求异常';
+  return httpStatus !== undefined ? `[${httpStatus}] ${fallback}` : fallback;
 }
 
 /**
@@ -66,26 +110,21 @@ export class HttpClient {
         const axiosError = axios.isAxiosError<ErrorResponseBody>(error)
           ? error
           : undefined;
-        const status = axiosError?.response?.status;
-        const errorMessage =
-          axiosError?.response?.data?.message ||
-          axiosError?.message ||
-          '网络请求异常';
+        const httpStatus = axiosError?.response?.status;
+        const responseData = axiosError?.response?.data;
+        const errorMessage = parseErrorMessage(responseData, httpStatus, axiosError?.message);
 
-        switch (status) {
+        // 如果页面上有 loading 消息，销毁避免覆盖
+        message.destroy('login');
+
+        switch (httpStatus) {
           case 401:
             localStorage.removeItem('access_token');
             localStorage.removeItem('current_user');
-            message.error('登录状态已过期，请重新登录');
+            message.error(errorMessage || '登录状态已过期，请重新登录');
             if (window.location.pathname !== '/login') {
               window.location.href = '/login';
             }
-            break;
-          case 403:
-            message.error('您没有权限访问该资源');
-            break;
-          case 500:
-            message.error('服务器内部错误，请联系系统管理员');
             break;
           default:
             message.error(errorMessage);

@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text;
 using Dedsi.CleanArchitecture.HttpApi;
-using DedsiNative.Applications.Auth;
+using DedsiNative.Exceptions;
 using DedsiNative.LoginAudits;
 using DedsiNative.Serialization;
 using FastEndpoints;
@@ -129,12 +129,8 @@ public class DedsiNativeHostModule : AbpModule
     {
         var app = context.GetApplicationBuilder();
 
-        // 登录认证失败必须稳定返回空消息 HTTP 500；外层兜底同时覆盖默认处理器重新抛出的情况。
-        app.UseLoginFailureExceptionHandler();
-
-        // FastEndpoints 通用异常处理程序
-        // 登录失败使用空消息 UserFriendlyException；通用异常原因也不应泄露给外部调用者。
-        app.UseDefaultExceptionHandler(useGenericReason: true);
+        // FastEndpoints 自定义通用异常处理程序（返回 { Status, Code, Reason, Note } 结构并记录日志）
+        app.UseCustomExceptionHandler();
 
         app.UseForwardedHeaders();
         app.UseHttpsRedirection();
