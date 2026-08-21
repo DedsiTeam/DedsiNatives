@@ -33,7 +33,7 @@ public sealed class SystemQuery(IDedsiNativeDbContext dbContext) : ISystemQuery
                 system.Name,
                 system.Description,
                 system.Sort))
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
 
         return new SystemPagedQueryResult(totalCount, items);
     }

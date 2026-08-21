@@ -56,7 +56,7 @@ public sealed class LoginAuditQuery(IDedsiNativeDbContext dbContext) : ILoginAud
                 audit.UserId,
                 audit.ClientIp,
                 audit.FailureDescription))
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
 
         return new LoginAuditPagedQueryResult(totalCount, items);
     }

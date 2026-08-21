@@ -33,7 +33,7 @@ public sealed record StorageFilePagedRequest(
 /// <param name="Items">文件记录列表。</param>
 public sealed record StorageFilePagedResponse(
     long TotalCount,
-    IReadOnlyList<StorageFileQueryItem> Items);
+    StorageFileQueryItem[] Items);
 
 /// <summary>
 /// 分页查询文件列表端点。

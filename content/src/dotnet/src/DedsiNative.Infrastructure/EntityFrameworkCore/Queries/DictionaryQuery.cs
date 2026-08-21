@@ -45,7 +45,7 @@ public sealed class DictionaryQuery(IDedsiNativeDbContext dbContext) : IDictiona
                 dictionary.SystemName,
                 dictionary.Name,
                 dictionary.Items.Count))
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
 
         return new DictionaryPagedQueryResult(totalCount, items);
     }

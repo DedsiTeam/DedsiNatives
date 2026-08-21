@@ -9,7 +9,7 @@ namespace DedsiNative.EntityFrameworkCore.Queries;
 public sealed class OrganizationQuery(IDedsiNativeDbContext dbContext) : IOrganizationQuery
 {
     /// <inheritdoc />
-    public async Task<IReadOnlyList<OrganizationQueryItem>> GetTreeListAsync(
+    public async Task<OrganizationQueryItem[]> GetTreeListAsync(
         OrganizationTreeQuery query,
         CancellationToken cancellationToken)
     {
@@ -46,7 +46,7 @@ public sealed class OrganizationQuery(IDedsiNativeDbContext dbContext) : IOrgani
                 org.IsEnabled,
                 org.Description,
                 org.CreationTime))
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -94,7 +94,9 @@ public sealed class OrganizationQuery(IDedsiNativeDbContext dbContext) : IOrgani
 
         if (!query.IsExport)
         {
-            dbQuery = dbQuery.Skip(query.SkipCount).Take(query.MaxResultCount);
+            dbQuery = dbQuery
+                .Skip(query.SkipCount)
+                .Take(query.MaxResultCount);
         }
 
         var items = await dbQuery
@@ -114,7 +116,7 @@ public sealed class OrganizationQuery(IDedsiNativeDbContext dbContext) : IOrgani
                 org.IsEnabled,
                 org.Description,
                 org.CreationTime))
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
 
         return new OrganizationPagedQueryResult(totalCount, items);
     }

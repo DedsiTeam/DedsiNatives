@@ -8,7 +8,7 @@ namespace DedsiNative.Endpoints.MenuEndpoints;
 /// </summary>
 /// <param name="menuQuery">菜单只读查询服务。</param>
 public sealed class GetAllMenuEndpoint(IMenuQuery menuQuery)
-    : EndpointWithoutRequest<IReadOnlyList<MenuQueryItem>>
+    : EndpointWithoutRequest<MenuQueryItem[]>
 {
     /// <summary>
     /// 配置按系统获取菜单选项接口。

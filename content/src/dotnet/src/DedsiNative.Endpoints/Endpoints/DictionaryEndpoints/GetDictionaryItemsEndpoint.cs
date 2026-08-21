@@ -8,7 +8,7 @@ namespace DedsiNative.Endpoints.DictionaryEndpoints;
 /// </summary>
 /// <param name="dictionaryRepository">字典聚合仓储。</param>
 public sealed class GetDictionaryItemsEndpoint(IDictionaryRepository dictionaryRepository)
-    : EndpointWithoutRequest<IReadOnlyList<DictionaryItemResponse>>
+    : EndpointWithoutRequest<DictionaryItemResponse[]>
 {
     /// <summary>
     /// 配置字典项列表接口。
@@ -33,7 +33,7 @@ public sealed class GetDictionaryItemsEndpoint(IDictionaryRepository dictionaryR
             .ThenBy(item => item.Sort)
             .ThenBy(item => item.Id)
             .Select(DictionaryEndpointMappings.ToResponse)
-            .ToList();
+            .ToArray();
         await Send.OkAsync(items, ct);
     }
 }

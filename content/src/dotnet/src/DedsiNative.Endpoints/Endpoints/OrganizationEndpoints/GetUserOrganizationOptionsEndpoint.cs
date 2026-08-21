@@ -12,13 +12,13 @@ namespace DedsiNative.Endpoints.OrganizationEndpoints;
 public sealed record UserOrganizationOptionNodeResponse(
     string Value,
     string Title,
-    IReadOnlyList<UserOrganizationOptionNodeResponse>? Children);
+    UserOrganizationOptionNodeResponse[]? Children);
 
 /// <summary>
 /// 为创建/编辑用户选择组织机构提供专用下拉树数据的端点。
 /// </summary>
 public sealed class GetUserOrganizationOptionsEndpoint(IOrganizationQuery organizationQuery)
-    : EndpointWithoutRequest<IReadOnlyList<UserOrganizationOptionNodeResponse>>
+    : EndpointWithoutRequest<UserOrganizationOptionNodeResponse[]>
 {
     /// <inheritdoc />
     public override void Configure()
@@ -42,8 +42,8 @@ public sealed class GetUserOrganizationOptionsEndpoint(IOrganizationQuery organi
         await Send.OkAsync(tree, ct);
     }
 
-    private static List<UserOrganizationOptionNodeResponse> BuildOptionTree(
-        IReadOnlyList<OrganizationQueryItem> items,
+    private static UserOrganizationOptionNodeResponse[] BuildOptionTree(
+        OrganizationQueryItem[] items,
         string? parentId)
     {
         var result = new List<UserOrganizationOptionNodeResponse>();
@@ -55,9 +55,9 @@ public sealed class GetUserOrganizationOptionsEndpoint(IOrganizationQuery organi
             result.Add(new UserOrganizationOptionNodeResponse(
                 child.Id,
                 child.Name,
-                grandChildren.Count > 0 ? grandChildren : null));
+                grandChildren.Length > 0 ? grandChildren : null));
         }
 
-        return result;
+        return result.ToArray();
     }
 }

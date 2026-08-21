@@ -31,8 +31,8 @@ public sealed record GetPositionResponse(
     string SystemName,
     string? Description,
     bool IsEnabled,
-    IReadOnlyList<PositionPermissionResponse> Permissions,
-    IReadOnlyList<PositionOrganizationResponse> Organizations);
+    PositionPermissionResponse[] Permissions,
+    PositionOrganizationResponse[] Organizations);
 
 /// <summary>获取岗位详情端点，返回岗位及其子实体关联。</summary>
 public sealed class GetPositionEndpoint(IPositionRepository positionRepository)
@@ -63,8 +63,8 @@ public sealed class GetPositionEndpoint(IPositionRepository positionRepository)
             position.Description,
             position.IsEnabled,
             position.Permissions.Select(item => new PositionPermissionResponse(
-                item.PermissionId, item.PermissionName, item.SystemId, item.SystemName)).ToList(),
+                item.PermissionId, item.PermissionName, item.SystemId, item.SystemName)).ToArray(),
             position.Organizations.Select(item => new PositionOrganizationResponse(
-                item.OrganizationId, item.OrganizationName)).ToList()), ct);
+                item.OrganizationId, item.OrganizationName)).ToArray()), ct);
     }
 }

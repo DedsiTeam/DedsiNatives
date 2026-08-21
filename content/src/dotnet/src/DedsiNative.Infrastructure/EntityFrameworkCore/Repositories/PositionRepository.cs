@@ -10,7 +10,7 @@ namespace DedsiNative.EntityFrameworkCore.Repositories;
 public sealed class PositionRepository(IDbContextProvider<DedsiNativeDbContext> dbContextProvider) : DedsiDddEfCoreRepository<DedsiNativeDbContext, Position, string>(dbContextProvider), IPositionRepository
 {
     /// <inheritdoc />
-    public async Task<IReadOnlyList<Position>> GetByPermissionIdAsync(
+    public async Task<Position[]> GetByPermissionIdAsync(
         string permissionId,
         CancellationToken cancellationToken)
     {
@@ -19,6 +19,6 @@ public sealed class PositionRepository(IDbContextProvider<DedsiNativeDbContext> 
         return await dbContext.Positions
             .Include(item => item.Permissions)
             .Where(position => position.Permissions.Any(item => item.PermissionId == permissionId))
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
     }
 }

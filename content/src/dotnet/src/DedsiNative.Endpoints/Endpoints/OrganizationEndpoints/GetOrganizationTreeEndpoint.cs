@@ -36,13 +36,13 @@ public sealed record OrganizationTreeNodeResponse(
     int Level,
     bool IsEnabled,
     string? Description,
-    IReadOnlyList<OrganizationTreeNodeResponse>? Children);
+    OrganizationTreeNodeResponse[]? Children);
 
 /// <summary>
 /// 查询指定系统下的多级组织机构树端点。
 /// </summary>
 public sealed class GetOrganizationTreeEndpoint(IOrganizationQuery organizationQuery)
-    : EndpointWithoutRequest<IReadOnlyList<OrganizationTreeNodeResponse>>
+    : EndpointWithoutRequest<OrganizationTreeNodeResponse[]>
 {
     /// <inheritdoc />
     public override void Configure()
@@ -66,8 +66,8 @@ public sealed class GetOrganizationTreeEndpoint(IOrganizationQuery organizationQ
         await Send.OkAsync(tree, ct);
     }
 
-    private static List<OrganizationTreeNodeResponse> BuildTree(
-        IReadOnlyList<OrganizationQueryItem> items,
+    private static OrganizationTreeNodeResponse[] BuildTree(
+        OrganizationQueryItem[] items,
         string? parentId)
     {
         var result = new List<OrganizationTreeNodeResponse>();
@@ -91,9 +91,9 @@ public sealed class GetOrganizationTreeEndpoint(IOrganizationQuery organizationQ
                 child.Level,
                 child.IsEnabled,
                 child.Description,
-                grandChildren.Count > 0 ? grandChildren : null));
+                grandChildren.Length > 0 ? grandChildren : null));
         }
 
-        return result;
+        return result.ToArray();
     }
 }

@@ -85,7 +85,7 @@ public sealed class StorageFileQuery(IDedsiNativeDbContext dbContext) : IStorage
                 f.IsPublic,
                 f.Description,
                 f.CreationTime))
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
 
         return new StorageFilePagedQueryResult(totalCount, items);
     }

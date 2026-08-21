@@ -27,7 +27,7 @@ public sealed record OrganizationPagedRequest(
 /// <param name="Items">组织记录列表。</param>
 public sealed record OrganizationPagedResponse(
     long TotalCount,
-    IReadOnlyList<OrganizationQueryItem> Items);
+    OrganizationQueryItem[] Items);
 
 /// <summary>
 /// 分页查询组织机构列表端点。

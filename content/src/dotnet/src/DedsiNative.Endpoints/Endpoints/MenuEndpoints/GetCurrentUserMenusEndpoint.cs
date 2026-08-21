@@ -30,7 +30,7 @@ public sealed record CurrentUserMenuResponse(
     bool KeepAlive,
     bool IsAffix,
     string? Description,
-    IReadOnlyList<CurrentUserMenuResponse> Children);
+    CurrentUserMenuResponse[] Children);
 
 /// <summary>
 /// 获取当前登录用户可访问的动态菜单端点。
@@ -41,7 +41,7 @@ public sealed class GetCurrentUserMenusEndpoint(
     IPositionRepository positionRepository,
     IPermissionQuery permissionQuery,
     IMenuQuery menuQuery)
-    : EndpointWithoutRequest<IReadOnlyList<CurrentUserMenuResponse>>
+    : EndpointWithoutRequest<CurrentUserMenuResponse[]>
 {
     /// <summary>
     /// 配置获取当前用户动态菜单接口。
@@ -125,8 +125,8 @@ public sealed class GetCurrentUserMenusEndpoint(
         await Send.OkAsync(menuTree, ct);
     }
 
-    private static List<CurrentUserMenuResponse> BuildMenuTree(
-        IReadOnlyList<MenuQueryItem> allMenus,
+    private static CurrentUserMenuResponse[] BuildMenuTree(
+        MenuQueryItem[] allMenus,
         HashSet<string> userPermissions,
         string? parentId)
     {
@@ -147,7 +147,7 @@ public sealed class GetCurrentUserMenusEndpoint(
             if (menu.Type == MenuType.Directory)
             {
                 // 如果是目录类型：仅当其下存在用户可访问的子菜单时才呈现
-                if (children.Count > 0)
+                if (children.Length > 0)
                 {
                     result.Add(CreateMenuResponse(menu, children));
                 }
@@ -165,10 +165,10 @@ public sealed class GetCurrentUserMenusEndpoint(
             }
         }
 
-        return result;
+        return result.ToArray();
     }
 
-    private static CurrentUserMenuResponse CreateMenuResponse(MenuQueryItem menu, IReadOnlyList<CurrentUserMenuResponse> children)
+    private static CurrentUserMenuResponse CreateMenuResponse(MenuQueryItem menu, CurrentUserMenuResponse[] children)
     {
         return new CurrentUserMenuResponse(
             menu.Id,

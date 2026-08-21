@@ -39,7 +39,7 @@ public sealed class PermissionQuery(IDedsiNativeDbContext dbContext) : IPermissi
                 permission.Name,
                 permission.Description,
                 permission.IsEnabled))
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
 
         return new PermissionPagedQueryResult(totalCount, items);
     }

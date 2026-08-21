@@ -25,7 +25,7 @@ public sealed record SystemQueryItem(string Id, string Name, string? Description
 /// <param name="Items">当前查询返回的系统列表。</param>
 public sealed record SystemPagedQueryResult(
     long TotalCount,
-    IReadOnlyList<SystemQueryItem> Items);
+    SystemQueryItem[] Items);
 
 /// <summary>系统只读查询接口，隔离 Core 与具体持久化技术。</summary>
 public interface ISystemQuery : IDedsiQuery

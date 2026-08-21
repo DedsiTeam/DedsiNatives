@@ -53,8 +53,8 @@ public sealed record LoginUserResponse(
     string Name,
     string Email,
     string Account,
-    IReadOnlyList<string> Permissions,
-    IReadOnlyList<LoginUserPositionResponse> Positions);
+    string[] Permissions,
+    LoginUserPositionResponse[] Positions);
 
 /// <summary>
 /// 登录端点，验证数据库用户凭证、独立持久化登录审计并签发 JWT Token。
@@ -213,8 +213,8 @@ public sealed class LoginEndpoint(
             return;
         }
 
-        IReadOnlyList<LoginUserPositionResponse> positions;
-        IReadOnlyList<string> permissionNames;
+        LoginUserPositionResponse[] positions;
+        string[] permissionNames;
         JwtSettings jwtSettings;
         try
         {
@@ -396,7 +396,7 @@ public sealed class LoginEndpoint(
             userAgent);
     }
 
-    private async Task<(IReadOnlyList<LoginUserPositionResponse> Positions, IReadOnlyList<string> PermissionNames)> GetUserPositionsAndPermissionsAsync(
+    private async Task<(LoginUserPositionResponse[] Positions, string[] PermissionNames)> GetUserPositionsAndPermissionsAsync(
         User user,
         CancellationToken cancellationToken)
     {
@@ -437,21 +437,21 @@ public sealed class LoginEndpoint(
             .Select(position => new LoginUserPositionResponse(
                 position.Id,
                 position.Name))
-            .ToList();
+            .ToArray();
 
         var permissionNames = allPositionPermissions
             .Where(permission => enabledPermissions.ContainsKey(permission.PermissionId))
             .Select(permission => enabledPermissions[permission.PermissionId])
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(permissionName => permissionName, StringComparer.Ordinal)
-            .ToList();
+            .ToArray();
 
         return (userPositions, permissionNames);
     }
 
     private (string Token, DateTime ExpiresAt) CreateToken(
         User user,
-        IReadOnlyList<string> permissionNames,
+        string[] permissionNames,
         JwtSettings jwtSettings)
     {
         var expiresAt = DateTime.UtcNow.AddMinutes(jwtSettings.ExpirationMinutes);

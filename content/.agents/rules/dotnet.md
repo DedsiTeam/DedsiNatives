@@ -53,3 +53,33 @@ public UserStatus Enable(Ulid operatorId)
 ```csharp
 /// <summary>用户邮箱最大长度。</summary>
 ```
+
+## 数据与集合返回规范
+
+- 当方法、服务或 Endpoint 需要返回一组/多项数据（集合、列表等）时，统一使用**数组**（如 `T[]`）返回。
+- 避免使用 `List<T>`、`IEnumerable<T>` 或 `IReadOnlyList<T>` 等作为返回类型契约。
+- 在数据查询、排序或投影处理末尾，统一调用 `.ToArray()` 或以数组形式返回。
+
+示例：
+
+```csharp
+// 正确示例：返回数组
+public sealed class GetDictionaryItemsEndpoint(IDictionaryRepository dictionaryRepository)
+    : EndpointWithoutRequest<DictionaryItemResponse[]>
+{
+    public override async Task HandleAsync(CancellationToken ct)
+    {
+        var dictionaryId = Route<string>("dictionaryId")!;
+        var dictionary = await dictionaryRepository.GetAsync(dictionaryId, true, ct);
+        var items = dictionary.Items
+            .OrderBy(item => item.ParentId)
+            .ThenBy(item => item.Sort)
+            .ThenBy(item => item.Id)
+            .Select(DictionaryEndpointMappings.ToResponse)
+            .ToArray();
+
+        await Send.OkAsync(items, ct);
+    }
+}
+```
+

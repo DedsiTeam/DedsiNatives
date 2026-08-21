@@ -37,7 +37,7 @@ public sealed record PermissionQueryItem(
 /// <param name="Items">当前查询返回的权限列表。</param>
 public sealed record PermissionPagedQueryResult(
     long TotalCount,
-    IReadOnlyList<PermissionQueryItem> Items);
+    PermissionQueryItem[] Items);
 
 /// <summary>权限只读查询接口，隔离 Core 与具体持久化技术。</summary>
 public interface IPermissionQuery : IDedsiQuery

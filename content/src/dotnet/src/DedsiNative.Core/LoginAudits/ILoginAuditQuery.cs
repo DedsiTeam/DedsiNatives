@@ -57,7 +57,7 @@ public sealed record LoginAuditQueryItem(
 /// <param name="Items">当前页的审计记录投影。</param>
 public sealed record LoginAuditPagedQueryResult(
     long TotalCount,
-    IReadOnlyList<LoginAuditQueryItem> Items);
+    LoginAuditQueryItem[] Items);
 
 /// <summary>
 /// 登录审计读侧查询契约，隔离 Host 与具体持久化技术。

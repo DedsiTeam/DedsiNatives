@@ -8,7 +8,7 @@ namespace DedsiNative.Endpoints.PermissionEndpoints;
 /// </summary>
 /// <param name="permissionQuery">权限只读查询服务。</param>
 public sealed class GetAllPermissionEndpoint(IPermissionQuery permissionQuery)
-    : EndpointWithoutRequest<IReadOnlyList<PermissionQueryItem>>
+    : EndpointWithoutRequest<PermissionQueryItem[]>
 {
     /// <summary>
     /// 配置按系统获取权限选项接口。

@@ -16,7 +16,7 @@ public sealed record GetDictionaryResponse(
     string SystemId,
     string SystemName,
     string Name,
-    IReadOnlyList<DictionaryItemResponse> Items);
+    DictionaryItemResponse[] Items);
 
 /// <summary>
 /// 获取字典分组详情端点。
@@ -57,6 +57,6 @@ public sealed class GetDictionaryEndpoint(IDictionaryRepository dictionaryReposi
                 .ThenBy(item => item.Sort)
                 .ThenBy(item => item.Id)
                 .Select(DictionaryEndpointMappings.ToResponse)
-                .ToList()), ct);
+                .ToArray()), ct);
     }
 }

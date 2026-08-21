@@ -23,7 +23,7 @@ public sealed record PositionQueryItem(
     int OrganizationCount);
 
 /// <summary>岗位分页查询结果。</summary>
-public sealed record PositionPagedQueryResult(long TotalCount, IReadOnlyList<PositionQueryItem> Items);
+public sealed record PositionPagedQueryResult(long TotalCount, PositionQueryItem[] Items);
 
 /// <summary>岗位只读查询接口。</summary>
 public interface IPositionQuery : IDedsiQuery

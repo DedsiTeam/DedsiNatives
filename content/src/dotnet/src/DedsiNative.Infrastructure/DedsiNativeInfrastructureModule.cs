@@ -84,10 +84,11 @@ public class DedsiNativeInfrastructureModule : AbpModule
             {
                 container.UseMinio(minio =>
                 {
-                    var connectionString = configuration.GetConnectionString("dedsinative-minio");
-                    string endpoint = "127.0.0.1:9000";
-                    string accessKey = "minioadmin";
-                    string secretKey = "minioadmin";
+                    var connectionString = configuration.GetConnectionString("DedsiCohenMinio");
+                    string endpoint = string.Empty;
+                    string accessKey = string.Empty;
+                    string secretKey = string.Empty;
+                    string bucketName = configuration["Minio:BucketName"] ?? "dedsinative";
                     bool useSsl = false;
 
                     if (!string.IsNullOrWhiteSpace(connectionString))
@@ -103,13 +104,14 @@ public class DedsiNativeInfrastructureModule : AbpModule
                         }
                         if (dict.TryGetValue("AccessKey", out var ak)) accessKey = ak;
                         if (dict.TryGetValue("SecretKey", out var sk)) secretKey = sk;
+                        if (dict.TryGetValue("BucketName", out var bn)) bucketName = bn;
                         if (dict.TryGetValue("UseSSL", out var sslStr) && bool.TryParse(sslStr, out var parsedSsl)) useSsl = parsedSsl;
                     }
                     else
                     {
-                        endpoint = configuration["Minio:Endpoint"] ?? endpoint;
-                        accessKey = configuration["Minio:AccessKey"] ?? accessKey;
-                        secretKey = configuration["Minio:SecretKey"] ?? secretKey;
+                        endpoint = configuration["Minio:Endpoint"] ?? string.Empty;
+                        accessKey = configuration["Minio:AccessKey"] ?? string.Empty;
+                        secretKey = configuration["Minio:SecretKey"] ?? string.Empty;
                         if (bool.TryParse(configuration["Minio:UseSSL"], out var parsedSsl))
                         {
                             useSsl = parsedSsl;
@@ -119,7 +121,7 @@ public class DedsiNativeInfrastructureModule : AbpModule
                     minio.EndPoint = endpoint;
                     minio.AccessKey = accessKey;
                     minio.SecretKey = secretKey;
-                    minio.BucketName = configuration["Minio:BucketName"] ?? "dedsinative";
+                    minio.BucketName = bucketName;
                     minio.WithSSL = useSsl;
                     minio.CreateBucketIfNotExists = true;
                 });

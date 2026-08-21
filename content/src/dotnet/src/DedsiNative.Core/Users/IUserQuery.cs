@@ -41,7 +41,7 @@ public sealed record UserQueryItem(
 /// <param name="Items">当前查询返回的用户列表。</param>
 public sealed record UserPagedQueryResult(
     long TotalCount,
-    IReadOnlyList<UserQueryItem> Items);
+    UserQueryItem[] Items);
 
 /// <summary>
 /// 用户只读查询契约，隔离 Core 与具体持久化技术。

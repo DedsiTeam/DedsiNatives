@@ -43,8 +43,8 @@ public record GetUserResponse(
     string? LastLoginIp,
     DateTime? SoftDeletedAt,
     UserLoginInfoResponse? LoginInfo,
-    IReadOnlyList<UserPositionResponse> Positions,
-    IReadOnlyList<UserOrganizationResponse> Organizations);
+    UserPositionResponse[] Positions,
+    UserOrganizationResponse[] Organizations);
 
 /// <summary>
 /// 获取用户详情端点，处理 GET /api/user/{id} 请求，根据路由中的用户 ID 查询并返回用户信息。
@@ -89,9 +89,9 @@ public class GetUserEndpoint(IUserRepository userRepository)
             user.LoginInfo is null ? null : new UserLoginInfoResponse(user.LoginInfo.Account, user.LoginInfo.Status),
             user.Positions.Select(position => new UserPositionResponse(
                 position.PositionId,
-                position.PositionName)).ToList(),
+                position.PositionName)).ToArray(),
             user.Organizations.Select(org => new UserOrganizationResponse(
                 org.OrganizationId,
-                org.OrganizationName)).ToList()), ct);
+                org.OrganizationName)).ToArray()), ct);
     }
 }

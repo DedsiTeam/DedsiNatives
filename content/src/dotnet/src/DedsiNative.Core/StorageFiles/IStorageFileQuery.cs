@@ -87,7 +87,7 @@ public sealed record StorageFileQueryItem(
 /// <param name="Items">当前页文件记录列表。</param>
 public sealed record StorageFilePagedQueryResult(
     long TotalCount,
-    IReadOnlyList<StorageFileQueryItem> Items);
+    StorageFileQueryItem[] Items);
 
 /// <summary>
 /// 文件与对象存储只读查询契约。

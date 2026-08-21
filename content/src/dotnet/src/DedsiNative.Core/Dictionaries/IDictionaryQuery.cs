@@ -39,7 +39,7 @@ public sealed record DictionaryQueryItem(
 /// <param name="Items">当前页字典分组列表。</param>
 public sealed record DictionaryPagedQueryResult(
     long TotalCount,
-    IReadOnlyList<DictionaryQueryItem> Items);
+    DictionaryQueryItem[] Items);
 
 /// <summary>
 /// 字典只读查询接口，隔离领域层与具体持久化技术。

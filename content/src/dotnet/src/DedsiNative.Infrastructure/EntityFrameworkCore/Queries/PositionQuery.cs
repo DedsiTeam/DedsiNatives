@@ -37,7 +37,7 @@ public sealed class PositionQuery(IDedsiNativeDbContext dbContext) : IPositionQu
                 position.IsEnabled,
                 position.Permissions.Count,
                 position.Organizations.Count))
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
 
         return new PositionPagedQueryResult(totalCount, items);
     }

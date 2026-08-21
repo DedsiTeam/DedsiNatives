@@ -8,7 +8,7 @@ namespace DedsiNative.Endpoints.SystemEndpoints;
 /// </summary>
 /// <param name="systemQuery">系统只读查询服务。</param>
 public sealed class GetAllSystemEndpoint(ISystemQuery systemQuery)
-    : EndpointWithoutRequest<IReadOnlyList<SystemQueryItem>>
+    : EndpointWithoutRequest<SystemQueryItem[]>
 {
     /// <summary>
     /// 配置获取全部系统选项接口。

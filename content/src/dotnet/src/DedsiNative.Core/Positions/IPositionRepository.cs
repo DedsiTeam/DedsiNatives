@@ -11,7 +11,7 @@ public interface IPositionRepository : IDedsiCqrsRepository<Position, string>
     /// <param name="permissionId">权限唯一标识。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>关联岗位聚合列表。</returns>
-    Task<IReadOnlyList<Position>> GetByPermissionIdAsync(
+    Task<Position[]> GetByPermissionIdAsync(
         string permissionId,
         CancellationToken cancellationToken);
 }

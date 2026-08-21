@@ -35,7 +35,7 @@ public sealed class LoginResponseTests
         Assert.Equal(userId, loginResponse.User.Id);
         Assert.Equal("张三", loginResponse.User.Name);
         Assert.Equal("admin", loginResponse.User.Account);
-        Assert.Equal(2, loginResponse.User.Permissions.Count);
+        Assert.Equal(2, loginResponse.User.Permissions.Length);
         Assert.Contains("system:users:create", loginResponse.User.Permissions);
         Assert.Contains("system:users:view", loginResponse.User.Permissions);
 

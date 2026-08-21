@@ -90,7 +90,7 @@ public sealed record OrganizationQueryItem(
 /// <param name="Items">当前页组织机构记录列表。</param>
 public sealed record OrganizationPagedQueryResult(
     long TotalCount,
-    IReadOnlyList<OrganizationQueryItem> Items);
+    OrganizationQueryItem[] Items);
 
 /// <summary>
 /// 组织机构只读查询契约。
@@ -109,7 +109,7 @@ public interface IOrganizationQuery : IDedsiQuery
     /// <returns>
     /// 已按层级和排序序号升序排列的组织机构列表。
     /// </returns>
-    Task<IReadOnlyList<OrganizationQueryItem>> GetTreeListAsync(
+    Task<OrganizationQueryItem[]> GetTreeListAsync(
         OrganizationTreeQuery query,
         CancellationToken cancellationToken);
 

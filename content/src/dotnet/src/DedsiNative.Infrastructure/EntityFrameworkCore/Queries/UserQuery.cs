@@ -47,7 +47,7 @@ public sealed class UserQuery(IDedsiNativeDbContext dbContext) : IUserQuery
                 user.Email,
                 user.Phone,
                 user.LastUpdatedAt))
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
 
         return new UserPagedQueryResult(totalCount, items);
     }
