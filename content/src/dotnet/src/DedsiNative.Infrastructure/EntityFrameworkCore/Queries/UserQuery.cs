@@ -51,4 +51,16 @@ public sealed class UserQuery(IDedsiNativeDbContext dbContext) : IUserQuery
 
         return new UserPagedQueryResult(totalCount, items);
     }
+
+    /// <inheritdoc />
+    public async Task<User?> FindByAccountAsync(string account, CancellationToken cancellationToken)
+    {
+        var normalizedAccount = account.Trim();
+        return await dbContext.Users
+            .Include(user => user.LoginInfo)
+            .Include(user => user.Positions)
+            .SingleOrDefaultAsync(
+                user => user.LoginInfo != null && user.LoginInfo.Account == normalizedAccount,
+                cancellationToken);
+    }
 }

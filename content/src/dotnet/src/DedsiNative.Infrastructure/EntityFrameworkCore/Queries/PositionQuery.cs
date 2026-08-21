@@ -41,4 +41,15 @@ public sealed class PositionQuery(IDedsiNativeDbContext dbContext) : IPositionQu
 
         return new PositionPagedQueryResult(totalCount, items);
     }
+
+    /// <inheritdoc />
+    public async Task<Position[]> GetByPermissionIdAsync(
+        string permissionId,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Positions
+            .Include(item => item.Permissions)
+            .Where(position => position.Permissions.Any(item => item.PermissionId == permissionId))
+            .ToArrayAsync(cancellationToken);
+    }
 }

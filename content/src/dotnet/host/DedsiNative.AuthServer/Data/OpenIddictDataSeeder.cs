@@ -83,6 +83,7 @@ public class OpenIddictDataSeeder(
                 PostLogoutRedirectUris =
                 {
                     new Uri("http://localhost:11026/signout-callback-oidc"),
+                    new Uri("http://localhost:11026/login"),
                     new Uri("http://localhost:11026/")
                 },
                 Permissions =

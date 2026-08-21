@@ -89,4 +89,18 @@ public sealed class StorageFileQuery(IDedsiNativeDbContext dbContext) : IStorage
 
         return new StorageFilePagedQueryResult(totalCount, items);
     }
+
+    /// <inheritdoc />
+    public async Task<StorageFile?> FindByMd5Async(string md5Hash, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(md5Hash))
+        {
+            return null;
+        }
+
+        return await dbContext.StorageFiles
+            .Where(f => f.Md5Hash == md5Hash)
+            .OrderByDescending(f => f.CreationTime)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }

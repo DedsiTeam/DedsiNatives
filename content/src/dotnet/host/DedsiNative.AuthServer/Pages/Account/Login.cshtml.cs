@@ -12,6 +12,7 @@ using Volo.Abp.Uow;
 namespace DedsiNative.AuthServer.Pages.Account;
 
 public class LoginModel(
+    IUserQuery userQuery,
     IUserRepository userRepository,
     ILoginAuditRepository loginAuditRepository,
     IUnitOfWorkManager unitOfWorkManager,
@@ -70,7 +71,7 @@ public class LoginModel(
         User? user;
         try
         {
-            user = await userRepository.FindByAccountAsync(account, HttpContext.RequestAborted);
+            user = await userQuery.FindByAccountAsync(account, HttpContext.RequestAborted);
         }
         catch (Exception ex)
         {

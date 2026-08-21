@@ -270,22 +270,30 @@ public class AuthorizationController(
     }
 
     /// <summary>
-    /// OIDC 退出登录端点。
+    /// OIDC 退出登录端点，支持客户端 RP-Initiated Logout 以及直接访问注销。
     /// </summary>
     [HttpGet("~/connect/logout")]
     [HttpPost("~/connect/logout")]
     public async Task<IActionResult> Logout()
     {
-        // 登出本地 Cookie 会话
+        // 1. 登出本地 Cookie 会话
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-        // 登出 OpenIddict 协议会话并重定向回 post_logout_redirect_uri
-        return SignOut(
-            authenticationSchemes: [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme],
-            properties: new AuthenticationProperties
-            {
-                RedirectUri = "/"
-            });
+        // 2. 尝试从 OpenIddict 上下文中获取登出协议请求
+        var request = HttpContext.GetOpenIddictServerRequest();
+        if (request is not null)
+        {
+            // 登出 OpenIddict 协议会话，OpenIddict 会根据客户端请求参数自动重定向到 post_logout_redirect_uri
+            return SignOut(
+                authenticationSchemes: [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme],
+                properties: new AuthenticationProperties
+                {
+                    RedirectUri = "/"
+                });
+        }
+
+        // 3. 非 OIDC 协议直连访问时，重定向至 AuthServer 登录页
+        return Redirect("~/Account/Login");
     }
 
     private async Task<ClaimsPrincipal> CreateUserPrincipalAsync(User user, IEnumerable<string> scopes)

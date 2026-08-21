@@ -13,7 +13,9 @@ public sealed record DeleteOrganizationResponse(bool Success);
 /// <summary>
 /// 删除组织机构端点。
 /// </summary>
-public sealed class DeleteOrganizationEndpoint(IOrganizationRepository organizationRepository)
+public sealed class DeleteOrganizationEndpoint(
+    IOrganizationRepository organizationRepository,
+    IOrganizationQuery organizationQuery)
     : EndpointWithoutRequest<DeleteOrganizationResponse>
 {
     /// <inheritdoc />
@@ -32,7 +34,7 @@ public sealed class DeleteOrganizationEndpoint(IOrganizationRepository organizat
     public override async Task HandleAsync(CancellationToken ct)
     {
         var id = Route<string>("id");
-        var hasChildren = await organizationRepository.HasChildrenAsync(id, ct);
+        var hasChildren = await organizationQuery.HasChildrenAsync(id, ct);
         if (hasChildren)
         {
             throw new BusinessException(

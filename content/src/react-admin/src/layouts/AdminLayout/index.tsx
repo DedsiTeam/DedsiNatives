@@ -28,6 +28,7 @@ import styles from './AdminLayout.module.css';
 import './menu-compat.css';
 
 import { MenuApiService, type CurrentUserMenuResultDto, type LoginUserPositionResultDto } from '../../apiServices';
+import { SsoAuthService } from '../../auth/authService';
 
 interface AdminLayoutProps {
   children?: React.ReactNode;
@@ -241,13 +242,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     }
   };
 
-  const handleUserMenuClick: MenuProps['onClick'] = (e) => {
+  const handleUserMenuClick: MenuProps['onClick'] = async (e) => {
     if (e.key === 'profile') navigate('/profile');
     else if (e.key === 'password') navigate('/change-password');
     else if (e.key === 'logout') {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('current_user');
-      navigate('/login');
+      await SsoAuthService.logout();
     }
   };
 

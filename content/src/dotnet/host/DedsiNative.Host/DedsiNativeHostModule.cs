@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Text;
 using Dedsi.CleanArchitecture.HttpApi;
@@ -38,22 +39,76 @@ public class DedsiNativeHostModule : AbpModule
     {
         var configuration = context.Services.GetConfiguration();
 
-        // JWT 认证
-        var jwtSection = configuration.GetSection("Jwt");
+        // 1. OpenIddict 验证服务（严格从配置中加载 SSO AuthServer 授权中心地址与 Audience）
+        var authServerSection = configuration.GetRequiredSection("AuthServer");
+        var authority = authServerSection["Authority"] ?? throw new InvalidOperationException("AuthServer:Authority 未配置。");
+        var audience = authServerSection["Audience"] ?? throw new InvalidOperationException("AuthServer:Audience 未配置。");
+
+        context.Services.AddOpenIddict()
+            .AddValidation(options =>
+            {
+                options.SetIssuer(authority);
+                options.AddAudiences(audience);
+                options.UseSystemNetHttp();
+                options.UseAspNetCore();
+            });
+
+        // 2. 双轨混合认证方案（智能选择器动态路由）
+        var jwtSection = configuration.GetRequiredSection("Jwt");
+        var localIssuer = jwtSection["Issuer"] ?? throw new InvalidOperationException("Jwt:Issuer 未配置。");
+        var localAudience = jwtSection["Audience"] ?? throw new InvalidOperationException("Jwt:Audience 未配置。");
+        var localSecret = jwtSection["Secret"] ?? throw new InvalidOperationException("Jwt:Secret 未配置。");
+
         context.Services
-            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+            .AddAuthentication(options =>
+            {
+                options.DefaultScheme = "Smart_Auth";
+                options.DefaultAuthenticateScheme = "Smart_Auth";
+                options.DefaultChallengeScheme = "Smart_Auth";
+            })
+            .AddPolicyScheme("Smart_Auth", "OpenIddict or Local JWT", options =>
+            {
+                options.ForwardDefaultSelector = ctx =>
+                {
+                    var authHeader = ctx.Request.Headers.Authorization.ToString();
+                    if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return global::OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+                    }
+
+                    var token = authHeader["Bearer ".Length..].Trim();
+                    try
+                    {
+                        var handler = new JwtSecurityTokenHandler();
+                        if (handler.CanReadToken(token))
+                        {
+                            var jwt = handler.ReadJwtToken(token);
+                            if (string.Equals(jwt.Issuer, localIssuer, StringComparison.OrdinalIgnoreCase))
+                            {
+                                return JwtBearerDefaults.AuthenticationScheme;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // 忽略解析异常，降级至 OpenIddict Validation 处理
+                    }
+
+                    return global::OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+                };
+            })
+            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer           = true,
-                    ValidIssuer              = jwtSection["Issuer"],
+                    ValidIssuer              = localIssuer,
                     ValidateAudience         = true,
-                    ValidAudience            = jwtSection["Audience"],
+                    ValidAudience            = localAudience,
                     ValidateLifetime         = true,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtSection["Secret"]!))
+                        Encoding.UTF8.GetBytes(localSecret))
                 };
             });
 

@@ -64,6 +64,7 @@ public sealed class CreateOrganizationRequestValidator : Validator<CreateOrganiz
 /// </summary>
 public sealed class CreateOrganizationEndpoint(
     IOrganizationRepository organizationRepository,
+    IOrganizationQuery organizationQuery,
     ISystemRepository systemRepository)
     : Endpoint<CreateOrganizationRequest, CreateOrganizationResponse>
 {
@@ -84,7 +85,7 @@ public sealed class CreateOrganizationEndpoint(
     {
         var system = await systemRepository.GetAsync(req.SystemId, true, ct);
 
-        var exists = await organizationRepository.ExistsBySystemAndCodeAsync(req.SystemId, req.Code, ct);
+        var exists = await organizationQuery.ExistsBySystemAndCodeAsync(req.SystemId, req.Code, ct);
         if (exists)
         {
             throw new BusinessException(

@@ -9,8 +9,10 @@ namespace DedsiNative.Applications.Menus.EventHandlers;
 /// 权限名称变更事件处理器，批量刷新岗位中的权限名称快照。
 /// </summary>
 /// <param name="positionRepository">岗位聚合仓储。</param>
+/// <param name="positionQuery">岗位查询服务。</param>
 public sealed class PermissionNameChangedEventHandler(
-    IPositionRepository positionRepository)
+    IPositionRepository positionRepository,
+    IPositionQuery positionQuery)
     : ILocalEventHandler<PermissionNameChangedEvent>, ITransientDependency
 {
     /// <summary>
@@ -19,7 +21,7 @@ public sealed class PermissionNameChangedEventHandler(
     /// <param name="eventData">权限名称变更事件。</param>
     public async Task HandleEventAsync(PermissionNameChangedEvent eventData)
     {
-        var positions = await positionRepository.GetByPermissionIdAsync(eventData.PermissionId, CancellationToken.None);
+        var positions = await positionQuery.GetByPermissionIdAsync(eventData.PermissionId, CancellationToken.None);
         foreach (var position in positions)
         {
             position.ChangePermissionName(eventData.PermissionId, eventData.NewName);

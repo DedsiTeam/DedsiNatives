@@ -49,7 +49,9 @@ public sealed class UpdateOrganizationRequestValidator : Validator<UpdateOrganiz
 /// <summary>
 /// 更新组织机构端点。
 /// </summary>
-public sealed class UpdateOrganizationEndpoint(IOrganizationRepository organizationRepository)
+public sealed class UpdateOrganizationEndpoint(
+    IOrganizationRepository organizationRepository,
+    IOrganizationQuery organizationQuery)
     : Endpoint<UpdateOrganizationRequest, UpdateOrganizationResponse>
 {
     /// <inheritdoc />
@@ -83,7 +85,7 @@ public sealed class UpdateOrganizationEndpoint(IOrganizationRepository organizat
                         "组织机构不能将自身设置为上级组织。");
                 }
 
-                var wouldCycle = await organizationRepository.WouldCreateCycleAsync(org.Id, req.ParentId, ct);
+                var wouldCycle = await organizationQuery.WouldCreateCycleAsync(org.Id, req.ParentId, ct);
                 if (wouldCycle)
                 {
                     throw new BusinessException(

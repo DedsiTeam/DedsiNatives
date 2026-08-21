@@ -1,6 +1,5 @@
 using DedsiNative.Menus;
 using DedsiNative.Permissions;
-using FastEndpoints;
 
 namespace DedsiNative.Endpoints.MenuEndpoints;
 
@@ -13,6 +12,7 @@ internal static class MenuEndpointValidation
     /// 校验父菜单、权限和循环引用是否满足菜单领域规则。
     /// </summary>
     /// <param name="menus">菜单聚合仓储。</param>
+    /// <param name="menuQuery">菜单查询服务。</param>
     /// <param name="permissions">权限聚合仓储。</param>
     /// <param name="systemId">目标系统标识。</param>
     /// <param name="parentId">候选父菜单标识。</param>
@@ -22,6 +22,7 @@ internal static class MenuEndpointValidation
     /// <returns>读取到的权限及全部业务错误。</returns>
     internal static async Task<MenuRelationValidationResult> ValidateRelationsAsync(
         IMenuRepository menus,
+        IMenuQuery menuQuery,
         IPermissionRepository permissions,
         string systemId,
         string? parentId,
@@ -44,7 +45,7 @@ internal static class MenuEndpointValidation
                     errors.Add("父菜单必须属于同一系统。");
                 }
 
-                if (menuId is not null && await menus.WouldCreateCycleAsync(menuId, parentId, cancellationToken))
+                if (menuId is not null && await menuQuery.WouldCreateCycleAsync(menuId, parentId, cancellationToken))
                 {
                     errors.Add("父菜单设置会形成循环引用。");
                 }

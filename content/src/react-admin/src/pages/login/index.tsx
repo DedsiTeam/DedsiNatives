@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Checkbox, message, Typography } from 'antd';
-import { UserOutlined, LockOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { UserOutlined, LockOutlined, ArrowRightOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { AuthApiService } from '../../apiServices';
+import { SsoAuthService } from '../../auth/authService';
 import styles from './Login.module.css';
 
 const { Link } = Typography;
@@ -134,7 +135,7 @@ export const LoginPage: React.FC = () => {
             </Link>
           </div>
 
-          <Form.Item style={{ marginBottom: 8 }}>
+          <Form.Item style={{ marginBottom: 12 }}>
             <Button
               type="primary"
               htmlType="submit"
@@ -145,6 +146,36 @@ export const LoginPage: React.FC = () => {
               立即登录
             </Button>
           </Form.Item>
+
+          <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0', gap: 12 }}>
+            <div style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
+            <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>或使用统一身份认证</span>
+            <div style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
+          </div>
+
+          <Button
+            block
+            size="large"
+            icon={<SafetyCertificateOutlined style={{ color: 'var(--color-primary)' }} />}
+            onClick={() => {
+              message.loading({ content: '正在跳转至 SSO 统一认证中心...', key: 'sso' });
+              SsoAuthService.loginViaSso().catch((err) => {
+                message.error({ content: err?.message || '发起 SSO 登录失败', key: 'sso' });
+              });
+            }}
+            style={{
+              borderRadius: 8,
+              height: 42,
+              border: '1px solid var(--color-border)',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+            }}
+          >
+            DedsiNative SSO 单点登录
+          </Button>
         </Form>
 
         {/* 页脚版权信息 */}

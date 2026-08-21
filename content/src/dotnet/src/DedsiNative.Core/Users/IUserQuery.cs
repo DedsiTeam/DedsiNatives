@@ -57,4 +57,14 @@ public interface IUserQuery : IDedsiQuery
     Task<UserPagedQueryResult> GetPagedAsync(
         UserPagedQuery query,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// 按登录账号获取用户及其登录信息。
+    /// </summary>
+    /// <param name="account">待查询的登录账号。</param>
+    /// <param name="cancellationToken">用于取消异步操作的令牌。</param>
+    /// <returns>未找到对应用户时返回 <see langword="null"/>。</returns>
+    Task<User?> FindByAccountAsync(
+        string account,
+        CancellationToken cancellationToken);
 }

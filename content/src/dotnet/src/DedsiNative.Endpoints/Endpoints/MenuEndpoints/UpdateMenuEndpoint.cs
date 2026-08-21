@@ -9,10 +9,12 @@ namespace DedsiNative.Endpoints.MenuEndpoints;
 /// 更新菜单端点，负责在更新前校验树形关系与关联归属。
 /// </summary>
 /// <param name="menus">菜单聚合仓储。</param>
+/// <param name="menuQuery">菜单查询服务。</param>
 /// <param name="systems">系统聚合仓储。</param>
 /// <param name="permissions">权限聚合仓储。</param>
 public sealed class UpdateMenuEndpoint(
     IMenuRepository menus,
+    IMenuQuery menuQuery,
     ISystemRepository systems,
     IPermissionRepository permissions) : Endpoint<MenuInput, bool>
 {
@@ -36,6 +38,7 @@ public sealed class UpdateMenuEndpoint(
 
         var relationValidation = await MenuEndpointValidation.ValidateRelationsAsync(
             menus,
+            menuQuery,
             permissions,
             system.Id,
             req.ParentId,
@@ -48,7 +51,7 @@ public sealed class UpdateMenuEndpoint(
             ThrowError(error);
         }
 
-        if (await menus.ExistsBySystemAndCodeAsync(system.Id, req.Code, ct, menu.Id))
+        if (await menuQuery.ExistsBySystemAndCodeAsync(system.Id, req.Code, ct, menu.Id))
         {
             ThrowError("同一系统内的菜单编码不能重复。");
         }

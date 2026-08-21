@@ -18,12 +18,17 @@ import SsoTokens from '../pages/sso/tokens';
 import ProfilePage from '../pages/profile';
 import ChangePasswordPage from '../pages/change-password';
 import LoginPage from '../pages/login';
+import CallbackPage from '../pages/callback';
 import OrderDetail from '../pages/orders/detail';
 
 export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/callback',
+    element: <CallbackPage />,
   },
   {
     path: '/',

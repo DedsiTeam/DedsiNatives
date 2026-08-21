@@ -1,84 +1,28 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using DedsiNative.LoginAudits;
-using DedsiNative.Permissions;
-using DedsiNative.Positions;
 using DedsiNative.Users;
 using FastEndpoints;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using Volo.Abp;
-using Volo.Abp.Security.Claims;
 using Volo.Abp.Uow;
 
 namespace DedsiNative.Endpoints.AuthEndpoints;
 
 /// <summary>
-/// 登录请求参数。
+/// 登录端点，验证数据库用户账号密码、记录失败审计，并通过统一登录服务签发 JWT Token 与完整用户模型。
 /// </summary>
-/// <param name="Username">用户名。</param>
-/// <param name="Password">密码。</param>
-public sealed record LoginRequest(string Username, string Password);
-
-/// <summary>
-/// 登录响应，包含 JWT Token 及过期时间。
-/// </summary>
-/// <param name="Token">JWT Bearer Token。</param>
-/// <param name="ExpiresAt">Token 过期时间（UTC）。</param>
-/// <param name="User">当前登录用户的安全基本资料。</param>
-public sealed record LoginResponse(string Token, DateTime ExpiresAt, LoginUserResponse User);
-
-/// <summary>
-/// 登录响应中用户所属岗位。
-/// </summary>
-/// <param name="PositionId">岗位唯一标识。</param>
-/// <param name="PositionName">岗位名称。</param>
-public sealed record LoginUserPositionResponse(
-    string PositionId,
-    string PositionName);
-
-/// <summary>
-/// 登录成功后返回的当前用户基本资料。
-/// </summary>
-/// <param name="Id">用户唯一标识。</param>
-/// <param name="Name">用户姓名。</param>
-/// <param name="Email">用户邮箱。</param>
-/// <param name="Account">登录账号。</param>
-/// <param name="Permissions">由用户岗位解析出的有效权限名称。</param>
-/// <param name="Positions">用户所属岗位及其对应权限列表。</param>
-public sealed record LoginUserResponse(
-    Guid Id,
-    string Name,
-    string Email,
-    string Account,
-    string[] Permissions,
-    LoginUserPositionResponse[] Positions);
-
-/// <summary>
-/// 登录端点，验证数据库用户凭证、独立持久化登录审计并签发 JWT Token。
-/// </summary>
-/// <param name="configuration">JWT 配置。</param>
-/// <param name="userRepository">用户聚合仓储。</param>
-/// <param name="positionRepository">岗位聚合仓储，用于解析权限名称。</param>
-/// <param name="permissionQuery">权限只读查询，用于过滤当前已启用的权限。</param>
+/// <param name="userQuery">用户只读查询服务。</param>
+/// <param name="userLoginService">统一用户登录服务。</param>
 /// <param name="loginAuditRepository">登录审计写侧仓储。</param>
-/// <param name="unitOfWorkManager">用于创建独立审计提交单元的工作单元管理器。</param>
-/// <param name="logger">不含密码和令牌的安全服务端日志。</param>
+/// <param name="unitOfWorkManager">工作单元管理器。</param>
+/// <param name="logger">安全日志记录器。</param>
 public sealed class LoginEndpoint(
-    IConfiguration configuration,
-    IUserRepository userRepository,
-    IPositionRepository positionRepository,
-    IPermissionQuery permissionQuery,
+    IUserQuery userQuery,
+    IUserLoginService userLoginService,
     ILoginAuditRepository loginAuditRepository,
     IUnitOfWorkManager unitOfWorkManager,
     ILogger<LoginEndpoint> logger)
     : Endpoint<LoginRequest, LoginResponse>
 {
-    /// <summary>
-    /// 配置端点路由，允许匿名访问。
-    /// </summary>
     public override void Configure()
     {
         Post("/api/auth/login");
@@ -87,15 +31,10 @@ public sealed class LoginEndpoint(
         Summary(summary =>
         {
             summary.Summary = "用户登录";
-            summary.Description = "验证用户登录账号和密码，登录成功后返回访问令牌。";
+            summary.Description = "验证用户登录账号和密码，登录成功后返回访问令牌与用户权限数据。";
         });
     }
 
-    /// <summary>
-    /// 验证用户凭证，独立保存审计记录，并在成功后返回 JWT Token。
-    /// </summary>
-    /// <param name="req">登录请求，包含用户名和密码。</param>
-    /// <param name="ct">用于取消异步操作的令牌。</param>
     public override async Task HandleAsync(LoginRequest req, CancellationToken ct)
     {
         var account = req.Username?.Trim() ?? string.Empty;
@@ -105,7 +44,7 @@ public sealed class LoginEndpoint(
 
         try
         {
-            user = await userRepository.FindByAccountAsync(account, ct);
+            user = await userQuery.FindByAccountAsync(account, ct);
         }
         catch (OperationCanceledException)
         {
@@ -213,62 +152,15 @@ public sealed class LoginEndpoint(
             return;
         }
 
-        LoginUserPositionResponse[] positions;
-        string[] permissionNames;
-        JwtSettings jwtSettings;
-        try
-        {
-            (positions, permissionNames) = await GetUserPositionsAndPermissionsAsync(user, ct);
-            jwtSettings = GetJwtSettings();
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception exception)
-        {
-            await RecordSystemFailureAndThrowAsync(
-                account,
-                clientIp,
-                userAgent,
-                exception,
-                ct,
-                user);
-            return;
-        }
+        // 统一调用用户登录服务执行持久化和凭据签发
+        var response = await userLoginService.GenerateLoginResponseAsync(
+            user,
+            clientIp,
+            userAgent,
+            "账号密码登录",
+            ct);
 
-        try
-        {
-            await PersistSuccessfulLoginAsync(
-                account,
-                clientIp,
-                userAgent,
-                ct);
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception exception)
-        {
-            // 成功审计未持久化时绝不签发 Token，日志中不记录账号、密码或令牌。
-            logger.LogError(exception, "成功登录审计写入失败，已拒绝签发访问令牌。");
-            throw new UserFriendlyException("登录状态写入失败，已拒绝签发访问令牌。");
-        }
-
-        // 只有成功审计及最后登录信息都独立提交后，才实际签发 JWT。
-        var (token, expiresAt) = CreateToken(user, permissionNames, jwtSettings);
-
-        await Send.OkAsync(new LoginResponse(
-            token,
-            expiresAt,
-            new LoginUserResponse(
-                user.Id,
-                user.Name,
-                user.Email,
-                loginInfo.Account,
-                permissionNames,
-                positions)), ct);
+        await Send.OkAsync(response, ct);
     }
 
     private async Task RecordFailureAndThrowAsync(
@@ -282,15 +174,21 @@ public sealed class LoginEndpoint(
     {
         try
         {
-            await PersistAuditAsync(
+            using var unitOfWork = unitOfWorkManager.Begin(requiresNew: true, isTransactional: true);
+            var audit = new LoginAudit(
+                Ulid.NewUlid().ToString(),
+                DateTime.Now,
                 LoginResult.Failure,
                 reason,
                 account,
-                user,
+                user?.Name,
+                user?.Id,
                 clientIp,
                 safeFailureDescription,
-                userAgent,
-                cancellationToken);
+                userAgent);
+
+            await loginAuditRepository.InsertAsync(audit, true, cancellationToken);
+            await unitOfWork.CompleteAsync(cancellationToken);
         }
         catch (OperationCanceledException)
         {
@@ -298,7 +196,6 @@ public sealed class LoginEndpoint(
         }
         catch (Exception exception)
         {
-            // 失败审计写入失败不改变统一认证失败语义，也不得泄露认证材料。
             logger.LogError(exception, "失败登录审计写入失败。");
         }
 
@@ -323,181 +220,4 @@ public sealed class LoginEndpoint(
             userAgent,
             cancellationToken);
     }
-
-    private async Task PersistAuditAsync(
-        LoginResult result,
-        LoginReason reason,
-        string account,
-        User? user,
-        string? clientIp,
-        string? failureDescription,
-        string? userAgent,
-        CancellationToken cancellationToken)
-    {
-        var audit = CreateAudit(
-            result,
-            reason,
-            account,
-            user,
-            clientIp,
-            failureDescription,
-            userAgent);
-
-        // 认证失败会抛异常；使用 requiresNew 保证已完成的审计不随外层工作单元回滚。
-        using var unitOfWork = unitOfWorkManager.Begin(requiresNew: true, isTransactional: true);
-        await loginAuditRepository.InsertAsync(audit, true, cancellationToken);
-        await unitOfWork.CompleteAsync(cancellationToken);
-    }
-
-    private async Task PersistSuccessfulLoginAsync(
-        string account,
-        string? clientIp,
-        string? userAgent,
-        CancellationToken cancellationToken)
-    {
-        // 重新在独立工作单元读取用户，避免外层异常回滚最后登录信息或成功审计。
-        using var unitOfWork = unitOfWorkManager.Begin(requiresNew: true, isTransactional: true);
-        var persistentUser = await userRepository.FindByAccountAsync(account, cancellationToken)
-            ?? throw new InvalidOperationException("成功认证的用户在提交登录信息时不存在。");
-        persistentUser.RecordLogin(DateTime.Now, clientIp);
-        await userRepository.UpdateAsync(persistentUser, true, cancellationToken);
-
-        var audit = CreateAudit(
-            LoginResult.Success,
-            LoginReason.SuccessfulAuthentication,
-            account,
-            persistentUser,
-            clientIp,
-            null,
-            userAgent);
-        await loginAuditRepository.InsertAsync(audit, true, cancellationToken);
-        await unitOfWork.CompleteAsync(cancellationToken);
-    }
-
-    private static LoginAudit CreateAudit(
-        LoginResult result,
-        LoginReason reason,
-        string account,
-        User? user,
-        string? clientIp,
-        string? failureDescription,
-        string? userAgent)
-    {
-        return new LoginAudit(
-            Ulid.NewUlid().ToString(),
-            DateTime.Now,
-            result,
-            reason,
-            account,
-            user?.Name,
-            user?.Id,
-            clientIp,
-            failureDescription,
-            userAgent);
-    }
-
-    private async Task<(LoginUserPositionResponse[] Positions, string[] PermissionNames)> GetUserPositionsAndPermissionsAsync(
-        User user,
-        CancellationToken cancellationToken)
-    {
-        var activePositions = new List<Position>();
-        foreach (var userPosition in user.Positions)
-        {
-            var position = await positionRepository.GetAsync(
-                userPosition.PositionId,
-                true,
-                cancellationToken);
-            if (!position.IsEnabled)
-            {
-                continue;
-            }
-
-            activePositions.Add(position);
-        }
-
-        var allPositionPermissions = activePositions
-            .SelectMany(p => p.Permissions)
-            .ToList();
-
-        var enabledPermissions = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var systemId in allPositionPermissions
-                     .Select(permission => permission.SystemId)
-                     .Distinct(StringComparer.Ordinal))
-        {
-            var queryResult = await permissionQuery.GetPagedAsync(
-                new PermissionPagedQuery(systemId, null, true, 0, 1, true),
-                cancellationToken);
-            foreach (var permission in queryResult.Items)
-            {
-                enabledPermissions[permission.Id] = permission.Name;
-            }
-        }
-
-        var userPositions = activePositions
-            .Select(position => new LoginUserPositionResponse(
-                position.Id,
-                position.Name))
-            .ToArray();
-
-        var permissionNames = allPositionPermissions
-            .Where(permission => enabledPermissions.ContainsKey(permission.PermissionId))
-            .Select(permission => enabledPermissions[permission.PermissionId])
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(permissionName => permissionName, StringComparer.Ordinal)
-            .ToArray();
-
-        return (userPositions, permissionNames);
-    }
-
-    private (string Token, DateTime ExpiresAt) CreateToken(
-        User user,
-        string[] permissionNames,
-        JwtSettings jwtSettings)
-    {
-        var expiresAt = DateTime.UtcNow.AddMinutes(jwtSettings.ExpirationMinutes);
-
-        var claims = new List<Claim>
-        {
-            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(AbpClaimTypes.Name, user.LoginInfo!.Account)
-        };
-        claims.AddRange(permissionNames.Select(permissionName =>
-            new Claim(LoginAuditPermissions.ClaimType, permissionName)));
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var token = new JwtSecurityToken(
-            issuer: jwtSettings.Issuer,
-            audience: jwtSettings.Audience,
-            claims: claims,
-            expires: expiresAt,
-            signingCredentials: credentials);
-
-        return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
-    }
-
-    private JwtSettings GetJwtSettings()
-    {
-        var jwtSection = configuration.GetSection("Jwt");
-        var secret = jwtSection["Secret"];
-        var issuer = jwtSection["Issuer"];
-        var audience = jwtSection["Audience"];
-        var expirationMinutes = jwtSection.GetValue<int>("ExpirationMinutes");
-        if (string.IsNullOrWhiteSpace(secret)
-            || string.IsNullOrWhiteSpace(issuer)
-            || string.IsNullOrWhiteSpace(audience)
-            || expirationMinutes <= 0)
-        {
-            throw new InvalidOperationException("JWT 配置不完整或无效。");
-        }
-
-        return new JwtSettings(secret, issuer, audience, expirationMinutes);
-    }
-
-    private sealed record JwtSettings(
-        string Secret,
-        string Issuer,
-        string Audience,
-        int ExpirationMinutes);
 }

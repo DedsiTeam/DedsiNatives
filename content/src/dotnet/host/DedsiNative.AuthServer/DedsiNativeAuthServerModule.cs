@@ -70,6 +70,9 @@ public class DedsiNativeAuthServerModule : AbpModule
                     .AllowClientCredentialsFlow()
                     .AllowRefreshTokenFlow();
 
+                // 禁用内部 JWE 加密，生成可供 Resource Server 验签的标准 JWT 访问令牌
+                options.DisableAccessTokenEncryption();
+
                 // 注册作用域
                 options.RegisterScopes(
                     OpenIddictConstants.Scopes.Email,
@@ -105,7 +108,7 @@ public class DedsiNativeAuthServerModule : AbpModule
                 options.UseAspNetCore();
             });
 
-        // 4. 代理与跨域
+        // 4. 代理与跨域（完全开放所有跨域来源）
         context.Services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -118,12 +121,7 @@ public class DedsiNativeAuthServerModule : AbpModule
             options.AddDefaultPolicy(builder =>
             {
                 builder
-                    .WithOrigins(
-                        configuration["App:CorsOrigins"]?
-                            .Split(",", StringSplitOptions.RemoveEmptyEntries)
-                            .Select(o => o.Trim().TrimEnd('/'))
-                            .ToArray() ?? []
-                    )
+                    .SetIsOriginAllowed(_ => true)
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();
