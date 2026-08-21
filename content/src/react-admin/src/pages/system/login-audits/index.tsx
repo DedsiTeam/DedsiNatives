@@ -1,7 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+/**
+ * @file 登录审计管理页面 (LoginAuditManagement)
+ * @description 提供筛选、分页浏览与单条审计详情查看，基于通用 CrudToolbar / CrudTable / useCrudTable / CopyableIdTag 组件。
+ */
+
+import { useState } from 'react';
 import {
   Button,
-  Card,
   DatePicker,
   Descriptions,
   Empty,
@@ -9,8 +13,6 @@ import {
   Modal,
   Select,
   Skeleton,
-  Space,
-  Table,
   Tag,
   Tooltip,
   Typography,
@@ -21,7 +23,6 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   EyeOutlined,
-  SearchOutlined,
 } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import {
@@ -32,6 +33,12 @@ import {
   type LoginAuditResultDto,
   type LoginAuditRowResultDto,
 } from '../../../apiServices';
+import {
+  CopyableIdTag,
+  CrudTable,
+  CrudToolbar,
+  useCrudTable,
+} from '../../../components';
 import styles from './index.module.css';
 
 const { RangePicker } = DatePicker;
@@ -62,65 +69,37 @@ function displayValue(value: string | null | undefined): string {
 
 /** 登录审计管理页面，提供筛选、分页浏览与单条审计详情查看。 */
 export default function LoginAuditManagement() {
-  /** 当前页审计记录。 */
-  const [items, setItems] = useState<LoginAuditRowResultDto[]>([]);
-  /** 符合当前条件的总记录数。 */
-  const [totalCount, setTotalCount] = useState(0);
-  /** 列表请求状态。 */
-  const [loading, setLoading] = useState(false);
-  /** 分页当前页码，从 1 开始。 */
-  const [pageIndex, setPageIndex] = useState(1);
-  /** 分页页大小。 */
-  const [pageSize, setPageSize] = useState(10);
-
-  /** 筛选条件的草稿值，避免输入时频繁请求。 */
+  // 1. 筛选条件的草稿值
   const [draftTimeRange, setDraftTimeRange] = useState<[Dayjs, Dayjs] | null>(null);
   const [draftResult, setDraftResult] = useState<LoginResult>();
   const [draftReason, setDraftReason] = useState<LoginReason>();
   const [draftAccount, setDraftAccount] = useState('');
   const [draftUserName, setDraftUserName] = useState('');
   const [draftClientIp, setDraftClientIp] = useState('');
-  /** 已提交给后端的筛选条件。 */
+
+  // 2. 已生效筛选条件
   const [query, setQuery] = useState<Omit<LoginAuditQueryInputDto, 'pageIndex' | 'pageSize'>>({});
 
-  /** 详情弹窗及其远程数据状态。 */
+  // 3. 详情弹窗状态
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detail, setDetail] = useState<LoginAuditResultDto | null>(null);
 
-  /** 按当前已提交条件获取列表；失败时清空旧数据，避免误把过期数据当作当前结果。 */
-  const loadAudits = useCallback(async () => {
-    setLoading(true);
-    try {
-      const result = await LoginAuditApiService.getPageList({
-        pageIndex,
-        pageSize,
-        ...query,
-      });
-      setItems(result.items);
-      setTotalCount(result.totalCount);
-    } catch {
-      setItems([]);
-      setTotalCount(0);
-      message.error('登录审计记录加载失败，请稍后重试。');
-    } finally {
-      setLoading(false);
-    }
-  }, [pageIndex, pageSize, query]);
+  // 4. 通用 CRUD Hook
+  const {
+    items,
+    loading,
+    pagination,
+  } = useCrudTable<LoginAuditRowResultDto, typeof query>({
+    fetchApi: LoginAuditApiService.getPageList,
+    filters: query,
+  });
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadAudits();
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
-  }, [loadAudits]);
-
-  /** 提交草稿筛选条件，并从第一页重新查询。 */
+  /** 提交草稿筛选条件 */
   const handleSearch = () => {
-    setPageIndex(1);
     setQuery({
-      startTimeUtc: draftTimeRange?.[0].format('YYYY-MM-DD HH:mm:ss'),
-      endTimeUtc: draftTimeRange?.[1].format('YYYY-MM-DD HH:mm:ss'),
+      startTimeUtc: draftTimeRange?.[0]?.format('YYYY-MM-DD HH:mm:ss'),
+      endTimeUtc: draftTimeRange?.[1]?.format('YYYY-MM-DD HH:mm:ss'),
       result: draftResult,
       reason: draftReason,
       account: draftAccount.trim() || undefined,
@@ -129,7 +108,7 @@ export default function LoginAuditManagement() {
     });
   };
 
-  /** 同时重置界面草稿和已提交条件，确保列表立即回到初始状态。 */
+  /** 重置条件 */
   const handleReset = () => {
     setDraftTimeRange(null);
     setDraftResult(undefined);
@@ -138,7 +117,6 @@ export default function LoginAuditManagement() {
     setDraftUserName('');
     setDraftClientIp('');
     setQuery({});
-    setPageIndex(1);
   };
 
   /** 打开并加载单条审计详情。 */
@@ -168,7 +146,10 @@ export default function LoginAuditManagement() {
       key: 'result',
       width: 100,
       render: (result: LoginResult) => (
-        <Tag color={result === LoginResult.Success ? 'success' : 'error'} icon={result === LoginResult.Success ? <CheckCircleOutlined /> : <CloseCircleOutlined />}>
+        <Tag
+          color={result === LoginResult.Success ? 'success' : 'error'}
+          icon={result === LoginResult.Success ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+        >
           {loginResultLabels[result] ?? '未知'}
         </Tag>
       ),
@@ -196,7 +177,7 @@ export default function LoginAuditManagement() {
       dataIndex: 'clientIp',
       key: 'clientIp',
       width: 160,
-      render: (value: string | null) => value ? <Text code>{value}</Text> : '-',
+      render: (value: string | null) => (value ? <Text code>{value}</Text> : '-'),
     },
     {
       title: '失败说明',
@@ -213,7 +194,13 @@ export default function LoginAuditManagement() {
       fixed: 'right',
       render: (_, record) => (
         <Tooltip title="查看详情">
-          <Button type="text" size="small" icon={<EyeOutlined />} onClick={() => void openDetail(record.id)}>
+          <Button
+            type="text"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => void openDetail(record.id)}
+            style={{ color: 'var(--color-primary)', fontWeight: 500 }}
+          >
             详情
           </Button>
         </Tooltip>
@@ -223,23 +210,31 @@ export default function LoginAuditManagement() {
 
   return (
     <main className={styles.pageContainer}>
-      <Card className={styles.toolbarCard}>
-        <div className={styles.toolbar}>
-          <div className={styles.filters}>
+      {/* 1. 顶部检索工具栏 */}
+      <CrudToolbar
+        onSearch={handleSearch}
+        onReset={handleReset}
+        extraFilters={
+          <>
             <RangePicker
               allowClear
               showTime
               value={draftTimeRange}
               className={styles.timeRange}
               placeholder={['开始时间', '结束时间']}
-              onChange={(values) => setDraftTimeRange(values?.[0] && values[1] ? [values[0], values[1]] : null)}
+              onChange={(values) =>
+                setDraftTimeRange(values?.[0] && values[1] ? [values[0], values[1]] : null)
+              }
             />
             <Select<LoginResult>
               allowClear
               className={styles.selectFilter}
               placeholder="登录结果"
               value={draftResult}
-              options={Object.entries(loginResultLabels).map(([value, label]) => ({ value: Number(value), label }))}
+              options={Object.entries(loginResultLabels).map(([value, label]) => ({
+                value: Number(value),
+                label,
+              }))}
               onChange={setDraftResult}
             />
             <Select<LoginReason>
@@ -247,43 +242,59 @@ export default function LoginAuditManagement() {
               className={styles.selectFilter}
               placeholder="登录原因"
               value={draftReason}
-              options={Object.entries(loginReasonLabels).map(([value, label]) => ({ value: Number(value), label }))}
+              options={Object.entries(loginReasonLabels).map(([value, label]) => ({
+                value: Number(value),
+                label,
+              }))}
               onChange={setDraftReason}
             />
-            <Input allowClear className={styles.textFilter} placeholder="登录账号" value={draftAccount} onChange={(event) => setDraftAccount(event.target.value)} onPressEnter={handleSearch} />
-            <Input allowClear className={styles.textFilter} placeholder="用户名" value={draftUserName} onChange={(event) => setDraftUserName(event.target.value)} onPressEnter={handleSearch} />
-            <Input allowClear className={styles.ipFilter} placeholder="客户端 IP" value={draftClientIp} onChange={(event) => setDraftClientIp(event.target.value)} onPressEnter={handleSearch} />
-          </div>
-          <Space wrap>
-            <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>查询</Button>
-            <Button onClick={handleReset}>重置</Button>
-          </Space>
-        </div>
-      </Card>
+            <Input
+              allowClear
+              className={styles.textFilter}
+              placeholder="登录账号"
+              value={draftAccount}
+              onChange={(event) => setDraftAccount(event.target.value)}
+              onPressEnter={handleSearch}
+            />
+            <Input
+              allowClear
+              className={styles.textFilter}
+              placeholder="用户名"
+              value={draftUserName}
+              onChange={(event) => setDraftUserName(event.target.value)}
+              onPressEnter={handleSearch}
+            />
+            <Input
+              allowClear
+              className={styles.ipFilter}
+              placeholder="客户端 IP"
+              value={draftClientIp}
+              onChange={(event) => setDraftClientIp(event.target.value)}
+              onPressEnter={handleSearch}
+            />
+          </>
+        }
+      />
 
-      <Card className={styles.tableCard}>
-        <Table<LoginAuditRowResultDto>
-          rowKey="id"
-          columns={columns}
-          dataSource={items}
-          loading={loading}
-          scroll={{ x: 1100 }}
-          locale={{ emptyText: <Empty description="暂无登录审计记录" /> }}
-          pagination={{
-            current: pageIndex,
-            pageSize,
-            total: totalCount,
-            showSizeChanger: true,
-            showTotal: (total, range) => `显示第 ${range[0]} - ${range[1]} 条，共 ${total} 条记录`,
-            onChange: (nextPage, nextPageSize) => {
-              setPageIndex(nextPageSize === pageSize ? nextPage : 1);
-              setPageSize(nextPageSize);
-            },
-          }}
-        />
-      </Card>
+      {/* 2. 数据表格卡片 */}
+      <CrudTable<LoginAuditRowResultDto>
+        rowKey="id"
+        columns={columns}
+        dataSource={items}
+        loading={loading}
+        pagination={pagination}
+        emptyText="暂无登录审计记录"
+        scroll={{ x: 1100 }}
+      />
 
-      <Modal title="登录审计详情" open={detailOpen} width={720} footer={<Button onClick={() => setDetailOpen(false)}>关闭</Button>} onCancel={() => setDetailOpen(false)}>
+      {/* 3. 详情 Modal */}
+      <Modal
+        title="登录审计详情"
+        open={detailOpen}
+        width={720}
+        footer={null}
+        onCancel={() => setDetailOpen(false)}
+      >
         {detailLoading ? (
           <Skeleton active paragraph={{ rows: 8 }} />
         ) : detail ? (
@@ -293,21 +304,39 @@ export default function LoginAuditManagement() {
                 <Text strong>{detail.account}</Text>
                 <Text type="secondary">{detail.loginTimeUtc}</Text>
               </div>
-              <Tag color={detail.result === LoginResult.Success ? 'success' : 'error'} icon={detail.result === LoginResult.Success ? <CheckCircleOutlined /> : <CloseCircleOutlined />}>
+              <Tag
+                color={detail.result === LoginResult.Success ? 'success' : 'error'}
+                icon={detail.result === LoginResult.Success ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+              >
                 {loginResultLabels[detail.result] ?? '未知'}
               </Tag>
             </div>
-            <Descriptions bordered size="small" column={1} labelStyle={{ width: 130, fontWeight: 600, background: 'var(--color-surface-subtle)' }}>
-              <Descriptions.Item label="审计标识"><Text code>{detail.id}</Text></Descriptions.Item>
+            <Descriptions
+              bordered
+              size="small"
+              column={1}
+              labelStyle={{ width: 130, fontWeight: 600, background: 'var(--color-surface-subtle)' }}
+            >
+              <Descriptions.Item label="审计标识">
+                <CopyableIdTag id={detail.id} label="审计 ID" />
+              </Descriptions.Item>
               <Descriptions.Item label="登录时间">{detail.loginTimeUtc}</Descriptions.Item>
               <Descriptions.Item label="登录结果">{loginResultLabels[detail.result] ?? '未知'}</Descriptions.Item>
               <Descriptions.Item label="登录原因">{loginReasonLabels[detail.reason] ?? '未知原因'}</Descriptions.Item>
-              <Descriptions.Item label="登录账号"><Text code>{detail.account}</Text></Descriptions.Item>
+              <Descriptions.Item label="登录账号">
+                <Text code>{detail.account}</Text>
+              </Descriptions.Item>
               <Descriptions.Item label="用户名">{displayValue(detail.userName)}</Descriptions.Item>
-              <Descriptions.Item label="用户标识">{detail.userId ? <Text code>{detail.userId}</Text> : '-'}</Descriptions.Item>
-              <Descriptions.Item label="客户端 IP">{detail.clientIp ? <Text code>{detail.clientIp}</Text> : '-'}</Descriptions.Item>
+              <Descriptions.Item label="用户标识">
+                {detail.userId ? <CopyableIdTag id={detail.userId} label="用户 ID" /> : '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="客户端 IP">
+                {detail.clientIp ? <Text code>{detail.clientIp}</Text> : '-'}
+              </Descriptions.Item>
               <Descriptions.Item label="失败说明">{displayValue(detail.failureDescription)}</Descriptions.Item>
-              <Descriptions.Item label="User-Agent"><span className={styles.userAgent}>{displayValue(detail.userAgent)}</span></Descriptions.Item>
+              <Descriptions.Item label="User-Agent">
+                <span className={styles.userAgent}>{displayValue(detail.userAgent)}</span>
+              </Descriptions.Item>
             </Descriptions>
           </>
         ) : (

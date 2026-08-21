@@ -8,7 +8,7 @@ description: 按 DedsiNative React Admin 项目约定创建、修改和审查类
 ## 强制规则
 
 - 将包含 `package.json` 的目录作为 React 根；先读取内容根 `AGENTS.md`、`.agents/rules/react-admin.md`、React 根的 `src/apiServices/core/`、目标后端 Endpoint 和相邻前端 API 模块。
-- 开始编码前必须完整读取 [API 示例代码](references/api-example.md)，按示例的目录、命名、类型导入、中文注释和返回方式输出。
+- 新建 API 模块、DTO 目录或请求客户端时完整读取 [API 示例代码](references/api-example.md)；修改现有 Service 或 DTO 时优先读取相邻模块与真实 Endpoint，无需加载整份示例。
 - 禁止使用显式或隐式 `any`。请求体默认使用 `unknown` 泛型约束或准确 DTO；错误对象使用 `unknown` 并通过 `axios.isAxiosError()` 收窄。
 - 以后端实际 JSON 为唯一响应依据。后端返回原始 DTO 时直接声明该 DTO；只有明确返回统一包装时才使用 `ApiResult<T>`。
 - DTO 只描述网络契约，不包含组件状态、Ant Design 类型或展示格式化逻辑。
@@ -34,7 +34,7 @@ src/apiServices/
 
 ## 工作流程
 
-1. 读取 [API 示例代码](references/api-example.md) 和后端 Endpoint，逐项记录方法、路径、路径参数、查询参数、请求体和实际响应体。
+1. 读取后端 Endpoint，逐项记录方法、路径、路径参数、查询参数、请求体和实际响应体；新建模块结构时再读取 [API 示例代码](references/api-example.md)。
 2. 复用 `PageInputDto` 等现有通用契约；仅在多个模块确实共享时才扩展 core DTO。
 3. 分别创建 Input DTO 和 Result DTO。可选字段必须与后端可空性一致，禁止为方便页面而随意设为可选。
 4. 创建静态 Service 方法并显式声明 `Promise<T>`；路径参数使用 `encodeURIComponent()`。

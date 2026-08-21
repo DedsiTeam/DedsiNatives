@@ -1,13 +1,12 @@
 /**
  * @file 权限管理页面 (PermissionManagement)
  * @description 直连 PermissionApiService 与 SystemApiService，对应 PermissionResultDto, CreatePermissionInputDto 等类型。
- * 遵循共享 Skill dedsi-style-react-admin-ui 的 UI/UX 规范。
+ * 基于通用 CrudToolbar / CrudTable / useCrudTable / CopyableIdTag 组件实现高复用度布局与统一标准。
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Button,
-  Card,
   Descriptions,
   Empty,
   Form,
@@ -17,7 +16,6 @@ import {
   Select,
   Space,
   Switch,
-  Table,
   Tag,
   Tooltip,
   Avatar,
@@ -28,10 +26,6 @@ import {
   DeleteOutlined,
   EditOutlined,
   EyeOutlined,
-  PlusOutlined,
-  ReloadOutlined,
-  SearchOutlined,
-  CopyOutlined,
   KeyOutlined,
   CheckCircleOutlined,
   StopOutlined,
@@ -45,6 +39,12 @@ import {
   type SystemRowResultDto,
   type UpdatePermissionInputDto,
 } from '../../../apiServices';
+import {
+  CopyableIdTag,
+  CrudTable,
+  CrudToolbar,
+  useCrudTable,
+} from '../../../components';
 import styles from './index.module.css';
 
 /** 根据权限名称生成固定的头像背景色 */
@@ -65,35 +65,25 @@ const getAvatarColor = (name: string): string => {
   return colors[index];
 };
 
-/** 复制文本通用辅助函数 */
-const copyToClipboard = async (text: string, label = '内容') => {
-  try {
-    await navigator.clipboard.writeText(text);
-    message.success(`已复制 ${label} 到剪贴板`);
-  } catch {
-    message.error('复制失败，请手动选择复制');
-  }
-};
-
 /** 权限管理页面，负责权限查询、维护和启用状态管理。 */
 export default function PermissionManagement() {
-  const [items, setItems] = useState<PermissionRowResultDto[]>([]);
+  // 1. 系统选项与搜索筛选状态
   const [systems, setSystems] = useState<SystemRowResultDto[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [pageIndex, setPageIndex] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [draftName, setDraftName] = useState('');
   const [name, setName] = useState('');
   const [systemId, setSystemId] = useState<string | undefined>();
   const [status, setStatus] = useState<boolean | undefined>();
+
+  // 2. 弹窗与表单状态
   const [editing, setEditing] = useState<PermissionRowResultDto | null>(null);
-  const [detail, setDetail] = useState<PermissionResultDto | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm<CreatePermissionInputDto>();
+
+  // 3. 详情弹窗状态
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detail, setDetail] = useState<PermissionResultDto | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   /** 加载系统下拉选项 */
   const loadSystems = useCallback(async () => {
@@ -105,44 +95,37 @@ export default function PermissionManagement() {
     }
   }, []);
 
-  /** 按已提交筛选条件加载权限列表。 */
-  const loadPermissions = useCallback(async () => {
-    setLoading(true);
-    try {
-      const result = await PermissionApiService.getPageList({
-        pageIndex,
-        pageSize,
-        systemId,
-        name: name || undefined,
-        isEnabled: status,
-      });
-      setItems(result.items || []);
-      setTotalCount(result.totalCount || 0);
-    } catch {
-      setItems([]);
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [name, pageIndex, pageSize, status, systemId]);
-
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadSystems();
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
+    void loadSystems();
   }, [loadSystems]);
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadPermissions();
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
-  }, [loadPermissions]);
+  // 4. 通用 CRUD Hook 接管分页与数据加载
+  const queryFilters = useMemo(
+    () => ({
+      systemId,
+      name: name || undefined,
+      isEnabled: status,
+    }),
+    [systemId, name, status]
+  );
 
-  /** 提交筛选条件并回到第一页。 */
+  const {
+    items,
+    loading,
+    pagination,
+    loadData,
+    handleDelete,
+  } = useCrudTable<
+    PermissionRowResultDto,
+    { systemId?: string; name?: string; isEnabled?: boolean }
+  >({
+    fetchApi: PermissionApiService.getPageList,
+    deleteApi: PermissionApiService.delete,
+    filters: queryFilters,
+  });
+
+  /** 提交筛选条件 */
   const handleSearch = () => {
-    setPageIndex(1);
     setName(draftName.trim());
   };
 
@@ -152,7 +135,6 @@ export default function PermissionManagement() {
     setName('');
     setSystemId(undefined);
     setStatus(undefined);
-    setPageIndex(1);
   };
 
   /** 打开新增或编辑权限表单。 */
@@ -160,7 +142,12 @@ export default function PermissionManagement() {
     setEditing(item ?? null);
     form.setFieldsValue(
       item
-        ? { systemId: item.systemId, name: item.name, description: item.description ?? '', isEnabled: item.isEnabled }
+        ? {
+            systemId: item.systemId,
+            name: item.name,
+            description: item.description ?? '',
+            isEnabled: item.isEnabled,
+          }
         : { systemId: undefined, name: '', description: '', isEnabled: true }
     );
     setModalOpen(true);
@@ -189,7 +176,7 @@ export default function PermissionManagement() {
       }
       setModalOpen(false);
       form.resetFields();
-      await loadPermissions();
+      await loadData();
     } catch {
       // 表单错误由 Form 展示
     } finally {
@@ -202,22 +189,7 @@ export default function PermissionManagement() {
     try {
       await PermissionApiService.setStatus(item.id, { isEnabled });
       message.success(isEnabled ? '权限已启用' : '权限已停用');
-      await loadPermissions();
-    } catch {
-      // 统一拦截器提示
-    }
-  };
-
-  /** 删除权限并处理当前页最后一条记录。 */
-  const handleDelete = async (id: string) => {
-    try {
-      await PermissionApiService.delete(id);
-      message.success('权限已删除');
-      if (items.length === 1 && pageIndex > 1) {
-        setPageIndex((current) => current - 1);
-      } else {
-        await loadPermissions();
-      }
+      await loadData();
     } catch {
       // 统一拦截器提示
     }
@@ -237,44 +209,36 @@ export default function PermissionManagement() {
     }
   };
 
+  // 5. 表格列定义
   const columns: TableProps<PermissionRowResultDto>['columns'] = [
     {
       title: '权限标识与名称',
       key: 'name',
       width: 240,
-      render: (_, record) => {
-        return (
-          <div className={styles.cellWrapper}>
-            <div className={styles.cellInfo}>
-              <span className={styles.cellTitle}>{record.name}</span>
-              <span className={styles.cellSub}>系统: {record.systemName}</span>
-            </div>
+      render: (_, record) => (
+        <div className={styles.cellWrapper}>
+          <div className={styles.cellInfo}>
+            <span className={styles.cellTitle}>{record.name}</span>
+            <span className={styles.cellSub}>系统: {record.systemName}</span>
           </div>
-        );
-      },
+        </div>
+      ),
     },
     {
       title: '权限 ID',
       dataIndex: 'id',
       key: 'id',
-      width: 240,
-      render: (id: string) => (
-        <Tooltip title="点击复制 ID">
-          <span className={styles.idTag} onClick={() => void copyToClipboard(id, '权限 ID')}>
-            {id}
-            <CopyOutlined style={{ fontSize: 11, opacity: 0.6 }} />
-          </span>
-        </Tooltip>
-      ),
+      width: 260,
+      render: (id: string) => <CopyableIdTag id={id} label="权限 ID" />,
     },
     {
       title: '所属系统',
       dataIndex: 'systemName',
       key: 'systemName',
       width: 160,
-      render: (name: string) => (
+      render: (sysName: string) => (
         <Tag color="purple" style={{ borderRadius: 10 }}>
-          {name}
+          {sysName}
         </Tag>
       ),
     },
@@ -350,7 +314,7 @@ export default function PermissionManagement() {
             okText="确定删除"
             cancelText="取消"
             okButtonProps={{ danger: true }}
-            onConfirm={() => void handleDelete(record.id)}
+            onConfirm={() => void handleDelete(record.id, '权限已删除')}
           >
             <Button type="text" danger icon={<DeleteOutlined />} size="small" style={{ fontWeight: 500 }}>
               删除
@@ -364,9 +328,18 @@ export default function PermissionManagement() {
   return (
     <div className={styles.pageContainer}>
       {/* 1. 顶部检索筛选卡片 */}
-      <Card className={styles.headerCard} styles={{ body: { padding: '16px 24px' } }}>
-        <div className={styles.toolbarWrapper}>
-          <div className={styles.searchGroup}>
+      <CrudToolbar
+        searchPlaceholder="按权限名称搜索..."
+        searchValue={draftName}
+        onSearchChange={setDraftName}
+        onSearch={handleSearch}
+        onReset={handleResetSearch}
+        createButton={{
+          text: '新增权限',
+          onClick: () => openForm(),
+        }}
+        extraFilters={
+          <>
             <Select
               allowClear
               className={styles.systemSelect}
@@ -374,18 +347,8 @@ export default function PermissionManagement() {
               value={systemId}
               onChange={(value: string | undefined) => {
                 setSystemId(value);
-                setPageIndex(1);
               }}
               options={systems.map((system) => ({ label: system.name, value: system.id }))}
-            />
-            <Input
-              allowClear
-              className={styles.searchInput}
-              prefix={<SearchOutlined style={{ color: 'var(--color-placeholder)' }} />}
-              placeholder="按权限名称搜索..."
-              value={draftName}
-              onChange={(event) => setDraftName(event.target.value)}
-              onPressEnter={handleSearch}
             />
             <Select
               allowClear
@@ -394,64 +357,26 @@ export default function PermissionManagement() {
               value={status}
               onChange={(value: boolean | undefined) => {
                 setStatus(value);
-                setPageIndex(1);
               }}
               options={[
                 { label: '启用', value: true },
                 { label: '停用', value: false },
               ]}
             />
-            <Button
-              type="primary"
-              icon={<SearchOutlined />}
-              onClick={handleSearch}
-              style={{ borderRadius: 'var(--radius-btn)', backgroundColor: 'var(--color-primary)' }}
-            >
-              查询
-            </Button>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={handleResetSearch}
-              style={{ borderRadius: 'var(--radius-btn)' }}
-            >
-              重置
-            </Button>
-          </div>
-
-          <Space size={12}>
-            <Button
-              type="primary"
-              className="create-primary-button"
-              icon={<PlusOutlined />}
-              onClick={() => openForm()}
-            >
-              新增权限
-            </Button>
-          </Space>
-        </div>
-      </Card>
+          </>
+        }
+      />
 
       {/* 2. 数据表格卡片 */}
-      <Card className={styles.tableCard} styles={{ body: { padding: '16px 24px' } }}>
-        <Table<PermissionRowResultDto>
-          rowKey="id"
-          columns={columns}
-          dataSource={items}
-          loading={loading}
-          locale={{ emptyText: <Empty description="暂无权限数据" /> }}
-          scroll={{ x: 980 }}
-          pagination={{
-            current: pageIndex,
-            pageSize,
-            total: totalCount,
-            showTotal: (total, range) => `显示第 ${range[0]} - ${range[1]} 条，共 ${total} 条记录`,
-            onChange: (nextPage, nextPageSize) => {
-              setPageIndex(nextPageSize === pageSize ? nextPage : 1);
-              setPageSize(nextPageSize);
-            },
-          }}
-        />
-      </Card>
+      <CrudTable<PermissionRowResultDto>
+        rowKey="id"
+        columns={columns}
+        dataSource={items}
+        loading={loading}
+        pagination={pagination}
+        emptyText="暂无权限数据"
+        scroll={{ x: 980 }}
+      />
 
       {/* 3. 新增 / 编辑权限弹窗 Modal */}
       <Modal
@@ -473,7 +398,7 @@ export default function PermissionManagement() {
         okText="保存"
         cancelText="取消"
         className={styles.userModal}
-        width={540}
+        width={560}
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item
@@ -482,68 +407,48 @@ export default function PermissionManagement() {
             rules={[{ required: true, message: '请选择所属系统' }]}
           >
             <Select
-              placeholder="请选择归属系统"
-              options={systems.map((system) => ({ label: system.name, value: system.id }))}
               className={styles.formControl}
+              placeholder="选择所属业务系统"
+              options={systems.map((system) => ({ label: system.name, value: system.id }))}
             />
           </Form.Item>
           <Form.Item
             name="name"
-            label="权限名称/标识"
+            label="权限名称"
             rules={[{ required: true, message: '请输入权限名称' }]}
           >
-            <Input className={styles.formControl} placeholder="例如：user.read 或 用户查看" />
+            <Input className={styles.formControl} placeholder="例如：用户管理-读取" />
           </Form.Item>
           <Form.Item name="description" label="权限说明">
             <Input.TextArea
               rows={3}
-              placeholder="请输入权限说明与作用范围"
+              placeholder="请输入权限的具体功能说明"
               style={{ borderRadius: 'var(--radius-btn)' }}
             />
           </Form.Item>
-          <Form.Item name="isEnabled" label="启用状态" valuePropName="checked" style={{ marginBottom: 0 }}>
-            <Switch checkedChildren="启用" unCheckedChildren="停用" />
+          <Form.Item
+            name="isEnabled"
+            label="是否立即启用"
+            valuePropName="checked"
+            style={{ marginBottom: 0 }}
+          >
+            <Switch />
           </Form.Item>
         </Form>
       </Modal>
 
       {/* 4. 权限详情 Modal */}
       <Modal
-        title={null}
+        title={
+          <Space size={8}>
+            <KeyOutlined style={{ color: 'var(--color-primary)' }} />
+            <span style={{ fontWeight: 700, fontSize: 16 }}>权限详情</span>
+          </Space>
+        }
         open={detailOpen}
         onCancel={() => setDetailOpen(false)}
-        footer={[
-          <Button
-            key="edit"
-            type="primary"
-            icon={<EditOutlined />}
-            onClick={() => {
-              setDetailOpen(false);
-              if (detail) {
-                const row: PermissionRowResultDto = {
-                  id: detail.id,
-                  systemId: detail.systemId,
-                  systemName: detail.systemName,
-                  name: detail.name,
-                  description: detail.description,
-                  isEnabled: detail.isEnabled,
-                };
-                openForm(row);
-              }
-            }}
-            style={{ borderRadius: 'var(--radius-btn)', backgroundColor: 'var(--color-primary)' }}
-          >
-            编辑此权限
-          </Button>,
-          <Button
-            key="close"
-            onClick={() => setDetailOpen(false)}
-            style={{ borderRadius: 'var(--radius-btn)' }}
-          >
-            关闭
-          </Button>,
-        ]}
-        width={520}
+        footer={null}
+        width={500}
         className={styles.userModal}
       >
         {detailLoading ? (
@@ -564,21 +469,21 @@ export default function PermissionManagement() {
                 {detail.name ? detail.name.charAt(0).toUpperCase() : 'P'}
               </Avatar>
               <div className={styles.detailHeaderInfo}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span className={styles.detailHeaderName}>{detail.name}</span>
+                <span className={styles.detailHeaderName}>{detail.name}</span>
+                <Space size={6}>
+                  <Tag color="purple" style={{ borderRadius: 10 }}>
+                    所属系统: {detail.systemName}
+                  </Tag>
                   {detail.isEnabled ? (
-                    <Tag color="success" icon={<CheckCircleOutlined />}>
+                    <Tag color="success" icon={<CheckCircleOutlined />} style={{ borderRadius: 10 }}>
                       启用
                     </Tag>
                   ) : (
-                    <Tag color="error" icon={<StopOutlined />}>
+                    <Tag color="error" icon={<StopOutlined />} style={{ borderRadius: 10 }}>
                       停用
                     </Tag>
                   )}
-                </div>
-                <Tag color="purple" style={{ borderRadius: 10, width: 'fit-content' }}>
-                  系统: {detail.systemName}
-                </Tag>
+                </Space>
               </div>
             </div>
 
@@ -595,17 +500,12 @@ export default function PermissionManagement() {
               contentStyle={{ color: 'var(--color-title)' }}
             >
               <Descriptions.Item label="权限 ID">
-                <span
-                  style={{ fontFamily: 'monospace', color: 'var(--color-body)', cursor: 'pointer' }}
-                  onClick={() => void copyToClipboard(detail.id, '权限 ID')}
-                >
-                  {detail.id} <CopyOutlined style={{ color: 'var(--color-placeholder)', marginLeft: 4 }} />
-                </span>
+                <CopyableIdTag id={detail.id} label="权限 ID" />
               </Descriptions.Item>
               <Descriptions.Item label="权限名称">{detail.name}</Descriptions.Item>
               <Descriptions.Item label="所属系统">{detail.systemName}</Descriptions.Item>
               <Descriptions.Item label="状态">
-                {detail.isEnabled ? '启用' : '停用'}
+                {detail.isEnabled ? <Tag color="success">正常启用</Tag> : <Tag color="error">已停用</Tag>}
               </Descriptions.Item>
               <Descriptions.Item label="权限说明">
                 {detail.description || '暂无说明'}

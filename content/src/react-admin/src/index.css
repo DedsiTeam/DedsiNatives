@@ -265,3 +265,17 @@ code, pre, kbd {
   border-color: var(--color-cool-gray) !important;
   color: var(--color-slate-gray) !important;
 }
+
+/* Ant Design Table Pagination Standard Layout: Left showTotal, Right pagination & sizeChanger */
+.ant-table-pagination.ant-pagination {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  width: 100% !important;
+}
+
+.ant-table-pagination .ant-pagination-total-text {
+  margin-inline-end: auto !important;
+  color: var(--color-muted);
+  font-size: 13px;
+}

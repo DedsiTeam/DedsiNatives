@@ -1,13 +1,12 @@
 /**
  * @file 岗位管理页面 (PositionManagement)
  * @description 直连 PositionApiService, PermissionApiService, SystemApiService，对应 PositionResultDto, CreatePositionInputDto 等类型。
- * 遵循共享 Skill dedsi-style-react-admin-ui 的 UI/UX 规范。
+ * 基于通用的 CrudToolbar / CrudTable / useCrudTable / CopyableIdTag 组件实现高复用度布局与统一标准。
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Button,
-  Card,
   Checkbox,
   Col,
   Descriptions,
@@ -21,7 +20,6 @@ import {
   Select,
   Space,
   Switch,
-  Table,
   Tag,
   Tooltip,
   Avatar,
@@ -33,10 +31,6 @@ import {
   DeleteOutlined,
   EditOutlined,
   EyeOutlined,
-  PlusOutlined,
-  ReloadOutlined,
-  SearchOutlined,
-  CopyOutlined,
   SolutionOutlined,
   CheckCircleOutlined,
   StopOutlined,
@@ -55,6 +49,12 @@ import {
   type SystemRowResultDto,
   type UpdatePositionInputDto,
 } from '../../../apiServices';
+import {
+  CopyableIdTag,
+  CrudTable,
+  CrudToolbar,
+  useCrudTable,
+} from '../../../components';
 import styles from './index.module.css';
 
 const { Text } = Typography;
@@ -83,33 +83,18 @@ const getAvatarColor = (name: string): string => {
   return colors[index];
 };
 
-/** 复制文本通用辅助函数 */
-const copyToClipboard = async (text: string, label = '内容') => {
-  try {
-    await navigator.clipboard.writeText(text);
-    message.success(`已复制 ${label} 到剪贴板`);
-  } catch {
-    message.error('复制失败，请手动选择复制');
-  }
-};
-
 /** 岗位管理页面，负责岗位资料、状态和关联数量展示。 */
 export default function PositionManagement() {
-  const [items, setItems] = useState<PositionRowResultDto[]>([]);
+  // 1. 系统选项与搜索筛选状态
   const [systems, setSystems] = useState<SystemRowResultDto[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [pageIndex, setPageIndex] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [draftName, setDraftName] = useState('');
   const [name, setName] = useState('');
   const [systemId, setSystemId] = useState<string | undefined>();
   const [status, setStatus] = useState<boolean | undefined>();
+
+  // 2. 弹窗与表单状态
   const [editing, setEditing] = useState<PositionRowResultDto | null>(null);
-  const [detail, setDetail] = useState<PositionResultDto | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [permissionLoading, setPermissionLoading] = useState(false);
@@ -124,6 +109,11 @@ export default function PositionManagement() {
     permission.name.toLocaleLowerCase().includes(permissionSearch.trim().toLocaleLowerCase())
   );
 
+  // 3. 详情弹窗状态
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detail, setDetail] = useState<PositionResultDto | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
   /** 加载系统选项 */
   const loadSystems = useCallback(async () => {
     try {
@@ -133,6 +123,10 @@ export default function PositionManagement() {
       setSystems([]);
     }
   }, []);
+
+  useEffect(() => {
+    void loadSystems();
+  }, [loadSystems]);
 
   /** 加载指定系统下可分配的启用权限。 */
   const loadPermissions = useCallback(async (selectedSystemId?: string) => {
@@ -155,44 +149,33 @@ export default function PositionManagement() {
     }
   }, []);
 
-  /** 按当前筛选条件加载岗位。 */
-  const loadPositions = useCallback(async () => {
-    setLoading(true);
-    try {
-      const result = await PositionApiService.getPageList({
-        pageIndex,
-        pageSize,
-        systemId,
-        name: name || undefined,
-        isEnabled: status,
-      });
-      setItems(result.items || []);
-      setTotalCount(result.totalCount || 0);
-    } catch {
-      setItems([]);
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [name, pageIndex, pageSize, status, systemId]);
+  // 4. 通用 CRUD Hook 接管分页与数据加载
+  const queryFilters = useMemo(
+    () => ({
+      systemId,
+      name: name || undefined,
+      isEnabled: status,
+    }),
+    [systemId, name, status]
+  );
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadSystems();
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
-  }, [loadSystems]);
+  const {
+    items,
+    loading,
+    pagination,
+    loadData,
+    handleDelete,
+  } = useCrudTable<
+    PositionRowResultDto,
+    { systemId?: string; name?: string; isEnabled?: boolean }
+  >({
+    fetchApi: PositionApiService.getPageList,
+    deleteApi: PositionApiService.delete,
+    filters: queryFilters,
+  });
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadPositions();
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
-  }, [loadPositions]);
-
-  /** 提交筛选条件并回到第一页。 */
+  /** 提交筛选条件 */
   const handleSearch = () => {
-    setPageIndex(1);
     setName(draftName.trim());
   };
 
@@ -202,7 +185,6 @@ export default function PositionManagement() {
     setName('');
     setSystemId(undefined);
     setStatus(undefined);
-    setPageIndex(1);
   };
 
   /** 打开岗位新增或编辑表单。 */
@@ -250,106 +232,89 @@ export default function PositionManagement() {
     }
   };
 
-  /** 切换岗位所属系统时清空旧系统权限 */
-  const handleFormSystemChange = (value: string) => {
-    form.setFieldValue('systemId', value);
+  /** 系统切换时重置权限选择并加载新系统的可选权限。 */
+  const handleFormSystemChange = async (nextSystemId: string) => {
     form.setFieldValue('permissionIds', []);
     setPermissionSearch('');
-    void loadPermissions(value);
+    await loadPermissions(nextSystemId);
   };
 
-  /** 切换单个权限的选中状态。 */
+  /** 切换权限选中状态 */
   const handlePermissionToggle = (permissionId: string, checked: boolean) => {
-    const nextIds = new Set(selectedPermissionIds);
-    if (checked) nextIds.add(permissionId);
-    else nextIds.delete(permissionId);
-    form.setFieldValue('permissionIds', [...nextIds]);
+    const nextIds = checked
+      ? Array.from(new Set([...selectedPermissionIds, permissionId]))
+      : selectedPermissionIds.filter((id) => id !== permissionId);
+    form.setFieldValue('permissionIds', nextIds);
   };
 
-  /** 选择当前搜索结果中的全部权限。 */
+  /** 全选当前可见权限 */
   const selectVisiblePermissions = () => {
-    const nextIds = new Set(selectedPermissionIds);
-    visiblePermissionOptions.forEach((permission) => nextIds.add(permission.id));
-    form.setFieldValue('permissionIds', [...nextIds]);
+    const visibleIds = visiblePermissionOptions.map((permission) => permission.id);
+    const nextIds = Array.from(new Set([...selectedPermissionIds, ...visibleIds]));
+    form.setFieldValue('permissionIds', nextIds);
   };
 
-  /** 清除当前搜索结果中的权限。 */
+  /** 清除当前可见权限的选择 */
   const clearVisiblePermissions = () => {
     const visibleIds = new Set(visiblePermissionOptions.map((permission) => permission.id));
-    form.setFieldValue(
-      'permissionIds',
-      selectedPermissionIds.filter((permissionId) => !visibleIds.has(permissionId))
-    );
+    const nextIds = selectedPermissionIds.filter((id) => !visibleIds.has(id));
+    form.setFieldValue('permissionIds', nextIds);
   };
 
-  /** 提交岗位新增或编辑。 */
+  /** 提交新增或修改岗位。 */
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       setSubmitting(true);
-      const permissionIds = form.getFieldValue('permissionIds') ?? [];
-      let positionId = editing?.id;
       if (editing) {
-        const input: UpdatePositionInputDto = {
+        const updateInput: UpdatePositionInputDto = {
           name: values.name,
           systemId: values.systemId,
           description: values.description,
         };
-        await PositionApiService.update(editing.id, input);
+        await PositionApiService.update(editing.id, updateInput);
+        await PositionApiService.updateAssignments(editing.id, {
+          permissionIds: values.permissionIds ?? [],
+          organizations: editingOrganizations,
+        });
         if (values.isEnabled !== editing.isEnabled) {
           await PositionApiService.setStatus(editing.id, { isEnabled: values.isEnabled });
         }
+        message.success('岗位信息已更新');
       } else {
-        positionId = await PositionApiService.create({
+        const createInput: CreatePositionInputDto = {
           name: values.name,
           systemId: values.systemId,
           description: values.description,
           isEnabled: values.isEnabled,
-          permissionIds,
+          permissionIds: values.permissionIds ?? [],
           organizations: editingOrganizations,
-        });
+        };
+        await PositionApiService.create(createInput);
+        message.success('岗位已创建');
       }
-      if (editing && positionId) {
-        await PositionApiService.updateAssignments(positionId, {
-          permissionIds,
-          organizations: editingOrganizations,
-        });
-      }
-      message.success(editing ? '岗位信息和权限已更新' : '岗位及权限已创建');
       setModalOpen(false);
       form.resetFields();
-      await loadPositions();
+      await loadData();
     } catch {
-      // 表单错误由 Form 展示
+      // 表单错误由 Form 自行展示
     } finally {
       setSubmitting(false);
     }
   };
 
-  /** 切换岗位启用状态。 */
+  /** 直接切换岗位启用状态。 */
   const handleStatusChange = async (item: PositionRowResultDto, isEnabled: boolean) => {
     try {
       await PositionApiService.setStatus(item.id, { isEnabled });
       message.success(isEnabled ? '岗位已启用' : '岗位已停用');
-      await loadPositions();
+      await loadData();
     } catch {
-      // 统一拦截器提示
+      // 统一拦截器处理
     }
   };
 
-  /** 删除岗位并处理当前页最后一条记录。 */
-  const handleDelete = async (id: string) => {
-    try {
-      await PositionApiService.delete(id);
-      message.success('岗位已删除');
-      if (items.length === 1 && pageIndex > 1) setPageIndex((current) => current - 1);
-      else await loadPositions();
-    } catch {
-      // 统一拦截器提示
-    }
-  };
-
-  /** 加载岗位详情 */
+  /** 打开岗位详情弹窗。 */
   const openDetail = async (item: PositionRowResultDto) => {
     setDetailOpen(true);
     setDetail(null);
@@ -363,35 +328,27 @@ export default function PositionManagement() {
     }
   };
 
+  // 5. 表格列定义
   const columns: TableProps<PositionRowResultDto>['columns'] = [
     {
       title: '岗位名称与归属',
       key: 'name',
       width: 240,
-      render: (_, record) => {
-        return (
-          <div className={styles.cellWrapper}>
-            <div className={styles.cellInfo}>
-              <span className={styles.cellTitle}>{record.name}</span>
-              <span className={styles.cellSub}>系统: {record.systemName}</span>
-            </div>
+      render: (_, record) => (
+        <div className={styles.cellWrapper}>
+          <div className={styles.cellInfo}>
+            <span className={styles.cellTitle}>{record.name}</span>
+            <span className={styles.cellSub}>系统: {record.systemName}</span>
           </div>
-        );
-      },
+        </div>
+      ),
     },
     {
       title: '岗位 ID',
       dataIndex: 'id',
       key: 'id',
-      width: 240,
-      render: (id: string) => (
-        <Tooltip title="点击复制 ID">
-          <span className={styles.idTag} onClick={() => void copyToClipboard(id, '岗位 ID')}>
-            {id}
-            <CopyOutlined style={{ fontSize: 11, opacity: 0.6 }} />
-          </span>
-        </Tooltip>
-      ),
+      width: 260,
+      render: (id: string) => <CopyableIdTag id={id} label="岗位 ID" />,
     },
     {
       title: '权限数量',
@@ -476,7 +433,7 @@ export default function PositionManagement() {
             okText="确定删除"
             cancelText="取消"
             okButtonProps={{ danger: true }}
-            onConfirm={() => void handleDelete(record.id)}
+            onConfirm={() => void handleDelete(record.id, '岗位已删除')}
           >
             <Button type="text" danger icon={<DeleteOutlined />} size="small" style={{ fontWeight: 500 }}>
               删除
@@ -489,10 +446,19 @@ export default function PositionManagement() {
 
   return (
     <div className={styles.pageContainer}>
-      {/* 1. 顶部检索筛选卡片 */}
-      <Card className={styles.headerCard} styles={{ body: { padding: '16px 24px' } }}>
-        <div className={styles.toolbarWrapper}>
-          <div className={styles.searchGroup}>
+      {/* 1. 顶部检索工具栏 */}
+      <CrudToolbar
+        searchPlaceholder="按岗位名称搜索..."
+        searchValue={draftName}
+        onSearchChange={setDraftName}
+        onSearch={handleSearch}
+        onReset={handleResetSearch}
+        createButton={{
+          text: '新增岗位',
+          onClick: () => void openForm(),
+        }}
+        extraFilters={
+          <>
             <Select
               allowClear
               className={styles.systemSelect}
@@ -500,18 +466,8 @@ export default function PositionManagement() {
               value={systemId}
               onChange={(value: string | undefined) => {
                 setSystemId(value);
-                setPageIndex(1);
               }}
               options={systems.map((item) => ({ label: item.name, value: item.id }))}
-            />
-            <Input
-              allowClear
-              className={styles.searchInput}
-              prefix={<SearchOutlined style={{ color: 'var(--color-placeholder)' }} />}
-              placeholder="按岗位名称搜索..."
-              value={draftName}
-              onChange={(event) => setDraftName(event.target.value)}
-              onPressEnter={handleSearch}
             />
             <Select
               allowClear
@@ -520,64 +476,26 @@ export default function PositionManagement() {
               value={status}
               onChange={(value: boolean | undefined) => {
                 setStatus(value);
-                setPageIndex(1);
               }}
               options={[
                 { label: '启用', value: true },
                 { label: '停用', value: false },
               ]}
             />
-            <Button
-              type="primary"
-              icon={<SearchOutlined />}
-              onClick={handleSearch}
-              style={{ borderRadius: 'var(--radius-btn)', backgroundColor: 'var(--color-primary)' }}
-            >
-              查询
-            </Button>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={handleResetSearch}
-              style={{ borderRadius: 'var(--radius-btn)' }}
-            >
-              重置
-            </Button>
-          </div>
-
-          <Space size={12}>
-            <Button
-              type="primary"
-              className="create-primary-button"
-              icon={<PlusOutlined />}
-              onClick={() => void openForm()}
-            >
-              新增岗位
-            </Button>
-          </Space>
-        </div>
-      </Card>
+          </>
+        }
+      />
 
       {/* 2. 数据表格卡片 */}
-      <Card className={styles.tableCard} styles={{ body: { padding: '16px 24px' } }}>
-        <Table<PositionRowResultDto>
-          rowKey="id"
-          columns={columns}
-          dataSource={items}
-          loading={loading}
-          locale={{ emptyText: <Empty description="暂无岗位数据" /> }}
-          scroll={{ x: 1080 }}
-          pagination={{
-            current: pageIndex,
-            pageSize,
-            total: totalCount,
-            showTotal: (total, range) => `显示第 ${range[0]} - ${range[1]} 条，共 ${total} 条记录`,
-            onChange: (nextPage, nextPageSize) => {
-              setPageIndex(nextPageSize === pageSize ? nextPage : 1);
-              setPageSize(nextPageSize);
-            },
-          }}
-        />
-      </Card>
+      <CrudTable<PositionRowResultDto>
+        rowKey="id"
+        columns={columns}
+        dataSource={items}
+        loading={loading}
+        pagination={pagination}
+        emptyText="暂无岗位数据"
+        scroll={{ x: 1080 }}
+      />
 
       {/* 3. 新增 / 编辑岗位弹窗 Modal */}
       <Modal
@@ -764,7 +682,7 @@ export default function PositionManagement() {
                               <span className={styles.permissionName}>{permission.name}</span>
                               {permission.description ? (
                                 <Text type="secondary" className={styles.permissionDescription}>
-                                  {permission.description}
+                                   {permission.description}
                                 </Text>
                               ) : null}
                             </div>
@@ -793,42 +711,15 @@ export default function PositionManagement() {
 
       {/* 4. 岗位详情 Modal */}
       <Modal
-        title={null}
+        title={
+          <Space size={8}>
+            <SolutionOutlined style={{ color: 'var(--color-primary)' }} />
+            <span style={{ fontWeight: 700, fontSize: 16 }}>岗位详情</span>
+          </Space>
+        }
         open={detailOpen}
         onCancel={() => setDetailOpen(false)}
-        footer={[
-          <Button
-            key="edit"
-            type="primary"
-            icon={<EditOutlined />}
-            onClick={() => {
-              setDetailOpen(false);
-              if (detail) {
-                const row: PositionRowResultDto = {
-                  id: detail.id,
-                  systemId: detail.systemId,
-                  systemName: detail.systemName,
-                  name: detail.name,
-                  description: detail.description,
-                  isEnabled: detail.isEnabled,
-                  permissionCount: detail.permissions.length,
-                  organizationCount: detail.organizations.length,
-                };
-                void openForm(row);
-              }
-            }}
-            style={{ borderRadius: 'var(--radius-btn)', backgroundColor: 'var(--color-primary)' }}
-          >
-            编辑此岗位
-          </Button>,
-          <Button
-            key="close"
-            onClick={() => setDetailOpen(false)}
-            style={{ borderRadius: 'var(--radius-btn)' }}
-          >
-            关闭
-          </Button>,
-        ]}
+        footer={null}
         width={560}
         className={styles.userModal}
       >
@@ -881,12 +772,7 @@ export default function PositionManagement() {
               contentStyle={{ color: 'var(--color-title)' }}
             >
               <Descriptions.Item label="岗位 ID">
-                <span
-                  style={{ fontFamily: 'monospace', color: 'var(--color-body)', cursor: 'pointer' }}
-                  onClick={() => void copyToClipboard(detail.id, '岗位 ID')}
-                >
-                  {detail.id} <CopyOutlined style={{ color: 'var(--color-placeholder)', marginLeft: 4 }} />
-                </span>
+                <CopyableIdTag id={detail.id} label="岗位 ID" />
               </Descriptions.Item>
               <Descriptions.Item label="岗位名称">{detail.name}</Descriptions.Item>
               <Descriptions.Item label="所属系统">{detail.systemName}</Descriptions.Item>

@@ -10,12 +10,14 @@ namespace DedsiNative.Users;
 /// <param name="SkipCount">需要跳过的记录数。</param>
 /// <param name="MaxResultCount">单页最多返回的记录数。</param>
 /// <param name="IsExport">是否为导出模式；导出模式不应用分页。</param>
+/// <param name="OrganizationId">组织机构筛选条件，为空时不按组织过滤。</param>
 public sealed record UserPagedQuery(
     string? Name,
     string? Email,
     int SkipCount,
     int MaxResultCount,
-    bool IsExport);
+    bool IsExport,
+    string? OrganizationId = null);
 
 /// <summary>
 /// 用户分页查询中的单行结果。
@@ -47,7 +49,7 @@ public sealed record UserPagedQueryResult(
 public interface IUserQuery : IDedsiQuery
 {
     /// <summary>
-    /// 按名称和邮箱筛选用户，并根据导出模式决定是否分页。
+    /// 按名称、邮箱及所属组织筛选用户，并根据导出模式决定是否分页。
     /// </summary>
     /// <param name="query">用户分页查询条件。</param>
     /// <param name="cancellationToken">用于取消异步查询的令牌。</param>

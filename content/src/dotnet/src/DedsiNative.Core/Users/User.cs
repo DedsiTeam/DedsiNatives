@@ -62,6 +62,9 @@ public class User : DedsiAggregateRoot<Guid>
     /// <summary>用户关联的岗位集合。</summary>
     public ICollection<UserPosition> Positions { get; private set; } = [];
 
+    /// <summary>用户关联的组织机构集合。</summary>
+    public ICollection<UserOrganization> Organizations { get; private set; } = [];
+
     /// <summary>设置用户联系电话。</summary>
     public User ChangePhone(string? phone) { Phone = phone?.Trim(); LastUpdatedAt = DateTime.Now; return this; }
 
@@ -171,6 +174,58 @@ public class User : DedsiAggregateRoot<Guid>
     }
 
     /// <summary>
+    /// 为用户关联组织机构。
+    /// </summary>
+    /// <param name="organizationId">组织机构唯一标识，必须是 26 位 ULID。</param>
+    /// <param name="organizationName">组织机构名称快照。</param>
+    /// <returns>当前用户聚合根。</returns>
+    public User AssignOrganization(string organizationId, string organizationName)
+    {
+        var normalizedId = ValidateOrganizationId(organizationId);
+        if (Organizations.Any(item => item.OrganizationId == normalizedId))
+        {
+            throw new ArgumentException("用户不能重复关联同一组织机构。", nameof(organizationId));
+        }
+
+        Organizations.Add(new UserOrganization(Id, normalizedId, organizationName));
+        LastUpdatedAt = DateTime.Now;
+        return this;
+    }
+
+    /// <summary>
+    /// 移除用户与指定组织机构的关联。
+    /// </summary>
+    /// <param name="organizationId">组织机构唯一标识。</param>
+    /// <returns>当前用户聚合根。</returns>
+    public User RemoveOrganization(string organizationId)
+    {
+        var normalizedId = ValidateOrganizationId(organizationId);
+        var relation = Organizations.SingleOrDefault(item => item.OrganizationId == normalizedId);
+        if (relation is not null)
+        {
+            Organizations.Remove(relation);
+            LastUpdatedAt = DateTime.Now;
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// 清空用户的全部组织机构关联。
+    /// </summary>
+    /// <returns>当前用户聚合根。</returns>
+    public User ClearOrganizations()
+    {
+        if (Organizations.Count > 0)
+        {
+            Organizations.Clear();
+            LastUpdatedAt = DateTime.Now;
+        }
+
+        return this;
+    }
+
+    /// <summary>
     /// 修改用户名称。
     /// </summary>
     /// <param name="name">新的用户名称，不能为空或纯空白字符。</param>
@@ -210,5 +265,17 @@ public class User : DedsiAggregateRoot<Guid>
         }
 
         return positionId;
+    }
+
+    private static string ValidateOrganizationId(string organizationId)
+    {
+        if (string.IsNullOrWhiteSpace(organizationId)
+            || organizationId.Length != 26
+            || !Ulid.TryParse(organizationId, out _))
+        {
+            throw new ArgumentException("组织机构标识必须是合法的 26 位 ULID。", nameof(organizationId));
+        }
+
+        return organizationId;
     }
 }

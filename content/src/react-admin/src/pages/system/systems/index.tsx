@@ -1,13 +1,12 @@
 /**
  * @file 系统管理页面 (SystemManagement)
  * @description 直连 SystemApiService 与对应 DTO 类型 (SystemResultDto, CreateSystemInputDto, UpdateSystemInputDto)。
- * 遵循共享 Skill dedsi-style-react-admin-ui 的 UI/UX 规范。
+ * 基于通用的 CrudToolbar / CrudTable / useCrudTable / CopyableIdTag 组件实现高复用度布局与极简维护。
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Button,
-  Card,
   Descriptions,
   Empty,
   Form,
@@ -16,7 +15,6 @@ import {
   Modal,
   Popconfirm,
   Space,
-  Table,
   Tag,
   Tooltip,
   Avatar,
@@ -27,10 +25,6 @@ import {
   DeleteOutlined,
   EditOutlined,
   EyeOutlined,
-  PlusOutlined,
-  ReloadOutlined,
-  SearchOutlined,
-  CopyOutlined,
   AppstoreOutlined,
 } from '@ant-design/icons';
 import {
@@ -40,6 +34,12 @@ import {
   type SystemRowResultDto,
   type UpdateSystemInputDto,
 } from '../../../apiServices';
+import {
+  CopyableIdTag,
+  CrudTable,
+  CrudToolbar,
+  useCrudTable,
+} from '../../../components';
 import styles from './index.module.css';
 
 /** 根据系统名称生成固定的头像背景色 */
@@ -60,63 +60,40 @@ const getAvatarColor = (name: string): string => {
   return colors[index];
 };
 
-/** 复制文本通用辅助函数 */
-const copyToClipboard = async (text: string, label = '内容') => {
-  try {
-    await navigator.clipboard.writeText(text);
-    message.success(`已复制 ${label} 到剪贴板`);
-  } catch {
-    message.error('复制失败，请手动选择复制');
-  }
-};
-
 /** 系统管理页面，负责系统列表查询及基础资料维护。 */
 export default function SystemManagement() {
-  const [items, setItems] = useState<SystemRowResultDto[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [pageIndex, setPageIndex] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  // 1. 查询筛选状态
   const [draftName, setDraftName] = useState('');
   const [name, setName] = useState('');
+
+  // 2. 新增 / 编辑弹窗状态
   const [editing, setEditing] = useState<SystemRowResultDto | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [form] = Form.useForm<CreateSystemInputDto>();
+
+  // 3. 详情弹窗状态
+  const [detailOpen, setDetailOpen] = useState(false);
   const [detail, setDetail] = useState<SystemResultDto | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [form] = Form.useForm<CreateSystemInputDto>();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
-  /** 按当前筛选条件加载系统列表。 */
-  const loadSystems = useCallback(async () => {
-    setLoading(true);
-    try {
-      const result = await SystemApiService.getPageList({
-        pageIndex,
-        pageSize,
-        name: name || undefined,
-      });
-      setItems(result.items || []);
-      setTotalCount(result.totalCount || 0);
-    } catch {
-      setItems([]);
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [name, pageIndex, pageSize]);
+  // 4. 通用 CRUD Hook 接管分页与数据加载
+  const queryFilters = useMemo(() => ({ name: name || undefined }), [name]);
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadSystems();
-    }, 0);
+  const {
+    items,
+    loading,
+    pagination,
+    loadData,
+    handleDelete,
+  } = useCrudTable<SystemRowResultDto, { name?: string }>({
+    fetchApi: SystemApiService.getPageList,
+    deleteApi: SystemApiService.delete,
+    filters: queryFilters,
+  });
 
-    return () => window.clearTimeout(timeoutId);
-  }, [loadSystems]);
-
-  /** 提交名称筛选并回到第一页。 */
+  /** 提交名称筛选 */
   const handleSearch = () => {
-    setPageIndex(1);
     setName(draftName.trim());
   };
 
@@ -124,7 +101,6 @@ export default function SystemManagement() {
   const handleResetSearch = () => {
     setDraftName('');
     setName('');
-    setPageIndex(1);
   };
 
   /** 打开新增或编辑系统表单。 */
@@ -154,26 +130,11 @@ export default function SystemManagement() {
       }
       setModalOpen(false);
       form.resetFields();
-      await loadSystems();
+      await loadData();
     } catch {
-      // 表单校验失败由 AntD 展示
+      // 表单校验失败由 AntD 自行展示提示
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  /** 删除系统并处理删除当前页最后一条记录的边界。 */
-  const handleDelete = async (id: string) => {
-    try {
-      await SystemApiService.delete(id);
-      message.success('系统已删除');
-      if (items.length === 1 && pageIndex > 1) {
-        setPageIndex((current) => current - 1);
-      } else {
-        await loadSystems();
-      }
-    } catch {
-      // 拦截器统一处理
     }
   };
 
@@ -191,34 +152,26 @@ export default function SystemManagement() {
     }
   };
 
+  // 5. 标准 Antd columns 定义（操作列保留完全自由度）
   const columns: TableProps<SystemRowResultDto>['columns'] = [
     {
       title: '系统标识与名称',
       key: 'name',
       width: 240,
-      render: (_, record) => {
-        return (
-          <div className={styles.cellWrapper}>
-            <div className={styles.cellInfo}>
-              <span className={styles.cellTitle}>{record.name}</span>
-            </div>
+      render: (_, record) => (
+        <div className={styles.cellWrapper}>
+          <div className={styles.cellInfo}>
+            <span className={styles.cellTitle}>{record.name}</span>
           </div>
-        );
-      },
+        </div>
+      ),
     },
     {
       title: '系统 ID',
       dataIndex: 'id',
       key: 'id',
-      width: 240,
-      render: (id: string) => (
-        <Tooltip title="点击复制 ID">
-          <span className={styles.idTag} onClick={() => void copyToClipboard(id, '系统 ID')}>
-            {id}
-            <CopyOutlined style={{ fontSize: 11, opacity: 0.6 }} />
-          </span>
-        </Tooltip>
-      ),
+      width: 260,
+      render: (id: string) => <CopyableIdTag id={id} label="系统 ID" />,
     },
     {
       title: '系统说明',
@@ -279,7 +232,7 @@ export default function SystemManagement() {
             okText="确定删除"
             cancelText="取消"
             okButtonProps={{ danger: true }}
-            onConfirm={() => void handleDelete(record.id)}
+            onConfirm={() => void handleDelete(record.id, '系统已删除')}
           >
             <Button type="text" danger icon={<DeleteOutlined />} size="small" style={{ fontWeight: 500 }}>
               删除
@@ -292,70 +245,29 @@ export default function SystemManagement() {
 
   return (
     <div className={styles.pageContainer}>
-      {/* 1. 顶部检索筛选卡片 */}
-      <Card className={styles.headerCard} styles={{ body: { padding: '16px 24px' } }}>
-        <div className={styles.toolbarWrapper}>
-          <div className={styles.searchGroup}>
-            <Input
-              allowClear
-              className={styles.searchInput}
-              prefix={<SearchOutlined style={{ color: 'var(--color-placeholder)' }} />}
-              placeholder="按系统名称搜索..."
-              value={draftName}
-              onChange={(event) => setDraftName(event.target.value)}
-              onPressEnter={handleSearch}
-            />
-            <Button
-              type="primary"
-              icon={<SearchOutlined />}
-              onClick={handleSearch}
-              style={{ borderRadius: 'var(--radius-btn)', backgroundColor: 'var(--color-primary)' }}
-            >
-              查询
-            </Button>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={handleResetSearch}
-              style={{ borderRadius: 'var(--radius-btn)' }}
-            >
-              重置
-            </Button>
-          </div>
+      {/* 1. 顶部检索工具栏 */}
+      <CrudToolbar
+        searchPlaceholder="按系统名称搜索..."
+        searchValue={draftName}
+        onSearchChange={setDraftName}
+        onSearch={handleSearch}
+        onReset={handleResetSearch}
+        createButton={{
+          text: '新增系统',
+          onClick: () => openForm(),
+        }}
+      />
 
-          <Space size={12}>
-            <Button
-              type="primary"
-              className="create-primary-button"
-              icon={<PlusOutlined />}
-              onClick={() => openForm()}
-            >
-              新增系统
-            </Button>
-          </Space>
-        </div>
-      </Card>
-
-      {/* 2. 数据表格卡片 */}
-      <Card className={styles.tableCard} styles={{ body: { padding: '16px 24px' } }}>
-        <Table<SystemRowResultDto>
-          rowKey="id"
-          columns={columns}
-          dataSource={items}
-          loading={loading}
-          locale={{ emptyText: <Empty description="暂无系统数据" /> }}
-          scroll={{ x: 800 }}
-          pagination={{
-            current: pageIndex,
-            pageSize,
-            total: totalCount,
-            showTotal: (total, range) => `显示第 ${range[0]} - ${range[1]} 条，共 ${total} 条记录`,
-            onChange: (nextPage, nextPageSize) => {
-              setPageIndex(nextPageSize === pageSize ? nextPage : 1);
-              setPageSize(nextPageSize);
-            },
-          }}
-        />
-      </Card>
+      {/* 2. 数据表格（自动注入统一规范的分页器） */}
+      <CrudTable<SystemRowResultDto>
+        rowKey="id"
+        columns={columns}
+        dataSource={items}
+        loading={loading}
+        pagination={pagination}
+        emptyText="暂无系统数据"
+        scroll={{ x: 800 }}
+      />
 
       {/* 3. 新增 / 编辑系统弹窗 Modal */}
       <Modal
@@ -411,38 +323,15 @@ export default function SystemManagement() {
 
       {/* 4. 系统详情 Modal */}
       <Modal
-        title={null}
+        title={
+          <Space size={8}>
+            <AppstoreOutlined style={{ color: 'var(--color-primary)' }} />
+            <span style={{ fontWeight: 700, fontSize: 16 }}>系统详情</span>
+          </Space>
+        }
         open={detailOpen}
         onCancel={() => setDetailOpen(false)}
-        footer={[
-          <Button
-            key="edit"
-            type="primary"
-            icon={<EditOutlined />}
-            onClick={() => {
-              setDetailOpen(false);
-              if (detail) {
-                const row: SystemRowResultDto = {
-                  id: detail.id,
-                  name: detail.name,
-                  description: detail.description,
-                  sort: detail.sort,
-                };
-                openForm(row);
-              }
-            }}
-            style={{ borderRadius: 'var(--radius-btn)', backgroundColor: 'var(--color-primary)' }}
-          >
-            编辑此系统
-          </Button>,
-          <Button
-            key="close"
-            onClick={() => setDetailOpen(false)}
-            style={{ borderRadius: 'var(--radius-btn)' }}
-          >
-            关闭
-          </Button>,
-        ]}
+        footer={null}
         width={500}
         className={styles.userModal}
       >
@@ -484,12 +373,7 @@ export default function SystemManagement() {
               contentStyle={{ color: 'var(--color-title)' }}
             >
               <Descriptions.Item label="系统 ID">
-                <span
-                  style={{ fontFamily: 'monospace', color: 'var(--color-body)', cursor: 'pointer' }}
-                  onClick={() => void copyToClipboard(detail.id, '系统 ID')}
-                >
-                  {detail.id} <CopyOutlined style={{ color: 'var(--color-placeholder)', marginLeft: 4 }} />
-                </span>
+                <CopyableIdTag id={detail.id} label="系统 ID" />
               </Descriptions.Item>
               <Descriptions.Item label="系统名称">{detail.name}</Descriptions.Item>
               <Descriptions.Item label="展示排序">{detail.sort}</Descriptions.Item>

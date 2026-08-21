@@ -1,55 +1,15 @@
 .pageContainer {
   display: flex;
   flex-direction: column;
-  gap: var(--space-20);
-}
-
-/* Header Card */
-.headerCard {
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-sm);
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-}
-
-.toolbarWrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
   gap: var(--space-16);
-}
-
-.searchGroup {
-  display: flex;
-  align-items: center;
-  gap: var(--space-12);
-  flex-wrap: wrap;
-}
-
-.searchInput {
-  width: 240px;
-  border-radius: var(--radius-btn);
-  min-height: 38px;
 }
 
 .systemSelect {
   width: 200px;
-  min-height: 38px;
 }
 
 .statusSelect {
-  width: 130px;
-  min-height: 38px;
-}
-
-/* Table Card */
-.tableCard {
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-sm);
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  overflow: hidden;
+  width: 120px;
 }
 
 /* Cell styles */
@@ -57,16 +17,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-12);
-}
-
-.cellAvatar {
-  font-weight: 600;
-  color: var(--color-white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-sm);
-  flex-shrink: 0;
 }
 
 .cellInfo {
@@ -86,27 +36,6 @@
 .cellSub {
   font-size: 12px;
   color: var(--color-muted);
-}
-
-.idTag {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  background-color: var(--color-surface-muted);
-  border: 1px solid var(--color-border);
-  padding: 2px 6px;
-  border-radius: 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.idTag:hover {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
-  border-color: var(--color-primary-border-strong);
 }
 
 /* Modal styling */
@@ -251,16 +180,6 @@
     margin: var(--space-16) auto;
   }
 
-  .toolbarWrapper {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .searchGroup {
-    width: 100%;
-  }
-
-  .searchInput,
   .systemSelect,
   .statusSelect {
     width: 100%;

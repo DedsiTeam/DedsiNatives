@@ -18,13 +18,13 @@ description: 按 DedsiNative 项目约定创建、修改和审查 FastEndpoints 
 - 创建、修改、删除及完整领域模型或聚合明细查询使用领域仓储；列表、分页、统计、导出和 DTO 投影使用 Core 查询契约。
 - 所有异步数据库和响应调用传递 `CancellationToken`。
 
-开始编码前必须完整读取 [Endpoint 示例代码](references/endpoint-examples.md)。按照示例输出文件结构、类型顺序、命名、依赖注入、中文注释和异步调用；只根据实际业务调整路由、DTO 字段和领域调用。
+新建 Endpoint 或现有模块没有可复用结构时完整读取 [Endpoint 示例代码](references/endpoint-examples.md)。修改现有 Endpoint 时优先读取同功能相邻实现，无需加载整份示例。
 
 详细文件布局和通用规则见 [Endpoint 约定](references/endpoint-conventions.md)。
 
 ## 开发流程
 
-1. 读取 [Endpoint 示例代码](references/endpoint-examples.md)，再确认功能目录、路由、HTTP 方法、权限、输入、输出和错误状态。
+1. 确认功能目录、路由、HTTP 方法、权限、输入、输出和错误状态；新建结构时再读取 [Endpoint 示例代码](references/endpoint-examples.md)。
 2. 选择 `Endpoint<TRequest,TResponse>`、`EndpointWithoutRequest<TResponse>` 或相邻代码使用的其他基类。
 3. 在一个端点文件内依次定义 Request、Response 和 Endpoint；没有请求或响应时省略对应 DTO。
 4. 使用结构化 DTO，不直接返回领域实体。

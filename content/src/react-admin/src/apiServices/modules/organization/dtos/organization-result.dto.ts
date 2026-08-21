@@ -39,6 +39,18 @@ export interface OrganizationTreeNodeResultDto {
 }
 
 /**
+ * 用户表单组织机构下拉选项树节点。
+ */
+export interface UserOrganizationOptionNodeDto {
+  /** 组织机构唯一标识 */
+  value: string;
+  /** 组织机构显示名称 */
+  title: string;
+  /** 子级组织选项 */
+  children?: UserOrganizationOptionNodeDto[];
+}
+
+/**
  * 组织机构详情模型。
  */
 export interface OrganizationDetailResultDto {

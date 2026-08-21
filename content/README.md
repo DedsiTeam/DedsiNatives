@@ -61,7 +61,7 @@ bun dev       # 或 npm run dev
 
 本项目已配置通用开发规范，详见 [AGENTS.md](AGENTS.md)。
 
-项目 Skills、后端/前端规则与 UI 提示词统一存放在 [`.agents/`](.agents/)；`src/` 目录只包含产品源代码。
+项目 Skills、后端/前端规则与专项参考资料统一存放在 [`.agents/`](.agents/)；`src/` 目录只包含产品源代码。
 
 模板配置只包含 `CHANGE_ME` 占位符。运行宿主前请通过环境变量提供实际敏感配置：`ConnectionStrings__DedsiNativeDB`、`ConnectionStrings__DedsiNativeRabbitMQ` 和 `Jwt__Secret`；通过 Aspire 启动时还需配置 `Parameters__PostgresPassword`、`Parameters__RabbitMqUserName` 和 `Parameters__RabbitMqPassword`。不要把真实值提交到仓库。
 
@@ -69,7 +69,7 @@ bun dev       # 或 npm run dev
 
 `docs/` 目录使用 Markdown（`.md`）维护工作项和领域文档。
 
-前端 UI 规范请参考：[.agents/prompts/ui.md](.agents/prompts/ui.md)。
+前端 UI 规范请参考：[dedsi-style-react-admin-ui](.agents/skills/dedsi-style-react-admin-ui/SKILL.md)。
 
 ## 工作项 Agent Loop
 

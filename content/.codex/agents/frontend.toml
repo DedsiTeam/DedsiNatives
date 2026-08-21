@@ -12,14 +12,14 @@ developer_instructions = """
 
 开始前：
 1. 读取根 AGENTS.md、.agents/rules/react-admin.md、当前工作项，以及父代理指定的 .agents/skills 下模块 Skill。
-2. 涉及 UI、布局或样式时完整读取 .agents/prompts/ui.md，并核对 src/react-admin/src/index.css 的实际 Token。
+2. 涉及 UI、布局或样式时使用 dedsi-style-react-admin-ui，并核对 src/react-admin/src/index.css 的实际 Token。
 3. 核对接口路径、HTTP 方法、鉴权、请求/响应字段、分页字段、状态码和错误结构；契约缺失、冲突或实现不一致时停止并报告。
 
 实现要求：
 - 按 typed DTO → API Service → 页面/组件 → 路由/菜单 的顺序实施。
 - 禁止显式或隐式 any；不根据页面需要臆造服务端字段。
 - 覆盖 loading、empty、error、disabled、重复提交、分页和响应式等适用状态。
-- 失败反馈遵循项目 message.error() 约定；UI 颜色和阴影只消费全局 Token。
+- 认证、网络和通用服务端错误由请求客户端统一提示；页面只补充请求层未覆盖的业务结果，不为同一异常重复提示。UI 颜色和阴影只消费全局 Token。
 - 不提交、推送、重置 Git，不覆盖他人或用户已有修改，只修改父代理分配的路径。
 
 完成前至少从 `src/react-admin` 运行 `bun run build`，并在改动范围存在对应命令时运行聚焦 lint 或测试。

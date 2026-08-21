@@ -6,8 +6,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  Card,
-  Table,
   Button,
   Input,
   Space,
@@ -24,6 +22,9 @@ import {
   Col,
   Tooltip,
   Typography,
+  TreeSelect,
+  Tree,
+  Tabs,
   type TableProps,
 } from 'antd';
 import {
@@ -36,24 +37,31 @@ import {
   EyeOutlined,
   SolutionOutlined,
   LockOutlined,
-  CopyOutlined,
   MailOutlined,
   PhoneOutlined,
   IdcardOutlined,
   CheckCircleOutlined,
   StopOutlined,
+  ApartmentOutlined,
 } from '@ant-design/icons';
 
 // 统一直接从 apiServices 导入 Service 与服务对应的 DTO 类型
 import {
   UserApiService,
   PositionApiService,
+  OrganizationApiService,
   type UserResultDto,
   type PagedUserRowDto,
   type PositionRowResultDto,
+  type UserOrganizationOptionNodeDto,
   type CreateUserInputDto,
   type UpdateUserInputDto,
 } from '../../../apiServices';
+import {
+  CopyableIdTag,
+  CrudTable,
+  CrudToolbar,
+} from '../../../components';
 import styles from './index.module.css';
 
 const { Text } = Typography;
@@ -84,15 +92,6 @@ const getAvatarColor = (name: string): string => {
   return colors[index];
 };
 
-/** 复制文本通用辅助函数 */
-const copyToClipboard = async (text: string, label = '内容') => {
-  try {
-    await navigator.clipboard.writeText(text);
-    message.success(`已复制 ${label} 到剪贴板`);
-  } catch {
-    message.error('复制失败，请手动选择复制');
-  }
-};
 
 /**
  * 岗位选择列表组件（支持逐项整行点击选中、关键字检索过滤与状态高亮）
@@ -155,9 +154,8 @@ const SelectablePositionList: React.FC<SelectablePositionListProps> = ({
               <div
                 key={position.id}
                 onClick={() => toggleSelect(position.id)}
-                className={`${styles.positionItem} ${
-                  selected ? styles.positionItemSelected : styles.positionItemDefault
-                }`}
+                className={`${styles.positionItem} ${selected ? styles.positionItemSelected : styles.positionItemDefault
+                  }`}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <span
@@ -177,6 +175,219 @@ const SelectablePositionList: React.FC<SelectablePositionListProps> = ({
               </div>
             );
           })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/**
+ * 组织机构选择树组件（支持逐级展开、搜索高亮、快捷全选/折叠与已选清单）
+ */
+interface SelectableOrganizationTreeProps {
+  value?: string[];
+  onChange?: (value: string[]) => void;
+  options: UserOrganizationOptionNodeDto[];
+}
+
+const SelectableOrganizationTree: React.FC<SelectableOrganizationTreeProps> = ({
+  value = [],
+  onChange,
+  options,
+}) => {
+  const [filterKeyword, setFilterKeyword] = useState<string>('');
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
+  const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
+
+  // 组织 ID 到名称的映射字典
+  const orgNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    const traverse = (nodes: UserOrganizationOptionNodeDto[]) => {
+      for (const node of nodes) {
+        map.set(node.value, node.title);
+        if (node.children) {
+          traverse(node.children);
+        }
+      }
+    };
+    traverse(options);
+    return map;
+  }, [options]);
+
+  // 全量 Key 列表
+  const allKeys = useMemo(() => {
+    const keys: string[] = [];
+    const traverse = (nodes: UserOrganizationOptionNodeDto[]) => {
+      for (const node of nodes) {
+        keys.push(node.value);
+        if (node.children) traverse(node.children);
+      }
+    };
+    traverse(options);
+    return keys;
+  }, [options]);
+
+  // 初始自动展开全部节点
+  useEffect(() => {
+    if (allKeys.length > 0 && expandedKeys.length === 0) {
+      setExpandedKeys(allKeys);
+    }
+  }, [allKeys]);
+
+  const onExpand = (newExpandedKeys: React.Key[]) => {
+    setExpandedKeys(newExpandedKeys);
+    setAutoExpandParent(false);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setFilterKeyword(val);
+    if (!val.trim()) {
+      setAutoExpandParent(false);
+      return;
+    }
+    const kw = val.trim().toLowerCase();
+    const matchedKeys: string[] = [];
+    const findMatches = (nodes: UserOrganizationOptionNodeDto[]) => {
+      for (const node of nodes) {
+        if (node.title.toLowerCase().includes(kw)) {
+          matchedKeys.push(node.value);
+        }
+        if (node.children) findMatches(node.children);
+      }
+    };
+    findMatches(options);
+    setExpandedKeys(matchedKeys);
+    setAutoExpandParent(true);
+  };
+
+  const handleCheck = (checked: any) => {
+    const keys = Array.isArray(checked) ? checked : checked.checked;
+    onChange?.(keys as string[]);
+  };
+
+  const handleRemove = (keyToRemove: string) => {
+    onChange?.(value.filter((k) => k !== keyToRemove));
+  };
+
+  const handleClearAll = () => {
+    onChange?.([]);
+  };
+
+  const handleExpandAll = () => {
+    setExpandedKeys(allKeys);
+  };
+
+  const handleCollapseAll = () => {
+    setExpandedKeys([]);
+  };
+
+  // 格式化树结构并支持关键词高亮
+  const formattedTreeData = useMemo(() => {
+    const loop = (data: UserOrganizationOptionNodeDto[]): any[] =>
+      data.map((item) => {
+        const kw = filterKeyword.trim().toLowerCase();
+        const strTitle = item.title;
+        const index = strTitle.toLowerCase().indexOf(kw);
+        const beforeStr = strTitle.substring(0, index);
+        const matchStr = strTitle.substring(index, index + kw.length);
+        const afterStr = strTitle.substring(index + kw.length);
+        const titleNode =
+          index > -1 && kw ? (
+            <span>
+              {beforeStr}
+              <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>{matchStr}</span>
+              {afterStr}
+            </span>
+          ) : (
+            <span>{strTitle}</span>
+          );
+
+        if (item.children && item.children.length > 0) {
+          return {
+            title: titleNode,
+            key: item.value,
+            children: loop(item.children),
+          };
+        }
+
+        return {
+          title: titleNode,
+          key: item.value,
+        };
+      });
+
+    return loop(options);
+  }, [options, filterKeyword]);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className={styles.treeToolbar}>
+        <Input
+          placeholder="搜索组织机构名称..."
+          prefix={<SearchOutlined style={{ color: 'var(--color-placeholder)' }} />}
+          value={filterKeyword}
+          onChange={handleSearchChange}
+          allowClear
+          className={styles.positionFilterInput}
+          style={{ flex: 1, marginBottom: 0 }}
+        />
+        <Space size={6}>
+          <Button size="small" onClick={handleExpandAll}>
+            全部展开
+          </Button>
+          <Button size="small" onClick={handleCollapseAll}>
+            全部折叠
+          </Button>
+          {value.length > 0 && (
+            <Button size="small" danger onClick={handleClearAll}>
+              清空
+            </Button>
+          )}
+        </Space>
+      </div>
+
+      <div className={styles.treeContainer}>
+        {options.length === 0 ? (
+          <div style={{ color: 'var(--color-muted)', fontSize: 13, padding: '36px 0', textAlign: 'center' }}>
+            暂无可分配组织机构
+          </div>
+        ) : (
+          <Tree
+            checkable
+            checkStrictly={false}
+            onExpand={onExpand}
+            expandedKeys={expandedKeys}
+            autoExpandParent={autoExpandParent}
+            onCheck={handleCheck}
+            checkedKeys={value}
+            treeData={formattedTreeData}
+          />
+        )}
+      </div>
+
+      {value.length > 0 && (
+        <div className={styles.selectedSummary}>
+          <div className={styles.selectedSummaryHeader}>
+            <span>已选组织机构 ({value.length})</span>
+            <Button type="link" size="small" danger onClick={handleClearAll} style={{ padding: 0, height: 'auto' }}>
+              清空全选
+            </Button>
+          </div>
+          <div className={styles.selectedTagsList}>
+            {value.map((id) => (
+              <Tag
+                key={id}
+                color="geekblue"
+                closable
+                onClose={() => handleRemove(id)}
+                icon={<ApartmentOutlined />}
+                style={{ borderRadius: 6, margin: 0 }}
+              >
+                {orgNameMap.get(id) || id}
+              </Tag>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -212,6 +423,15 @@ export const UserManagement: React.FC = () => {
   /** 实际生效的搜索关键字 */
   const [searchText, setSearchText] = useState<string>('');
 
+  /** 组织机构筛选草稿选中值 */
+  const [draftSelectedOrgId, setDraftSelectedOrgId] = useState<string | undefined>(undefined);
+
+  /** 实际生效的组织机构筛选 */
+  const [selectedOrgId, setSelectedOrgId] = useState<string | undefined>(undefined);
+
+  /** 组织机构选项树数据 */
+  const [orgTreeOptions, setOrgTreeOptions] = useState<UserOrganizationOptionNodeDto[]>([]);
+
   /** 控制新增/编辑 Modal 显示隐藏状态 */
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
@@ -244,6 +464,20 @@ export const UserManagement: React.FC = () => {
   // ---------------------------------------------------------------------------
 
   /**
+   * 加载组织机构选项下拉树
+   */
+  const loadOrgOptions = useCallback(async () => {
+    try {
+      const res = await OrganizationApiService.getUserOrganizationOptions();
+      if (res && Array.isArray(res)) {
+        setOrgTreeOptions(res);
+      }
+    } catch {
+      setOrgTreeOptions([]);
+    }
+  }, []);
+
+  /**
    * 核心方法：异步调用 UserApiService 拉取分页用户数据
    */
   const fetchUsers = useCallback(async () => {
@@ -253,6 +487,7 @@ export const UserManagement: React.FC = () => {
         pageIndex,
         pageSize,
         name: searchText.trim() || undefined,
+        organizationId: selectedOrgId || undefined,
       });
 
       if (res && Array.isArray(res.items)) {
@@ -268,7 +503,14 @@ export const UserManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [pageIndex, pageSize, searchText]);
+  }, [pageIndex, pageSize, searchText, selectedOrgId]);
+
+  /**
+   * 初始化加载组织机构选项
+   */
+  useEffect(() => {
+    void loadOrgOptions();
+  }, [loadOrgOptions]);
 
   /**
    * 监听页码、每页条数、检索条件变化，触发列表重新加载
@@ -338,6 +580,7 @@ export const UserManagement: React.FC = () => {
         const [detail] = await Promise.all([
           UserApiService.getById(user.id),
           loadAssignablePositions(),
+          loadOrgOptions(),
         ]);
         setRequiresLoginPassword(detail.loginInfo === null);
         form.setFieldsValue({
@@ -346,6 +589,7 @@ export const UserManagement: React.FC = () => {
           phone: detail.phone ?? undefined,
           idCardNumber: detail.idCardNumber ?? undefined,
           positionIds: detail.positions.map((position) => position.positionId),
+          organizationIds: detail.organizations.map((org) => org.organizationId),
           loginInfo: detail.loginInfo
             ? { account: detail.loginInfo.account, status: detail.loginInfo.status }
             : undefined,
@@ -364,12 +608,13 @@ export const UserManagement: React.FC = () => {
       form.resetFields();
       form.setFieldsValue({
         positionIds: [],
+        organizationIds: [],
         loginInfo: {
           status: 1,
           password: generateRandomPasswordString(),
         },
       });
-      await loadAssignablePositions();
+      await Promise.all([loadAssignablePositions(), loadOrgOptions()]);
     }
     setIsModalOpen(true);
   };
@@ -478,6 +723,7 @@ export const UserManagement: React.FC = () => {
   const handleSearch = () => {
     setPageIndex(1);
     setSearchText(draftSearchText);
+    setSelectedOrgId(draftSelectedOrgId);
   };
 
   /**
@@ -486,6 +732,8 @@ export const UserManagement: React.FC = () => {
   const handleResetSearch = () => {
     setDraftSearchText('');
     setSearchText('');
+    setDraftSelectedOrgId(undefined);
+    setSelectedOrgId(undefined);
     setPageIndex(1);
   };
 
@@ -513,21 +761,14 @@ export const UserManagement: React.FC = () => {
       title: '用户唯一标识 (ID)',
       dataIndex: 'id',
       key: 'id',
-      width: 240,
-      render: (id: string) => (
-        <Tooltip title="点击复制 ID">
-          <span className={styles.idTag} onClick={() => void copyToClipboard(id, '用户 ID')}>
-            {id}
-            <CopyOutlined style={{ fontSize: 11, opacity: 0.6 }} />
-          </span>
-        </Tooltip>
-      ),
+      width: 260,
+      render: (id: string) => <CopyableIdTag id={id} label="用户 ID" />,
     },
     {
       title: '联系电话',
       dataIndex: 'phone',
       key: 'phone',
-      width: 150,
+      width: 140,
       render: (phone: string | null) =>
         phone ? (
           <span style={{ color: 'var(--color-body)', fontSize: 13 }}>
@@ -544,7 +785,7 @@ export const UserManagement: React.FC = () => {
       title: '最近更新时间',
       dataIndex: 'lastUpdatedAt',
       key: 'lastUpdatedAt',
-      width: 180,
+      width: 170,
       render: (value: string) => (
         <span style={{ color: 'var(--color-muted)', fontSize: 13 }}>
           {value}
@@ -616,8 +857,9 @@ export const UserManagement: React.FC = () => {
     },
   ];
 
-  // Selected position count helper for form
+  // Selected position & organization count helpers for form
   const selectedPositionIds = Form.useWatch('positionIds', form) ?? [];
+  const selectedOrgIds = Form.useWatch('organizationIds', form) ?? [];
 
   // ---------------------------------------------------------------------------
   // 视图渲染 (JSX Template)
@@ -626,71 +868,54 @@ export const UserManagement: React.FC = () => {
   return (
     <div className={styles.pageContainer}>
       {/* 1. 顶部检索筛选卡片 */}
-      <Card className={styles.headerCard} styles={{ body: { padding: '16px 24px' } }}>
-        <div className={styles.toolbarWrapper}>
-          <div className={styles.searchGroup}>
-            <Input
-              placeholder="按用户名称搜索..."
-              prefix={<SearchOutlined style={{ color: 'var(--color-placeholder)' }} />}
-              value={draftSearchText}
-              onChange={(e) => setDraftSearchText(e.target.value)}
-              onPressEnter={handleSearch}
-              className={styles.searchInput}
-              allowClear
-            />
-            <Button
-              type="primary"
-              icon={<SearchOutlined />}
-              onClick={handleSearch}
-              style={{ borderRadius: 'var(--radius-btn)', backgroundColor: 'var(--color-primary)' }}
-            >
-              查询
-            </Button>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={handleResetSearch}
-              style={{ borderRadius: 'var(--radius-btn)' }}
-            >
-              重置
-            </Button>
-          </div>
-
-          <Space size={12}>
-            <Button
-              type="primary"
-              className="create-primary-button"
-              icon={<UserAddOutlined />}
-              onClick={() => void openModal()}
-            >
-              新增用户
-            </Button>
-          </Space>
-        </div>
-      </Card>
+      <CrudToolbar
+        searchPlaceholder="按用户名称搜索..."
+        searchValue={draftSearchText}
+        onSearchChange={setDraftSearchText}
+        onSearch={handleSearch}
+        onReset={handleResetSearch}
+        createButton={{
+          text: '新增用户',
+          icon: <UserAddOutlined />,
+          onClick: () => void openModal(),
+        }}
+        extraFilters={
+          <TreeSelect
+            style={{ minWidth: 200 }}
+            placeholder="按组织机构筛选..."
+            treeData={orgTreeOptions}
+            value={draftSelectedOrgId}
+            onChange={(val) => setDraftSelectedOrgId(val)}
+            allowClear
+            treeDefaultExpandAll
+          />
+        }
+      />
 
       {/* 2. 表格数据展示区 */}
-      <Card className={styles.tableCard} styles={{ body: { padding: '16px 24px' } }}>
-        <Table
-          columns={columns}
-          dataSource={users}
-          rowKey="id"
-          loading={loading}
-          scroll={{ x: 1100 }}
-          pagination={{
-            current: pageIndex,
-            pageSize: pageSize,
-            total: total,
-            showTotal: (totalCount, range) =>
-              `显示第 ${range[0]} - ${range[1]} 条，共 ${totalCount} 条记录`,
-            onChange: (page, size) => {
-              setPageIndex(page);
-              setPageSize(size);
-            },
-          }}
-        />
-      </Card>
+      <CrudTable<PagedUserRowDto>
+        columns={columns}
+        dataSource={users}
+        rowKey="id"
+        loading={loading}
+        scroll={{ x: 1100 }}
+        emptyText="暂无用户数据"
+        pagination={{
+          current: pageIndex,
+          pageSize: pageSize,
+          total: total,
+          showTotal: (totalCount, range) =>
+            `显示第 ${range[0]} - ${range[1]} 条，共 ${totalCount} 条记录`,
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50', '100', '500', '1000'],
+          onChange: (page, size) => {
+            setPageIndex(page);
+            setPageSize(size);
+          },
+        }}
+      />
 
-      {/* 3. 新建 / 编辑用户 Modal */}
+      {/* 3. 新建 / 编辑用户 Modal（Tab 选项卡化） */}
       <Modal
         title={
           <Space size={8}>
@@ -713,211 +938,216 @@ export const UserManagement: React.FC = () => {
         maskClosable={!submitting}
         okText="保存提交"
         cancelText="取消"
-        width={860}
+        width={720}
         className={styles.userModal}
       >
         <Form form={form} layout="vertical" className={styles.userForm}>
-          <Row gutter={20}>
-            {/* 左半部分：基本信息 + 账户信息 */}
-            <Col span={14} style={{ display: 'flex', flexDirection: 'column' }}>
-              {/* 1. 基本信息卡片 */}
-              <div className={styles.sectionCard}>
-                <div className={styles.sectionTitle}>
-                  <div className={styles.sectionTitleLeft}>
-                    <UserOutlined style={{ color: 'var(--color-primary)' }} />
-                    <span>基本资料</span>
-                  </div>
-                </div>
-                <Row gutter={12}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="name"
-                      label="用户名称"
-                      rules={[{ required: true, message: '请输入用户姓名' }]}
-                    >
-                      <Input
-                        prefix={<UserOutlined style={{ color: 'var(--color-placeholder)' }} />}
-                        className={styles.formControl}
-                        placeholder="例如：张三"
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="email"
-                      label="电子邮箱"
-                      rules={[
-                        { required: true, message: '请输入邮箱' },
-                        { type: 'email', message: '邮箱格式不正确' },
-                      ]}
-                    >
-                      <Input
-                        prefix={<MailOutlined style={{ color: 'var(--color-placeholder)' }} />}
-                        className={styles.formControl}
-                        placeholder="user@dedsi.com"
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item name="phone" label="联系电话">
-                      <Input
-                        prefix={<PhoneOutlined style={{ color: 'var(--color-placeholder)' }} />}
-                        className={styles.formControl}
-                        placeholder="例如：13800138000"
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item name="idCardNumber" label="身份证号码">
-                      <Input
-                        prefix={<IdcardOutlined style={{ color: 'var(--color-placeholder)' }} />}
-                        className={styles.formControl}
-                        placeholder="18位身份证号"
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-              </div>
-
-              {/* 2. 账户凭据卡片 */}
-              <div className={styles.sectionCard} style={{ flex: 1, marginBottom: 0 }}>
-                <div className={styles.sectionTitle}>
-                  <div className={styles.sectionTitleLeft}>
-                    <LockOutlined style={{ color: 'var(--color-primary)' }} />
-                    <span>账户安全与认证</span>
-                  </div>
-                </div>
-                <Row gutter={12}>
-                  <Col span={14}>
-                    <Form.Item
-                      name={['loginInfo', 'account']}
-                      label="登录账号"
-                      rules={[{ required: true, message: '请输入登录账号' }]}
-                    >
-                      <Input className={styles.formControl} placeholder="设置登录账号" />
-                    </Form.Item>
-                  </Col>
-                  <Col span={10}>
-                    <Form.Item name={['loginInfo', 'status']} label="账户状态" initialValue={1}>
-                      <Select
-                        className={styles.formControl}
-                        options={[
-                          { value: 1, label: '正常' },
-                          { value: 2, label: '禁用' },
-                          { value: 3, label: '锁定' },
-                          { value: 4, label: '注销' },
-                        ]}
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col span={24}>
-                    <Form.Item
-                      label={
-                        <span>
-                          {editingUser ? '登录密码（留空则不修改）' : '初始登录密码'}
-                        </span>
-                      }
-                      style={{ marginBottom: 0 }}
-                    >
-                      <Space.Compact style={{ width: '100%' }}>
-                        <Form.Item
-                          name={['loginInfo', 'password']}
-                          noStyle
-                          rules={
-                            editingUser && !requiresLoginPassword
-                              ? []
-                              : [{ required: true, message: '请设置登录密码' }]
-                          }
-                        >
-                          <Input.Password
-                            className={styles.formControl}
-                            placeholder={
-                              editingUser && !requiresLoginPassword
-                                ? '留空则保持原密码不变'
-                                : '请输入密码'
-                            }
-                          />
-                        </Form.Item>
-                        <Tooltip title="自动生成 20 位高强度随机密码">
-                          <Button
-                            icon={<ReloadOutlined />}
-                            onClick={handleGeneratePassword}
-                            className={styles.randomBtn}
+          <Tabs
+            defaultActiveKey="basic"
+            items={[
+              {
+                key: 'basic',
+                label: (
+                  <Space size={6}>
+                    <UserOutlined />
+                    <span>基本资料与认证</span>
+                  </Space>
+                ),
+                children: (
+                  <div style={{ paddingTop: 8 }}>
+                    {/* 基本信息 */}
+                    <div className={styles.sectionCard}>
+                      <div className={styles.sectionTitle}>
+                        <div className={styles.sectionTitleLeft}>
+                          <UserOutlined style={{ color: 'var(--color-primary)' }} />
+                          <span>基本资料</span>
+                        </div>
+                      </div>
+                      <Row gutter={16}>
+                        <Col span={12}>
+                          <Form.Item
+                            name="name"
+                            label="用户名称"
+                            rules={[{ required: true, message: '请输入用户姓名' }]}
                           >
-                            随机生成
-                          </Button>
-                        </Tooltip>
-                      </Space.Compact>
-                    </Form.Item>
-                  </Col>
-                </Row>
-              </div>
-            </Col>
+                            <Input
+                              prefix={<UserOutlined style={{ color: 'var(--color-placeholder)' }} />}
+                              className={styles.formControl}
+                              placeholder="例如：张三"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item
+                            name="email"
+                            label="电子邮箱"
+                            rules={[
+                              { required: true, message: '请输入邮箱' },
+                              { type: 'email', message: '邮箱格式不正确' },
+                            ]}
+                          >
+                            <Input
+                              prefix={<MailOutlined style={{ color: 'var(--color-placeholder)' }} />}
+                              className={styles.formControl}
+                              placeholder="user@dedsi.com"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item name="phone" label="联系电话">
+                            <Input
+                              prefix={<PhoneOutlined style={{ color: 'var(--color-placeholder)' }} />}
+                              className={styles.formControl}
+                              placeholder="例如：13800138000"
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item name="idCardNumber" label="身份证号码" style={{ marginBottom: 0 }}>
+                            <Input
+                              prefix={<IdcardOutlined style={{ color: 'var(--color-placeholder)' }} />}
+                              className={styles.formControl}
+                              placeholder="18位身份证号"
+                            />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    </div>
 
-            {/* 右半部分：用户岗位 */}
-            <Col span={10}>
-              <div
-                className={styles.sectionCard}
-                style={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  marginBottom: 0,
-                }}
-              >
-                <div className={styles.sectionTitle}>
-                  <div className={styles.sectionTitleLeft}>
-                    <SolutionOutlined style={{ color: 'var(--color-primary)' }} />
-                    <span>分配岗位</span>
+                    {/* 账户安全与认证 */}
+                    <div className={styles.sectionCard} style={{ marginBottom: 0 }}>
+                      <div className={styles.sectionTitle}>
+                        <div className={styles.sectionTitleLeft}>
+                          <LockOutlined style={{ color: 'var(--color-primary)' }} />
+                          <span>账户安全与认证</span>
+                        </div>
+                      </div>
+                      <Row gutter={16}>
+                        <Col span={14}>
+                          <Form.Item
+                            name={['loginInfo', 'account']}
+                            label="登录账号"
+                            rules={[{ required: true, message: '请输入登录账号' }]}
+                          >
+                            <Input className={styles.formControl} placeholder="设置登录账号" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={10}>
+                          <Form.Item name={['loginInfo', 'status']} label="账户状态" initialValue={1}>
+                            <Select
+                              className={styles.formControl}
+                              options={[
+                                { value: 1, label: '正常' },
+                                { value: 2, label: '禁用' },
+                                { value: 3, label: '锁定' },
+                                { value: 4, label: '注销' },
+                              ]}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                          <Form.Item
+                            label={
+                              <span>
+                                {editingUser ? '登录密码（留空则不修改）' : '初始登录密码'}
+                              </span>
+                            }
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Space.Compact style={{ width: '100%' }}>
+                              <Form.Item
+                                name={['loginInfo', 'password']}
+                                noStyle
+                                rules={
+                                  editingUser && !requiresLoginPassword
+                                    ? []
+                                    : [{ required: true, message: '请设置登录密码' }]
+                                }
+                              >
+                                <Input.Password
+                                  className={styles.formControl}
+                                  placeholder={
+                                    editingUser && !requiresLoginPassword
+                                      ? '留空则保持原密码不变'
+                                      : '请输入密码'
+                                  }
+                                />
+                              </Form.Item>
+                              <Tooltip title="自动生成 20 位高强度随机密码">
+                                <Button
+                                  icon={<ReloadOutlined />}
+                                  onClick={handleGeneratePassword}
+                                  className={styles.randomBtn}
+                                >
+                                  随机生成
+                                </Button>
+                              </Tooltip>
+                            </Space.Compact>
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    </div>
                   </div>
-                  <Tag color="blue" style={{ borderRadius: 10 }}>
-                    已选 {selectedPositionIds.length} 个
-                  </Tag>
-                </div>
-                <Form.Item name="positionIds" style={{ marginBottom: 0, flex: 1 }}>
-                  <SelectablePositionList options={positionOptions} />
-                </Form.Item>
-              </div>
-            </Col>
-          </Row>
+                ),
+              },
+              {
+                key: 'organizations',
+                label: (
+                  <Space size={6}>
+                    <ApartmentOutlined />
+                    <span>所属组织机构</span>
+                    {selectedOrgIds.length > 0 && (
+                      <Tag color="geekblue" style={{ borderRadius: 10, marginInlineStart: 4 }}>
+                        {selectedOrgIds.length}
+                      </Tag>
+                    )}
+                  </Space>
+                ),
+                children: (
+                  <div style={{ paddingTop: 8 }}>
+                    <Form.Item name="organizationIds" style={{ marginBottom: 0 }}>
+                      <SelectableOrganizationTree options={orgTreeOptions} />
+                    </Form.Item>
+                  </div>
+                ),
+              },
+              {
+                key: 'positions',
+                label: (
+                  <Space size={6}>
+                    <SolutionOutlined />
+                    <span>分配岗位</span>
+                    {selectedPositionIds.length > 0 && (
+                      <Tag color="blue" style={{ borderRadius: 10, marginInlineStart: 4 }}>
+                        {selectedPositionIds.length}
+                      </Tag>
+                    )}
+                  </Space>
+                ),
+                children: (
+                  <div style={{ paddingTop: 8 }}>
+                    <Form.Item name="positionIds" style={{ marginBottom: 0 }}>
+                      <SelectablePositionList options={positionOptions} />
+                    </Form.Item>
+                  </div>
+                ),
+              },
+            ]}
+          />
         </Form>
       </Modal>
 
       {/* 4. 用户详细信息弹窗 Modal */}
       <Modal
-        title={null}
+        title={
+          <Space size={8}>
+            <UserOutlined style={{ color: 'var(--color-primary)' }} />
+            <span style={{ fontWeight: 700, fontSize: 16 }}>用户详情</span>
+          </Space>
+        }
         open={isDetailModalOpen}
         onCancel={() => setIsDetailModalOpen(false)}
-        footer={[
-          <Button
-            key="edit"
-            type="primary"
-            icon={<EditOutlined />}
-            onClick={() => {
-              setIsDetailModalOpen(false);
-              if (detailUser) {
-                const userRow: PagedUserRowDto = {
-                  id: detailUser.id,
-                  name: detailUser.name,
-                  email: detailUser.email,
-                  phone: detailUser.phone,
-                  lastUpdatedAt: detailUser.lastUpdatedAt,
-                };
-                void openModal(userRow);
-              }
-            }}
-            style={{ borderRadius: 'var(--radius-btn)', backgroundColor: 'var(--color-primary)' }}
-          >
-            编辑此用户
-          </Button>,
-          <Button
-            key="close"
-            onClick={() => setIsDetailModalOpen(false)}
-            style={{ borderRadius: 'var(--radius-btn)' }}
-          >
-            关闭
-          </Button>,
-        ]}
+        footer={null}
         width={560}
         className={styles.userModal}
       >
@@ -974,16 +1204,7 @@ export const UserManagement: React.FC = () => {
               contentStyle={{ color: 'var(--color-title)' }}
             >
               <Descriptions.Item label="用户标识 (ID)">
-                <span
-                  style={{
-                    fontFamily: 'monospace',
-                    color: 'var(--color-body)',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => void copyToClipboard(detailUser.id, '用户 ID')}
-                >
-                  {detailUser.id} <CopyOutlined style={{ color: 'var(--color-placeholder)', marginLeft: 4 }} />
-                </span>
+                <CopyableIdTag id={detailUser.id} label="用户 ID" />
               </Descriptions.Item>
               <Descriptions.Item label="联系电话">{detailUser.phone || '-'}</Descriptions.Item>
               <Descriptions.Item label="身份证号码">
@@ -1007,6 +1228,19 @@ export const UserManagement: React.FC = () => {
                   </Space>
                 ) : (
                   <span style={{ color: 'var(--color-placeholder)' }}>未分配岗位</span>
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label="所属组织">
+                {detailUser.organizations && detailUser.organizations.length > 0 ? (
+                  <Space wrap size={[0, 6]}>
+                    {detailUser.organizations.map((org) => (
+                      <Tag key={org.organizationId} color="geekblue" icon={<ApartmentOutlined />}>
+                        {org.organizationName}
+                      </Tag>
+                    ))}
+                  </Space>
+                ) : (
+                  <span style={{ color: 'var(--color-placeholder)' }}>未分配组织机构</span>
                 )}
               </Descriptions.Item>
               <Descriptions.Item label="最后登录时间">

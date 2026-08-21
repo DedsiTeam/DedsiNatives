@@ -29,6 +29,8 @@ export interface UserResultDto {
   loginInfo: UserLoginInfoResultDto | null;
   /** 用户关联的岗位列表。 */
   positions: UserPositionResultDto[];
+  /** 用户关联的组织机构列表。 */
+  organizations: UserOrganizationResultDto[];
 }
 
 /** 用户岗位关联结果。 */
@@ -37,6 +39,14 @@ export interface UserPositionResultDto {
   positionId: string;
   /** 岗位名称快照。 */
   positionName: string;
+}
+
+/** 用户组织机构关联结果。 */
+export interface UserOrganizationResultDto {
+  /** 组织机构唯一标识，26 位 ULID。 */
+  organizationId: string;
+  /** 组织机构名称快照。 */
+  organizationName: string;
 }
 
 /** 用户登录信息结果。 */

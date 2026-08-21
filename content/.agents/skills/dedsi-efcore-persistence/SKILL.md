@@ -27,13 +27,13 @@ description: 按 DedsiNative 项目规范实现和修改 EF Core PostgreSQL 持�
 
 配置 `AbpEntityOptions` 时应同步核对聚合导航属性、EF Core 映射和完整聚合响应 DTO，禁止在 Query、Endpoint、应用服务或事件处理器中另写 `GetWithRelationsAsync` 等重复的完整聚合加载方法。
 
-开始编码前必须完整读取 [持久化示例代码](references/persistence-examples.md)。按照示例输出目录、类型结构、Dedsi 基类、中文注释、映射配置和查询实现；只根据实际聚合调整字段、约束和查询条件。
+新建聚合映射、Repository 或 Query 实现时完整读取 [持久化示例代码](references/persistence-examples.md)。修改现有映射、字段或查询时优先读取目标实现及下方对应专项 reference，无需加载整份示例。
 
 详细映射规则见 [持久化约定](references/persistence-conventions.md)，`AbpEntityOptions` 见 [AbpEntityOptions 配置说明](references/abp-entity-options.md)，迁移命令见 [迁移流程](references/migrations.md)。
 
 ## 工作流程
 
-1. 读取 [持久化示例代码](references/persistence-examples.md) 和目标聚合根，列出主键、字段、可空性、长度、唯一性、关系、审计和并发要求。
+1. 读取目标聚合根，列出主键、字段、可空性、长度、唯一性、关系、审计和并发要求；新建完整持久化结构时再读取 [持久化示例代码](references/persistence-examples.md)。
 2. 创建 `IEntityTypeConfiguration<T>`，明确配置表、Schema、主键和全部持久化字段。
 3. 同步更新 DbContext 接口与实现的 DbSet。
 4. 实现仓储和所需 Query；创建、修改、删除及完整聚合查询使用 Repository，列表、分页、统计、导出和 DTO 投影使用 Query。

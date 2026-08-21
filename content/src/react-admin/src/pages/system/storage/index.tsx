@@ -1,4 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+/**
+ * @file 对象存储文件管理页面 (StorageManagement)
+ * @description 基于通用 CrudToolbar / CrudTable / useCrudTable / CopyableIdTag 组件。
+ */
+
+import { useMemo, useState } from 'react';
 import {
   CopyOutlined,
   DeleteOutlined,
@@ -12,12 +17,9 @@ import {
   FileWordOutlined,
   FileZipOutlined,
   InboxOutlined,
-  PlusOutlined,
-  SearchOutlined,
 } from '@ant-design/icons';
 import {
   Button,
-  Card,
   Col,
   Descriptions,
   Form,
@@ -28,7 +30,6 @@ import {
   Select,
   Space,
   Switch,
-  Table,
   Tag,
   Tooltip,
   Typography,
@@ -41,6 +42,12 @@ import {
   StorageApiService,
   type StorageFileResultDto,
 } from '../../../apiServices';
+import {
+  CopyableIdTag,
+  CrudTable,
+  CrudToolbar,
+  useCrudTable,
+} from '../../../components';
 import styles from './index.module.css';
 
 const { Text } = Typography;
@@ -98,12 +105,6 @@ function getFileIcon(ext: string, previewUrl?: string) {
 }
 
 export default function StorageManagement() {
-  const [tableItems, setTableItems] = useState<StorageFileResultDto[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [pageIndex, setPageIndex] = useState(1);
-  const pageSize = 10;
-
   // 检索草稿与实际条件
   const [draftKeyword, setDraftKeyword] = useState('');
   const [keyword, setKeyword] = useState('');
@@ -120,32 +121,32 @@ export default function StorageManagement() {
   const [detailFile, setDetailFile] = useState<StorageFileResultDto | undefined>();
   const [previewFile, setPreviewFile] = useState<StorageFileResultDto | undefined>();
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await StorageApiService.getStorageFilesPaged({
-        keyword: keyword || undefined,
-        category: category || undefined,
-        extension: extension || undefined,
-        pageIndex,
-        pageSize,
-      });
-      setTableItems(res.items || []);
-      setTotalCount(res.totalCount || 0);
-    } catch {
-      setTableItems([]);
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [keyword, category, extension, pageIndex]);
+  // 通用 CRUD Hook
+  const queryFilters = useMemo(
+    () => ({
+      keyword: keyword || undefined,
+      category: category || undefined,
+      extension: extension || undefined,
+    }),
+    [keyword, category, extension]
+  );
 
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
+  const {
+    items: tableItems,
+    loading,
+    pagination,
+    loadData,
+    handleDelete,
+  } = useCrudTable<
+    StorageFileResultDto,
+    { keyword?: string; category?: string; extension?: string }
+  >({
+    fetchApi: StorageApiService.getStorageFilesPaged,
+    deleteApi: StorageApiService.deleteStorageFile,
+    filters: queryFilters,
+  });
 
   const submitSearch = () => {
-    setPageIndex(1);
     setKeyword(draftKeyword.trim());
   };
 
@@ -154,7 +155,6 @@ export default function StorageManagement() {
     setKeyword('');
     setCategory(undefined);
     setExtension(undefined);
-    setPageIndex(1);
   };
 
   // 执行上传
@@ -192,17 +192,6 @@ export default function StorageManagement() {
     }
   };
 
-  // 删除文件
-  const handleDelete = async (id: string) => {
-    await StorageApiService.deleteStorageFile(id);
-    message.success('文件已成功删除。');
-    if (tableItems.length === 1 && pageIndex > 1) {
-      setPageIndex(pageIndex - 1);
-    } else {
-      void loadData();
-    }
-  };
-
   // 复制访问直链
   const copyFileUrl = (item: StorageFileResultDto) => {
     const fullUrl = StorageApiService.getPreviewUrl(item.id);
@@ -234,12 +223,8 @@ export default function StorageManagement() {
       title: '存储标识 (ULID)',
       dataIndex: 'id',
       key: 'id',
-      width: 170,
-      render: (id: string) => (
-        <Text code copyable={{ text: id }}>
-          {id.slice(0, 10)}...
-        </Text>
-      ),
+      width: 200,
+      render: (id: string) => <CopyableIdTag id={id} label="文件 ID" />,
     },
     {
       title: '业务分类',
@@ -332,7 +317,7 @@ export default function StorageManagement() {
             okText="确定删除"
             cancelText="取消"
             okButtonProps={{ danger: true }}
-            onConfirm={() => void handleDelete(record.id)}
+            onConfirm={() => void handleDelete(record.id, '文件已成功删除。')}
           >
             <Button type="text" size="small" danger icon={<DeleteOutlined />} style={{ fontWeight: 500 }}>
               删除
@@ -345,21 +330,26 @@ export default function StorageManagement() {
 
   return (
     <main className={styles.pageContainer}>
-      {/* 检索卡片 */}
-      <Card className={styles.headerCard} bordered={false}>
-        <div className={styles.searchHeader}>
-          <div className={styles.searchForm}>
-            <Input
-              style={{ width: 220 }}
-              placeholder="按文件名搜索..."
-              prefix={<SearchOutlined style={{ color: 'var(--color-placeholder)' }} />}
-              value={draftKeyword}
-              onChange={(e) => setDraftKeyword(e.target.value)}
-              onPressEnter={submitSearch}
-              allowClear
-            />
+      {/* 1. 顶部检索工具栏 */}
+      <CrudToolbar
+        searchPlaceholder="按文件名搜索..."
+        searchValue={draftKeyword}
+        onSearchChange={setDraftKeyword}
+        onSearch={submitSearch}
+        onReset={resetSearch}
+        createButton={{
+          text: '上传文件',
+          onClick: () => {
+            setFileList([]);
+            uploadForm.resetFields();
+            uploadForm.setFieldsValue({ category: 'general', isPublic: false });
+            setUploadModalOpen(true);
+          },
+        }}
+        extraFilters={
+          <>
             <Select
-              style={{ width: 140 }}
+              style={{ width: 150 }}
               placeholder="业务分类"
               value={category}
               onChange={setCategory}
@@ -372,7 +362,7 @@ export default function StorageManagement() {
               ]}
             />
             <Select
-              style={{ width: 130 }}
+              style={{ width: 140 }}
               placeholder="文件类型"
               value={extension}
               onChange={setExtension}
@@ -384,47 +374,22 @@ export default function StorageManagement() {
                 { label: '压缩包 (.zip)', value: '.zip' },
               ]}
             />
-            <Button type="primary" onClick={submitSearch}>
-              查询
-            </Button>
-            <Button onClick={resetSearch}>重置</Button>
-          </div>
+          </>
+        }
+      />
 
-          <Button
-            type="primary"
-            className="create-primary-button"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setFileList([]);
-              uploadForm.resetFields();
-              uploadForm.setFieldsValue({ category: 'general', isPublic: false });
-              setUploadModalOpen(true);
-            }}
-          >
-            上传文件
-          </Button>
-        </div>
-      </Card>
+      {/* 2. 数据表格卡片 */}
+      <CrudTable<StorageFileResultDto>
+        rowKey="id"
+        loading={loading}
+        columns={columns}
+        dataSource={tableItems}
+        pagination={pagination}
+        emptyText="暂无文件数据"
+        scroll={{ x: 1000 }}
+      />
 
-      {/* 表格卡片 */}
-      <Card className={styles.tableCard} bordered={false}>
-        <Table<StorageFileResultDto>
-          rowKey="id"
-          loading={loading}
-          columns={columns}
-          dataSource={tableItems}
-          pagination={{
-            current: pageIndex,
-            pageSize,
-            total: totalCount,
-            showTotal: (total) => `共 ${total} 个文件`,
-            onChange: (p) => setPageIndex(p),
-          }}
-          scroll={{ x: 1000 }}
-        />
-      </Card>
-
-      {/* 上传文件弹窗 */}
+      {/* 3. 上传文件弹窗 */}
       <Modal
         title="上传文件至对象存储"
         open={uploadModalOpen}
@@ -492,16 +457,12 @@ export default function StorageManagement() {
         </Form>
       </Modal>
 
-      {/* 详情弹窗 */}
+      {/* 4. 详情弹窗 */}
       <Modal
         title="文件元数据详情"
         open={Boolean(detailFile)}
         onCancel={() => setDetailFile(undefined)}
-        footer={[
-          <Button key="close" type="primary" onClick={() => setDetailFile(undefined)}>
-            关闭
-          </Button>,
-        ]}
+        footer={null}
         width={680}
       >
         {detailFile && (
@@ -510,9 +471,7 @@ export default function StorageManagement() {
               {detailFile.fileName}
             </Descriptions.Item>
             <Descriptions.Item label="文件标识 (ULID)">
-              <Text code copyable>
-                {detailFile.id}
-              </Text>
+              <CopyableIdTag id={detailFile.id} label="文件 ID" />
             </Descriptions.Item>
             <Descriptions.Item label="存储文件名">
               <Text code>{detailFile.storageName}</Text>
@@ -543,7 +502,7 @@ export default function StorageManagement() {
         )}
       </Modal>
 
-      {/* 图片/PDF 在线预览弹窗 */}
+      {/* 5. 图片/PDF 在线预览弹窗 */}
       <Modal
         title={previewFile?.fileName || '文件在线预览'}
         open={Boolean(previewFile)}

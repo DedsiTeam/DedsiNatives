@@ -552,11 +552,7 @@ export default function OrganizationManagement() {
         title="组织机构详情"
         open={Boolean(detailOrg)}
         onCancel={() => setDetailOrg(undefined)}
-        footer={[
-          <Button key="close" type="primary" onClick={() => setDetailOrg(undefined)}>
-            关闭
-          </Button>,
-        ]}
+        footer={null}
         width={680}
       >
         {detailOrg && (

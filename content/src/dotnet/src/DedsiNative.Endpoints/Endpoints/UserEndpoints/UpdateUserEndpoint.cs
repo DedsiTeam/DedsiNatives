@@ -1,5 +1,6 @@
-using DedsiNative.Users;
+using DedsiNative.Organizations;
 using DedsiNative.Positions;
+using DedsiNative.Users;
 using FastEndpoints;
 
 namespace DedsiNative.Endpoints.UserEndpoints;
@@ -12,6 +13,7 @@ namespace DedsiNative.Endpoints.UserEndpoints;
 /// <param name="Phone">新的用户联系电话，可为空。</param>
 /// <param name="IdCardNumber">新的用户身份证号码，可为空。</param>
 /// <param name="PositionIds">新的岗位关联列表；为空时不修改岗位关联。</param>
+/// <param name="OrganizationIds">新的组织机构关联列表；为空时不修改组织机构关联。</param>
 /// <param name="LoginInfo">新的登录信息；为空时不修改登录信息。</param>
 public sealed record UpdateUserRequest(
     string Name,
@@ -19,21 +21,20 @@ public sealed record UpdateUserRequest(
     string? Phone = null,
     string? IdCardNumber = null,
     IReadOnlyList<string>? PositionIds = null,
+    IReadOnlyList<string>? OrganizationIds = null,
     UserLoginInfoRequest? LoginInfo = null
 );
 
 /// <summary>
-/// 更新用户端点，处理 POST /api/user/update/{id} 请求，根据路由中的用户 ID 查询用户并更新其名称和邮箱，成功后返回 true。
+/// 更新用户端点，处理 POST /api/user/update/{id} 请求，根据路由中的用户 ID 查询用户并更新其资料、岗位及组织机构关联。
 /// </summary>
-/// <param name="userRepository">
-/// 用户仓储，用于查询和更新用户实体。
-/// </param>
-/// <param name="positionRepository">
-/// 岗位仓储，用于校验关联岗位有效性。
-/// </param>
+/// <param name="userRepository">用户仓储，用于查询和更新用户实体。</param>
+/// <param name="positionRepository">岗位仓储，用于校验关联岗位有效性。</param>
+/// <param name="organizationRepository">组织机构仓储，用于校验关联组织有效性。</param>
 public class UpdateUserEndpoint(
     IUserRepository userRepository,
-    IPositionRepository positionRepository) : Endpoint<UpdateUserRequest, bool>
+    IPositionRepository positionRepository,
+    IOrganizationRepository organizationRepository) : Endpoint<UpdateUserRequest, bool>
 {
     /// <summary>
     /// 配置端点路由和权限策略。
@@ -45,7 +46,7 @@ public class UpdateUserEndpoint(
         Summary(s =>
         {
             s.Summary = "更新用户";
-            s.Description = "修改用户基本资料和登录信息。";
+            s.Description = "修改用户基本资料、登录信息、岗位及组织机构关联。";
         });
     }
 
@@ -71,6 +72,11 @@ public class UpdateUserEndpoint(
         if (req.PositionIds is not null)
         {
             await ReplacePositionsAsync(user, req.PositionIds, ct);
+        }
+
+        if (req.OrganizationIds is not null)
+        {
+            await ReplaceOrganizationsAsync(user, req.OrganizationIds, ct);
         }
 
         ThrowIfAnyErrors();
@@ -128,6 +134,31 @@ public class UpdateUserEndpoint(
         foreach (var position in positions)
         {
             user.AssignPosition(position.Id, position.Name);
+        }
+    }
+
+    private async Task ReplaceOrganizationsAsync(User user, IReadOnlyList<string> organizationIds, CancellationToken ct)
+    {
+        var organizations = new List<Organization>();
+        var hasDisabledOrg = false;
+        foreach (var organizationId in organizationIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct(StringComparer.Ordinal))
+        {
+            var org = await organizationRepository.GetAsync(organizationId, true, ct);
+            if (!org.IsEnabled)
+            {
+                AddError($"组织机构 {org.Name} 已停用，不能分配给用户。");
+                hasDisabledOrg = true;
+                continue;
+            }
+
+            organizations.Add(org);
+        }
+
+        if (hasDisabledOrg) return;
+        user.ClearOrganizations();
+        foreach (var org in organizations)
+        {
+            user.AssignOrganization(org.Id, org.Name);
         }
     }
 }

@@ -133,6 +133,7 @@ public class DedsiNativeInfrastructureModule : AbpModule
             {
                 userOptions.DefaultWithDetailsFunc = query => query
                     .Include(u => u.Positions)
+                    .Include(u => u.Organizations)
                     .Include(u => u.LoginInfo);
             });
 

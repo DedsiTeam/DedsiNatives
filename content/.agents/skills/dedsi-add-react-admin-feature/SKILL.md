@@ -8,7 +8,7 @@ description: 按 DedsiNative 的 React 19、TypeScript、Vite、Ant Design、Axi
 ## 强制规则
 
 - 将包含 `package.json` 的目录作为 React 根；先读取内容根 `AGENTS.md`、`.agents/rules/react-admin.md`、相邻业务模块和后端 API 契约。
-- 开始编码前必须完整读取 [完整功能示例](references/complete-feature-example.md)，按示例的目录、类型边界、中文注释和代码组织输出，只替换实际业务概念与字段。
+- 新建模块或从零创建完整 CRUD 页面时完整读取 [完整功能示例](references/complete-feature-example.md)；修改现有页面时优先读取相邻实现和实际涉及的专项 Skill，无需加载整份示例。
 - 新增 DTO 和 API Service 时同时遵循 `$dedsi-build-react-admin-api`。
 - 新增或调整页面视觉时同时遵循 `$dedsi-style-react-admin-ui`，并读取项目要求的 UI 规范文件。
 - 所有新增业务代码使用 TypeScript，禁止 `any`；无法确定的外部数据先用 `unknown`，经类型守卫或 Axios 类型约束后再使用。
@@ -17,12 +17,12 @@ description: 按 DedsiNative 的 React 19、TypeScript、Vite、Ant Design、Axi
 - API 方法和 DTO 按业务模块放入 `src/apiServices/modules/{module}/`；页面放入 `src/pages/{area}/{feature}/`，页面入口使用 `index.tsx`。
 - 页面样式默认使用同目录 CSS Module；优先复用 `src/index.css` 变量和 Ant Design Token，禁止无必要的硬编码颜色和大段内联样式。
 - 远程列表必须覆盖加载、空数据、失败、分页和筛选状态；表单必须覆盖校验、提交中状态和成功后的数据刷新。
-- 业务请求失败时在页面层调用 Ant Design `message.error()`；禁止使用 `Alert` 持久显示接口错误。
+- 认证、网络和通用服务端错误由请求客户端统一提示；页面只处理请求层未覆盖的业务结果，禁止为同一异常重复调用 `message.error()`。
 - 不复制现有临时凭证、模拟数据、未清理令牌或不一致响应包装等问题。
 
 ## 工作流程
 
-1. 读取 [完整功能示例](references/complete-feature-example.md)，定位相邻页面、API 模块、路由和布局。
+1. 定位相邻页面、API 模块、路由和布局；只有新建完整模块时读取 [完整功能示例](references/complete-feature-example.md)。
 2. 从真实后端 Endpoint 或 OpenAPI 确认路由、HTTP 方法、请求体、返回体、分页字段和认证要求；禁止根据页面臆造契约。
 3. 在 `src/apiServices/modules/{module}/dtos/` 创建输入与结果 DTO，在模块根目录创建 `{module}.service.ts`，并更新 `src/apiServices/index.ts`。
 4. 在 `src/pages/{area}/{feature}/` 创建 `index.tsx` 与 `index.module.css`。根据功能实现列表、搜索、分页、详情和必要的新增/编辑/删除操作。

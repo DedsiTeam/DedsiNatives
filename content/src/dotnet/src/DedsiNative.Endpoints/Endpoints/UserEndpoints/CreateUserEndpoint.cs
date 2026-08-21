@@ -1,5 +1,6 @@
-using DedsiNative.Users;
+using DedsiNative.Organizations;
 using DedsiNative.Positions;
+using DedsiNative.Users;
 using FastEndpoints;
 
 namespace DedsiNative.Endpoints.UserEndpoints;
@@ -12,6 +13,7 @@ namespace DedsiNative.Endpoints.UserEndpoints;
 /// <param name="Phone">用户联系电话，可为空。</param>
 /// <param name="IdCardNumber">用户身份证号码，可为空。</param>
 /// <param name="PositionIds">初始关联的岗位 ID 列表。</param>
+/// <param name="OrganizationIds">初始关联的组织机构 ID 列表。</param>
 /// <param name="LoginInfo">初始登录信息，可为空。</param>
 public sealed record CreateUserRequest(
     string Name,
@@ -19,21 +21,20 @@ public sealed record CreateUserRequest(
     string? Phone = null,
     string? IdCardNumber = null,
     IReadOnlyList<string>? PositionIds = null,
+    IReadOnlyList<string>? OrganizationIds = null,
     UserLoginInfoRequest? LoginInfo = null
 );
 
 /// <summary>
 /// 创建用户端点，处理 POST /api/user/create 请求，生成新用户并持久化到数据库，返回新用户的 ID。
 /// </summary>
-/// <param name="userRepository">
-/// 用户仓储，用于保存新建的用户实体。
-/// </param>
-/// <param name="positionRepository">
-/// 岗位仓储，用于校验关联岗位有效性。
-/// </param>
+/// <param name="userRepository">用户仓储，用于保存新建的用户实体。</param>
+/// <param name="positionRepository">岗位仓储，用于校验关联岗位有效性。</param>
+/// <param name="organizationRepository">组织机构仓储，用于校验关联组织机构有效性。</param>
 public sealed class CreateUserEndpoint(
     IUserRepository userRepository,
-    IPositionRepository positionRepository)
+    IPositionRepository positionRepository,
+    IOrganizationRepository organizationRepository)
     : Endpoint<CreateUserRequest, Guid>
 {
     /// <summary>
@@ -46,7 +47,7 @@ public sealed class CreateUserEndpoint(
         Summary(s =>
         {
             s.Summary = "创建用户";
-            s.Description = "创建用户基本资料及登录信息。";
+            s.Description = "创建用户基本资料、登录信息、岗位及组织机构关联。";
         });
     }
 
@@ -66,6 +67,7 @@ public sealed class CreateUserEndpoint(
         ApplyLoginInfo(user, req.LoginInfo);
         
         await AssignPositionsAsync(user, req.PositionIds, ct);
+        await AssignOrganizationsAsync(user, req.OrganizationIds, ct);
         
         ThrowIfAnyErrors();
 
@@ -105,6 +107,21 @@ public sealed class CreateUserEndpoint(
             }
 
             user.AssignPosition(position.Id, position.Name);
+        }
+    }
+
+    private async Task AssignOrganizationsAsync(User user, IReadOnlyList<string>? organizationIds, CancellationToken ct)
+    {
+        foreach (var organizationId in (organizationIds ?? []).Where(id => !string.IsNullOrWhiteSpace(id)).Distinct(StringComparer.Ordinal))
+        {
+            var org = await organizationRepository.GetAsync(organizationId, true, ct);
+            if (!org.IsEnabled)
+            {
+                AddError($"组织机构 {org.Name} 已停用，不能分配给用户。");
+                continue;
+            }
+
+            user.AssignOrganization(org.Id, org.Name);
         }
     }
 }

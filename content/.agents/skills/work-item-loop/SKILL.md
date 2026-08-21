@@ -1,98 +1,50 @@
 ---
 name: work-item-loop
-description: Inspect or validate the DedsiNative Markdown work-item queue without mutation, or execute/resume exactly one item through domain design, .NET backend, React admin frontend, verification, and status write-back. Use for docs/workItems queue inspection and the work-item development loop.
+description: 只读检查或验证 DedsiNative 的 docs/workItems 队列，或执行、继续、恢复一个工作项并完成领域、后端、前端、验证和状态回写闭环。
 ---
 
 # Work Item Loop
 
-Preview and validation modes are read-only. Execute and resume modes process exactly one work item per invocation; let the outer runner start another invocation.
+预览、列表和验证模式只读；执行、继续和恢复模式每次只处理一个工作项。连续处理由外层 runner 启动新的短生命周期调用。
 
-## Prepare
+## 准备与选择
 
-1. Treat the directory containing `docs/`, `src/`, and `AGENTS.md` as the content root.
-2. Read the content-root `AGENTS.md` and every more specific `AGENTS.md` governing files you may change.
-3. Read [references/work-item-protocol.md](references/work-item-protocol.md) completely.
-4. Inspect `git status --short`. Preserve unrelated and user-owned changes.
-5. Determine the requested mode before selecting anything:
-   - For preview, inspect, list, or validate requests, run the matching selector command, report its result, and stop without claiming or modifying any work item.
-   - Only execute, continue, and resume requests may enter the claim and implementation workflow below.
-6. Select the item specified by the caller. If none is specified for execution, run:
+1. 将包含 `docs/`、`src/` 和 `AGENTS.md` 的目录作为内容根，完整读取根 `AGENTS.md` 与 [工作项状态协议](references/work-item-protocol.md)。
+2. 检查 `git status --short`，保留无关和用户已有改动。
+3. 先判断模式：预览、列表或验证只运行对应选择器并返回，不领取、不改状态、不写日志。
+4. 执行模式优先使用调用方指定的工作项；未指定时运行：
 
    ```bash
    node .agents/skills/work-item-loop/scripts/get-work-item.mjs \
      --work-items-path docs/workItems --mode next --json
    ```
 
-7. Stop successfully when the result is `null`; report that the queue is empty.
+5. 结果为 `null` 时报告队列为空并成功结束。领取、恢复、尝试次数、状态转换和停止条件完全按 protocol 执行，不在本文件另建一套规则。
 
-## Claim or resume
+## 执行阶段
 
-- Require the selected item to be `ready`, `failed`, or `in-progress`.
-- Before implementation, set its status to `in-progress`, set the current stage, increment `work-item-attempt` for `ready` or `failed`, and update `work-item-updated-at`.
-- Resume an `in-progress` item without incrementing its attempt.
-- Never process a `draft`, `completed`, `blocked`, or `cancelled` item.
-- Never select or modify a second work item.
+1. **分析与契约**
+   - 核对目标、业务规则、范围、排除项和每条验收标准，明确不适用阶段及原因。
+   - 在编码前确认路径、HTTP 方法、鉴权、请求/响应、分页、状态码和错误结构；把采用版本写入执行日志。
+   - 契约缺失、冲突或需要实质业务决策时，按 protocol 写为 `blocked`，不要猜测。
+2. **领域**
+   - 读取匹配的 `docs/domains` 文档，将验收标准落实为聚合、不变量、领域事件及 Repository/Query 契约。
+   - 领域文档缺失或需要实质更新时使用 `create-domain-doc`；未经确认的规则保持待确认。
+3. **实现路由**
+   - 后端完整纵向能力使用 `dedsi-add-dotnet-feature`；仅 Endpoint 或持久化变更分别使用 `dedsi-build-fastendpoint`、`dedsi-efcore-persistence`。只选择实际需要的 Skill。
+   - 前端完整业务页面使用 `dedsi-add-react-admin-feature`；仅 API 或 UI 变更分别使用 `dedsi-build-react-admin-api`、`dedsi-style-react-admin-ui`。只选择实际需要的 Skill。
+   - 修改后端或前端前读取对应 `.agents/rules/`，并在日志记录实际使用的 Skill。
+   - 用户明确要求委派，或存在真正独立且能明显提升速度或质量的子任务时使用 `.codex/agents/` 专职代理；小改动、强顺序依赖和共享文件重叠时由当前代理直接实施。
+   - 委派时提供已确认契约、负责路径、适用 Skill、预期结果和验证命令；委派不扩大授权，当前代理仍负责整合和验收。
+4. **验证**
+   - 运行工作项、所选 Skill 和 `AGENTS.md` 要求的构建与聚焦测试。
+   - 对照同一契约核对前后端，检查 diff 是否越界，并以可复现证据逐条更新验收状态。
 
-## Execute the stages
+阶段开始时按 protocol 更新 `work-item-stage`。不适用阶段必须写明原因，不得静默跳过。
 
-Follow these gates in order:
+## 结束
 
-1. **Work-item analysis**
-   - Parse the goal, business rules, scope, exclusions, and every acceptance criterion.
-   - Decide whether the backend and frontend stages apply; record any non-applicable stage and its reason.
-   - Identify the module skills required by the routing rules below before changing code.
-   - Before backend or frontend coding, verify the work item's contract covers route, HTTP method, authentication, request and response fields, pagination when applicable, status codes, and error structure.
-   - Record the accepted contract in the execution log. If it is incomplete, conflicting, or requires a material business decision, mark the item `blocked` and stop before implementation.
-2. **Domain**
-   - Read the work item and the matching document under `docs/domains`.
-   - Resolve acceptance criteria into aggregates, invariants, value objects, domain events, repository contracts, and query contracts.
-   - When the matching domain document is absent or needs a material change, explicitly load and follow `.agents/skills/create-domain-doc/SKILL.md`. Treat confirmed work-item facts as input; never invent unresolved business rules.
-   - If a material business decision is missing, write the question and evidence to the execution log, mark the item `blocked`, and stop.
-3. **Backend**
-   - Route backend work through the module skills below. Treat every selected skill as explicitly invoked: read its `SKILL.md` completely, read every reference it requires, and follow its workflow and completion checks.
-   - Select `.agents/skills/dedsi-add-dotnet-feature/SKILL.md` when the work item adds or changes a vertical business capability across Core, Infrastructure, or Host.
-   - Also select `.agents/skills/dedsi-build-fastendpoint/SKILL.md` whenever an HTTP endpoint, request, response, validator, route, authentication rule, or status code changes.
-   - Also select `.agents/skills/dedsi-efcore-persistence/SKILL.md` whenever an entity mapping, DbContext, repository, query implementation, persistence field, index, concurrency rule, or migration changes.
-   - Read `.agents/rules/dotnet.md` before changing `src/dotnet`.
-   - Before coding, state the selected backend skill names in the work-item execution log. Do not proceed with an applicable skill unread.
-   - Delegate implementation to the project `backend` subagent. Give it the accepted contract, owned paths, selected skills, expected result, and validation commands. The main agent must not implement this stage directly or replace `backend` with another generic agent.
-   - Require the subagent to implement in `src/dotnet` in this order: Core, Infrastructure, Endpoints, Host wiring, tests when present.
-   - Do not bypass the domain layer from an endpoint.
-   - Add a migration only when persistence shape changes and the required tooling/configuration is available.
-   - If subagent delegation is unavailable, mark the item `blocked`, record the environment limitation, and stop.
-4. **Frontend**
-   - Route frontend work through the module skills below. Treat every selected skill as explicitly invoked: read its `SKILL.md` completely, read every reference it requires, and follow its workflow and completion checks.
-   - Select `.agents/skills/dedsi-add-react-admin-feature/SKILL.md` for a complete page or business feature involving DTOs, service, page, route, or menu wiring.
-   - Also select `.agents/skills/dedsi-build-react-admin-api/SKILL.md` whenever API DTOs, Axios calls, response contracts, pagination, or service exports change.
-   - Also select `.agents/skills/dedsi-style-react-admin-ui/SKILL.md` whenever a page, component, layout, form, table, modal, responsive rule, or styling changes.
-   - Read `.agents/rules/react-admin.md` before changing `src/react-admin`; also read `.agents/prompts/ui.md` for UI or styling changes.
-   - Before coding, state the selected frontend skill names in the work-item execution log. Do not proceed with an applicable skill unread.
-   - Delegate implementation to the project `frontend` subagent. Give it the same accepted contract, owned paths, selected skills, expected result, and validation commands. The main agent must not implement this stage directly or replace `frontend` with another generic agent.
-   - Require the subagent to implement in `src/react-admin` in this order: typed DTOs, API service, pages/components, route/menu wiring.
-   - Apply the centralized React rules under `.agents/rules/`.
-   - Never introduce `any`.
-   - If subagent delegation is unavailable, mark the item `blocked`, record the environment limitation, and stop.
-5. **Verify**
-   - Run the checks required by the work item and `AGENTS.md`.
-   - At minimum run:
-
-     ```bash
-     dotnet build src/dotnet/DedsiNative.slnx
-     cd src/react-admin && bun run build
-     ```
-
-   - Run focused tests or lint when relevant.
-   - Reconcile backend and frontend against the accepted contract; if the contract changed, update the execution log before coordinating revisions.
-   - Review the diff for scope drift and verify every acceptance criterion with concrete evidence.
-
-Update `work-item-stage` as each implementation stage begins. The work-item analysis uses `backlog`; domain, backend, frontend, and verification use their matching stage values.
-
-## Close the invocation
-
-- Mark `completed` and stage `done` only when every acceptance criterion passes and required builds/tests succeed.
-- Mark `failed` and retain the failing stage when implementation or verification fails but another attempt can reasonably fix it.
-- Mark `blocked` when progress requires a business decision, unavailable authority, destructive migration decision, secret, or external state.
-- Append a timestamped Markdown entry inside `LOOP_LOG_START` / `LOOP_LOG_END` with changed paths, commands, results, and remaining issues.
-- Update `work-item-updated-at` on every terminal transition.
-- Do not commit, push, create a PR, delete migrations, reset Git, or overwrite unrelated changes unless the user explicitly authorizes it.
-- End with the work-item ID, terminal status, verification evidence, and blocker or next action.
+- 只有全部验收标准具备证据且必要构建/测试通过时才写为 `completed`；可重试实现失败写为 `failed`；需要业务决定、权限、秘密或外部条件时写为 `blocked`。
+- 在 `LOOP_LOG_START` / `LOOP_LOG_END` 之间记录执行者、所选 Skill、采用契约、修改路径、验证命令、验收证据和剩余问题；不得记录秘密。
+- 不提交、推送、创建 PR、重置 Git、删除迁移或覆盖无关改动，除非用户明确授权。
+- 结束时返回工作项 ID、终态、验证证据和阻塞项或下一步。

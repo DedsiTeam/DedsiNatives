@@ -16,6 +16,8 @@ public sealed class UserQuery(IDedsiNativeDbContext dbContext) : IUserQuery
     {
         var name = query.Name?.Trim();
         var email = query.Email?.Trim();
+        var organizationId = query.OrganizationId?.Trim();
+
         var users = dbContext.Users
             .AsNoTracking()
             .WhereIf(
@@ -23,7 +25,10 @@ public sealed class UserQuery(IDedsiNativeDbContext dbContext) : IUserQuery
                 user => user.Name.Contains(name!))
             .WhereIf(
                 !string.IsNullOrEmpty(email),
-                user => user.Email.Contains(email!));
+                user => user.Email.Contains(email!))
+            .WhereIf(
+                !string.IsNullOrEmpty(organizationId),
+                user => user.Organizations.Any(org => org.OrganizationId == organizationId));
 
         var totalCount = await users.LongCountAsync(cancellationToken);
 

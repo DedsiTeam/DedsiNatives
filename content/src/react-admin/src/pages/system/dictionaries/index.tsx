@@ -1,7 +1,11 @@
+/**
+ * @file 字典管理页面 (DictionaryManagement)
+ * @description 字典分组与字典项的一体化管理页面，基于通用 CrudToolbar / CrudTable / useCrudTable / CopyableIdTag 组件。
+ */
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Button,
-  Card,
   Empty,
   Form,
   Input,
@@ -21,8 +25,6 @@ import {
   EditOutlined,
   EyeOutlined,
   PlusOutlined,
-  ReloadOutlined,
-  SearchOutlined,
 } from '@ant-design/icons';
 import {
   DictionaryApiService,
@@ -34,6 +36,11 @@ import {
   type SaveDictionaryItemInputDto,
   type SystemRowResultDto,
 } from '../../../apiServices';
+import {
+  CrudTable,
+  CrudToolbar,
+  useCrudTable,
+} from '../../../components';
 import styles from './index.module.css';
 
 /** 将字典项转换为更新接口要求的完整输入。 */
@@ -51,22 +58,20 @@ function toItemInput(item: DictionaryItemResultDto): SaveDictionaryItemInputDto 
 
 /** 字典分组与字典项的一体化管理页面。 */
 export default function DictionaryManagement() {
-  const [groups, setGroups] = useState<DictionaryRowResultDto[]>([]);
+  // 1. 系统选项与搜索筛选状态
   const [systems, setSystems] = useState<SystemRowResultDto[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [pageIndex, setPageIndex] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [draftName, setDraftName] = useState('');
   const [draftSystemId, setDraftSystemId] = useState<string>();
   const [name, setName] = useState('');
   const [systemId, setSystemId] = useState<string>();
 
+  // 2. 分组弹窗与表单状态
   const [groupForm] = Form.useForm<SaveDictionaryInputDto>();
   const [groupModalOpen, setGroupModalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<DictionaryRowResultDto | null>(null);
   const [groupSubmitting, setGroupSubmitting] = useState(false);
 
+  // 3. 字典项管理详情弹窗与子项表单状态
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detail, setDetail] = useState<DictionaryResultDto | null>(null);
@@ -76,33 +81,28 @@ export default function DictionaryManagement() {
   const [itemSubmitting, setItemSubmitting] = useState(false);
   const [togglingItemId, setTogglingItemId] = useState<string>();
 
-  const loadGroups = useCallback(async () => {
-    setLoading(true);
-    try {
-      const result = await DictionaryApiService.getPageList({
-        pageIndex,
-        pageSize,
-        systemId,
-        name: name || undefined,
-      });
-      setGroups(result.items ?? []);
-      setTotalCount(result.totalCount ?? 0);
-    } catch {
-      setGroups([]);
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [name, pageIndex, pageSize, systemId]);
-
   useEffect(() => {
     void SystemApiService.getAll().then(setSystems).catch(() => setSystems([]));
   }, []);
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => void loadGroups(), 0);
-    return () => window.clearTimeout(timeoutId);
-  }, [loadGroups]);
+  // 4. 通用 CRUD Hook 接管分组数据与分页
+  const queryFilters = useMemo(
+    () => ({
+      systemId,
+      name: name || undefined,
+    }),
+    [systemId, name]
+  );
+
+  const {
+    items: groups,
+    loading,
+    pagination,
+    loadData: loadGroups,
+  } = useCrudTable<DictionaryRowResultDto, { systemId?: string; name?: string }>({
+    fetchApi: DictionaryApiService.getPageList,
+    filters: queryFilters,
+  });
 
   const loadDetail = useCallback(async (id: string) => {
     setDetailLoading(true);
@@ -116,7 +116,6 @@ export default function DictionaryManagement() {
   }, []);
 
   const handleSearch = () => {
-    setPageIndex(1);
     setName(draftName.trim());
     setSystemId(draftSystemId);
   };
@@ -126,7 +125,6 @@ export default function DictionaryManagement() {
     setDraftSystemId(undefined);
     setName('');
     setSystemId(undefined);
-    setPageIndex(1);
   };
 
   const openGroupForm = (group?: DictionaryRowResultDto) => {
@@ -323,66 +321,43 @@ export default function DictionaryManagement() {
 
   return (
     <div className={styles.pageContainer}>
-      <Card className={styles.toolbarCard}>
-        <div className={styles.toolbar}>
-          <div className={styles.filters}>
-            <Select
-              allowClear
-              showSearch
-              optionFilterProp="label"
-              className={styles.systemSelect}
-              placeholder="选择所属系统"
-              value={draftSystemId}
-              options={systems.map((system) => ({ label: system.name, value: system.id }))}
-              onChange={setDraftSystemId}
-            />
-            <Input
-              allowClear
-              className={styles.nameInput}
-              prefix={<SearchOutlined />}
-              placeholder="搜索字典分组名称"
-              value={draftName}
-              onChange={(event) => setDraftName(event.target.value)}
-              onPressEnter={handleSearch}
-            />
-            <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>查询</Button>
-            <Button icon={<ReloadOutlined />} onClick={handleReset}>重置</Button>
-          </div>
-          <Space>
-            <Button
-              type="primary"
-              className="create-primary-button"
-              icon={<PlusOutlined />}
-              onClick={() => openGroupForm()}
-            >
-              新增字典分组
-            </Button>
-          </Space>
-        </div>
-      </Card>
+      {/* 1. 顶部检索工具栏 */}
+      <CrudToolbar
+        searchPlaceholder="搜索字典分组名称..."
+        searchValue={draftName}
+        onSearchChange={setDraftName}
+        onSearch={handleSearch}
+        onReset={handleReset}
+        createButton={{
+          text: '新增字典分组',
+          onClick: () => openGroupForm(),
+        }}
+        extraFilters={
+          <Select
+            allowClear
+            showSearch
+            optionFilterProp="label"
+            className={styles.systemSelect}
+            placeholder="选择所属系统"
+            value={draftSystemId}
+            options={systems.map((system) => ({ label: system.name, value: system.id }))}
+            onChange={setDraftSystemId}
+          />
+        }
+      />
 
-      <Card className={styles.tableCard}>
-        <Table<DictionaryRowResultDto>
-          rowKey="id"
-          columns={groupColumns}
-          dataSource={groups}
-          loading={loading}
-          locale={{ emptyText: <Empty description="暂无字典分组" /> }}
-          scroll={{ x: 760 }}
-          pagination={{
-            current: pageIndex,
-            pageSize,
-            total: totalCount,
-            showSizeChanger: true,
-            showTotal: (total) => `共 ${total} 个字典分组`,
-            onChange: (nextPage, nextSize) => {
-              setPageIndex(nextSize === pageSize ? nextPage : 1);
-              setPageSize(nextSize);
-            },
-          }}
-        />
-      </Card>
+      {/* 2. 数据表格卡片 */}
+      <CrudTable<DictionaryRowResultDto>
+        rowKey="id"
+        columns={groupColumns}
+        dataSource={groups}
+        loading={loading}
+        pagination={pagination}
+        emptyText="暂无字典分组"
+        scroll={{ x: 760 }}
+      />
 
+      {/* 3. 新增 / 编辑字典分组弹窗 */}
       <Modal
         title={editingGroup ? '编辑字典分组' : '新增字典分组'}
         open={groupModalOpen}
@@ -415,6 +390,7 @@ export default function DictionaryManagement() {
         </Form>
       </Modal>
 
+      {/* 4. 字典项管理详情弹窗 */}
       <Modal
         title={
           <Space>
@@ -424,7 +400,7 @@ export default function DictionaryManagement() {
         }
         open={detailOpen}
         width={1000}
-        footer={<Button onClick={() => setDetailOpen(false)}>关闭</Button>}
+        footer={null}
         onCancel={() => setDetailOpen(false)}
       >
         <div className={styles.detailToolbar}>
@@ -454,6 +430,7 @@ export default function DictionaryManagement() {
         />
       </Modal>
 
+      {/* 5. 字典项新增/编辑弹窗 */}
       <Modal
         title={editingItem ? '编辑字典项' : '新增字典项'}
         open={itemModalOpen}

@@ -18,6 +18,11 @@ public class PagedUserRequest : DedsiPagedRequestDto
     /// 按邮箱地址模糊筛选，为空时不过滤。
     /// </summary>
     public string? Email { get; set; }
+
+    /// <summary>
+    /// 按所属组织机构筛选，为空时不过滤。
+    /// </summary>
+    public string? OrganizationId { get; set; }
 }
 
 /// <summary>
@@ -28,7 +33,12 @@ public class PagedUserRequest : DedsiPagedRequestDto
 /// <param name="Email">用户邮箱地址。</param>
 /// <param name="Phone">用户联系电话。</param>
 /// <param name="LastUpdatedAt">用户资料最后更新时间。</param>
-public record PagedUserRowDto(Guid Id, string Name, string Email, string? Phone, DateTime LastUpdatedAt);
+public record PagedUserRowDto(
+    Guid Id,
+    string Name,
+    string Email,
+    string? Phone,
+    DateTime LastUpdatedAt);
 
 /// <summary>
 /// 用户分页查询结果，包含总记录数和当前页的数据列表。
@@ -36,7 +46,7 @@ public record PagedUserRowDto(Guid Id, string Name, string Email, string? Phone,
 public class PagedUserResponse : DedsiPagedResultDto<PagedUserRowDto>;
 
 /// <summary>
-/// 用户分页查询端点，处理 POST /api/user/pagedQuery 请求，支持按名称和邮箱过滤，
+/// 用户分页查询端点，处理 POST /api/user/pagedQuery 请求，支持按名称、邮箱及所属组织过滤，
 /// 并根据是否为导出模式决定是否分页。
 /// </summary>
 /// <param name="userQuery">用户只读查询服务。</param>
@@ -53,7 +63,7 @@ public class PagedUserEndpoint(IUserQuery userQuery)
         Summary(s =>
         {
             s.Summary = "分页查询用户";
-            s.Description = "按用户名称、邮箱和启用状态查询用户列表，支持分页和导出。";
+            s.Description = "按用户名称、邮箱和所属组织查询用户列表，支持分页和导出。";
         });
     }
 
@@ -69,7 +79,8 @@ public class PagedUserEndpoint(IUserQuery userQuery)
             req.Email,
             req.GetSkipCount(),
             req.PageSize,
-            req.IsExport);
+            req.IsExport,
+            req.OrganizationId);
         var result = await userQuery.GetPagedAsync(query, ct);
 
         await Send.OkAsync(new PagedUserResponse

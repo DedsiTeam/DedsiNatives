@@ -4,7 +4,7 @@
     <!-- NuGet 包类型必须为 Template -->
     <PackageType>Template</PackageType>
     <PackageId>DedsiNative.Template</PackageId>
-    <PackageVersion>0.1.5</PackageVersion>
+    <PackageVersion>0.1.6</PackageVersion>
     <Title>DedsiNative Clean Architecture Template</Title>
     <Authors>Cohen Wang</Authors>
     <Description>基于 ABP Framework、FastEndpoints 和 PostgreSQL 的 Clean Architecture 解决方案模板。通过 `dotnet new dedsi-native -n YourProject` 快速创建项目。</Description>

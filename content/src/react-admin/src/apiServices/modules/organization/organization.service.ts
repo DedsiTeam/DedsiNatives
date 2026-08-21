@@ -30,6 +30,15 @@ export class OrganizationApiService {
   }
 
   /**
+   * 获取用于用户增改下拉选择专用的组织机构树选项
+   */
+  static getUserOrganizationOptions() {
+    return request.get<import('./dtos/organization-result.dto').UserOrganizationOptionNodeDto[]>(
+      '/api/organization/user-options'
+    );
+  }
+
+  /**
    * 分页检索组织机构列表
    */
   static getOrganizationPaged(params: OrganizationPagedRequestDto) {

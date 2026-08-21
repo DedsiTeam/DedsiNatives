@@ -3,6 +3,7 @@ using System;
 using DedsiNative.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace DedsiNative.EntityFrameworkCore.Migrations
 {
     [DbContext(typeof(DedsiNativeDbContext))]
-    partial class DedsiNativeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260821063100_Add_User_Organizations")]
+    partial class Add_User_Organizations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

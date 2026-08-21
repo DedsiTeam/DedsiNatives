@@ -23,6 +23,8 @@ export interface UserQueryInputDto extends PageInputDto {
   name?: string;
   /** 按邮箱地址模糊筛选，为空时不过滤 */
   email?: string;
+  /** 按所属组织机构筛选，为空时不过滤 */
+  organizationId?: string;
   /** 是否为导出模式 */
   isExport?: boolean;
 }
@@ -41,6 +43,8 @@ export interface CreateUserInputDto {
   idCardNumber?: string;
   /** 初始关联的岗位 ID 列表。 */
   positionIds?: string[];
+  /** 初始关联的组织机构 ID 列表。 */
+  organizationIds?: string[];
   /** 初始登录信息。 */
   loginInfo?: UserLoginInfoInputDto;
 }
@@ -59,6 +63,8 @@ export interface UpdateUserInputDto {
   idCardNumber?: string;
   /** 替换后的岗位 ID 列表。 */
   positionIds?: string[];
+  /** 替换后的组织机构 ID 列表。 */
+  organizationIds?: string[];
   /** 修改后的登录信息。 */
   loginInfo?: UserLoginInfoInputDto;
 }

@@ -81,9 +81,20 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                 PositionName = "系统管理员"
             });
         });
+
+        // 组织机构关联是用户聚合内的集合子实体，以用户和组织机构标识组成复合主键。
+        builder.OwnsMany(user => user.Organizations, orgBuilder =>
+        {
+            orgBuilder.ToTable("UserOrganizations", DedsiNativeCoreConsts.DbSchemaName);
+            orgBuilder.WithOwner().HasForeignKey(org => org.UserId);
+            orgBuilder.HasKey(org => new { org.UserId, org.OrganizationId });
+            orgBuilder.Property(org => org.OrganizationId).HasMaxLength(26).IsRequired();
+            orgBuilder.Property(org => org.OrganizationName).HasMaxLength(256).IsRequired();
+        });
         
         builder.Navigation(user => user.LoginInfo).AutoInclude();
         builder.Navigation(user => user.Positions).AutoInclude();
+        builder.Navigation(user => user.Organizations).AutoInclude();
 
         // ── 继承自 DedsiAggregateRoot 的审计字段 ──────────────────
         // CreationTime：记录创建时间，统一存储为 UTC
