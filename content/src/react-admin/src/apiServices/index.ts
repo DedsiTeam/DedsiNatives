@@ -44,7 +44,7 @@ export * from './modules/dictionary/dtos/dictionary-result.dto';
 export type { UpdateUserPositionsInputDto } from './modules/user/dtos/user-input.dto';
 export type { UserPositionResultDto } from './modules/user/dtos/user-result.dto';
 export { ProfileApiService } from './modules/profile/profile.service';
-export type { ChangePasswordInputDto, ProfileResultDto } from './modules/profile/profile.service';
+export type { ChangePasswordInputDto } from './modules/profile/profile.service';
 export { LoginAuditApiService } from './modules/login-audit/login-audit.service';
 export {
   LoginReason,
@@ -56,3 +56,13 @@ export type {
   LoginAuditResultDto,
   LoginAuditRowResultDto,
 } from './modules/login-audit/dtos/login-audit-result.dto';
+
+// 8. 导出组织机构业务模块及其 DTO
+export * from './modules/organization/organization.service';
+export * from './modules/organization/dtos/organization-request.dto';
+export * from './modules/organization/dtos/organization-result.dto';
+
+// 9. 导出文件与对象存储业务模块及其 DTO
+export * from './modules/storage/storage-file.service';
+export * from './modules/storage/dtos/storage-file-request.dto';
+export * from './modules/storage/dtos/storage-file-result.dto';

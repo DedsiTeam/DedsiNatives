@@ -1,9 +1,14 @@
 import request from '../../core/request';
 import type { MenuInputDto, MenuQueryInputDto } from './dtos/menu-input.dto';
-import type { MenuPageResultDto, MenuResultDto } from './dtos/menu-result.dto';
+import type { CurrentUserMenuResultDto, MenuPageResultDto, MenuResultDto } from './dtos/menu-result.dto';
 
 /** 菜单管理模块 API 服务。 */
 export class MenuApiService {
+  /** 获取当前登录用户可访问的动态菜单树（根据用户权限过滤并排序）。 */
+  static getCurrentUserMenus(): Promise<CurrentUserMenuResultDto[]> {
+    return request.get<CurrentUserMenuResultDto[]>('/api/menu/currentUser');
+  }
+
   /** 获取指定系统的全部扁平菜单选项。 */
   static getAll(systemId: string): Promise<MenuResultDto[]> {
     return request.get<MenuResultDto[]>(`/api/menu/getAll/${encodeURIComponent(systemId)}`);

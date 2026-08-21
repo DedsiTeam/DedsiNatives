@@ -6,6 +6,8 @@ using DedsiNative.Positions;
 using DedsiNative.Menus;
 using DedsiNative.Dictionaries;
 using DedsiNative.LoginAudits;
+using DedsiNative.Organizations;
+using DedsiNative.StorageFiles;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Data;
 using SystemEntity = DedsiNative.Systems.System;
@@ -31,11 +33,16 @@ public interface IDedsiNativeDbContext : IDedsiEfCoreDbContext
 
     /// <summary>岗位聚合根对应的数据集。</summary>
     DbSet<Position> Positions { get; }
+
     /// <summary>岗位权限子实体数据集。</summary>
     DbSet<PositionPermission> PositionPermissions { get; }
+
     /// <summary>岗位组织机构子实体数据集。</summary>
     DbSet<PositionOrganization> PositionOrganizations { get; }
+
+    /// <summary>菜单聚合根数据集。</summary>
     DbSet<Menu> Menus { get; }
+
     /// <summary>字典聚合根数据集。</summary>
     DbSet<Dictionary> Dictionaries { get; }
 
@@ -47,6 +54,15 @@ public interface IDedsiNativeDbContext : IDedsiEfCoreDbContext
     /// </summary>
     DbSet<LoginAudit> LoginAudits { get; }
 
+    /// <summary>
+    /// 组织机构/部门聚合根对应的数据集。
+    /// </summary>
+    DbSet<Organization> Organizations { get; }
+
+    /// <summary>
+    /// 文件与对象存储聚合根对应的数据集。
+    /// </summary>
+    DbSet<StorageFile> StorageFiles { get; }
 }
 
 /// <summary>
@@ -70,11 +86,16 @@ public class DedsiNativeDbContext(DbContextOptions<DedsiNativeDbContext> options
 
     /// <summary>岗位聚合根对应的数据集。</summary>
     public DbSet<Position> Positions { get; set; }
+
     /// <summary>岗位权限子实体数据集。</summary>
     public DbSet<PositionPermission> PositionPermissions { get; set; }
+
     /// <summary>岗位组织机构子实体数据集。</summary>
     public DbSet<PositionOrganization> PositionOrganizations { get; set; }
+
+    /// <summary>菜单聚合根数据集。</summary>
     public DbSet<Menu> Menus { get; set; }
+
     /// <summary>字典聚合根数据集。</summary>
     public DbSet<Dictionary> Dictionaries { get; set; }
 
@@ -85,6 +106,16 @@ public class DedsiNativeDbContext(DbContextOptions<DedsiNativeDbContext> options
     /// 登录审计聚合根对应的数据集。
     /// </summary>
     public DbSet<LoginAudit> LoginAudits { get; set; }
+
+    /// <summary>
+    /// 组织机构/部门聚合根对应的数据集。
+    /// </summary>
+    public DbSet<Organization> Organizations { get; set; }
+
+    /// <summary>
+    /// 文件与对象存储聚合根对应的数据集。
+    /// </summary>
+    public DbSet<StorageFile> StorageFiles { get; set; }
 
     /// <summary>
     /// 配置数据库模型，从当前程序集中自动加载所有 <see cref="IEntityTypeConfiguration{TEntity}"/> 实现。

@@ -17,7 +17,6 @@ import {
   SafetyCertificateOutlined,
   AuditOutlined,
   CheckCircleFilled,
-  ReloadOutlined,
   ArrowRightOutlined,
   BookOutlined,
   MenuOutlined,
@@ -147,26 +146,9 @@ export const Dashboard: React.FC = () => {
               欢迎使用 DedsiNative 系统管理控制台 👋
             </h1>
             <p className={styles.welcomeSubtitle}>
-              当前登录账号：<strong>{currentUser.name || currentUser.account}</strong>
-              {currentUser.email ? ` (${currentUser.email})` : ''} ｜ 平台运行状态稳定，核心身份与权限中台服务正常。
+              您好，<strong>{currentUser.name || currentUser.account}</strong>，欢迎回来！平台运行状态稳定，核心身份认证与权限中台服务运行正常。
             </p>
           </div>
-          <Space>
-            <Button
-              icon={<ReloadOutlined spin={loading} />}
-              onClick={fetchDashboardData}
-              loading={loading}
-            >
-              刷新概览
-            </Button>
-            <Button
-              type="primary"
-              icon={<UserOutlined />}
-              onClick={() => navigate('/system/users')}
-            >
-              用户管理
-            </Button>
-          </Space>
         </div>
       </Card>
 
@@ -175,7 +157,7 @@ export const Dashboard: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card className={styles.statCard} bordered={false}>
             <Statistic
-              title={<span style={{ color: '#6b7280', fontSize: 13 }}>接入系统 (Systems)</span>}
+              title={<span style={{ color: '#6b7280', fontSize: 13 }}>接入系统</span>}
               value={stats.systemCount}
               prefix={<AppstoreOutlined style={{ color: '#1677ff', marginRight: 8 }} />}
               suffix={<span style={{ fontSize: 12, color: '#9ca3af' }}>个</span>}
@@ -186,7 +168,7 @@ export const Dashboard: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card className={styles.statCard} bordered={false}>
             <Statistic
-              title={<span style={{ color: '#6b7280', fontSize: 13 }}>用户总数 (Users)</span>}
+              title={<span style={{ color: '#6b7280', fontSize: 13 }}>用户总数</span>}
               value={stats.userCount}
               prefix={<UserOutlined style={{ color: '#52c41a', marginRight: 8 }} />}
               suffix={<span style={{ fontSize: 12, color: '#9ca3af' }}>位</span>}
@@ -197,7 +179,7 @@ export const Dashboard: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card className={styles.statCard} bordered={false}>
             <Statistic
-              title={<span style={{ color: '#6b7280', fontSize: 13 }}>定义岗位 (Positions)</span>}
+              title={<span style={{ color: '#6b7280', fontSize: 13 }}>岗位总数</span>}
               value={stats.positionCount}
               prefix={<SafetyCertificateOutlined style={{ color: '#722ed1', marginRight: 8 }} />}
               suffix={<span style={{ fontSize: 12, color: '#9ca3af' }}>个</span>}
@@ -208,7 +190,7 @@ export const Dashboard: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card className={styles.statCard} bordered={false}>
             <Statistic
-              title={<span style={{ color: '#6b7280', fontSize: 13 }}>登录审计日志 (Audits)</span>}
+              title={<span style={{ color: '#6b7280', fontSize: 13 }}>登录审计日志</span>}
               value={stats.auditCount}
               prefix={<AuditOutlined style={{ color: '#fa8c16', marginRight: 8 }} />}
               suffix={<span style={{ fontSize: 12, color: '#9ca3af' }}>条</span>}

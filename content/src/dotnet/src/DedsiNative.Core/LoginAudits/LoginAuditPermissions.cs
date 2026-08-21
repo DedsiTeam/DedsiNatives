@@ -13,5 +13,5 @@ public static class LoginAuditPermissions
     /// <summary>
     /// 查看登录审计列表和详情的权限。
     /// </summary>
-    public const string View = "LoginAudits.View";
+    public const string View = "system:login-audits:view";
 }

@@ -6,6 +6,7 @@ var macPath = "/Users/cohen/Dockers";
 var postgresPassword = builder.AddParameter("PostgresPassword", secret: true);
 var rabbitMqUserName = builder.AddParameter("RabbitMqUserName", secret: false);
 var rabbitMqPassword = builder.AddParameter("RabbitMqPassword", secret: true);
+var minioPassword = builder.AddParameter("MinioPassword", "minioadmin", secret: true);
 #endregion
 
 #region 基础设施
@@ -19,13 +20,20 @@ var dedsiNativeDB = postgres.AddDatabase("DedsiNativeDB");
 var rabbitMq = builder.AddRabbitMQ("DedsiNativeRabbitMQ", rabbitMqUserName, rabbitMqPassword, port: 14321)
     .WithManagementPlugin(port: 15672)
     .WithLifetime(ContainerLifetime.Persistent);
+
+// MinIO 作为对象存储驱动
+var minio = builder.AddMinioContainer("dedsinative-minio", rootPassword: minioPassword, port: 9000)
+    .WithDataBindMount(source: macPath + "/Minio/Data")
+    .WithLifetime(ContainerLifetime.Persistent);
 #endregion
 
 builder
     .AddProject<Projects.DedsiNative_Host>("dedsinative-host")
     .WithReference(dedsiNativeDB)
     .WithReference(rabbitMq)
+    .WithReference(minio)
     .WaitFor(dedsiNativeDB)
-    .WaitFor(rabbitMq);
+    .WaitFor(rabbitMq)
+    .WaitFor(minio);
 
 builder.Build().Run();

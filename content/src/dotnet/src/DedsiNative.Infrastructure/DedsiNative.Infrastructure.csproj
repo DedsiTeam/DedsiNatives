@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <PackageReference Include="Dedsi.CleanArchitecture.Infrastructure" Version="$(DedsiFrameworkVersion)" />
+        <PackageReference Include="Volo.Abp.BlobStoring.Minio" Version="$(AbpFrameworkVersion)" />
         <PackageReference Include="Volo.Abp.EntityFrameworkCore.PostgreSql" Version="$(AbpFrameworkVersion)" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

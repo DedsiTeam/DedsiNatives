@@ -349,7 +349,6 @@ export default function DictionaryManagement() {
             <Button icon={<ReloadOutlined />} onClick={handleReset}>重置</Button>
           </div>
           <Space>
-            <Button icon={<ReloadOutlined spin={loading} />} onClick={() => void loadGroups()}>刷新</Button>
             <Button
               type="primary"
               className="create-primary-button"

@@ -324,13 +324,6 @@ export default function SystemManagement() {
 
           <Space size={12}>
             <Button
-              icon={<ReloadOutlined spin={loading} />}
-              onClick={() => void loadSystems()}
-              style={{ borderRadius: 'var(--radius-btn)' }}
-            >
-              刷新
-            </Button>
-            <Button
               type="primary"
               className="create-primary-button"
               icon={<PlusOutlined />}
@@ -386,39 +379,33 @@ export default function SystemManagement() {
         className={styles.userModal}
         width={540}
       >
-        <Form form={form} layout="vertical" style={{ marginTop: 12 }}>
-          <div className={styles.sectionCard}>
-            <div className={styles.sectionTitle}>
-              <AppstoreOutlined style={{ color: 'var(--color-primary)' }} />
-              <span>系统基础信息</span>
-            </div>
-            <Form.Item
-              name="name"
-              label="系统名称"
-              rules={[{ required: true, message: '请输入系统名称' }]}
-            >
-              <Input className={styles.formControl} placeholder="例如：统一身份认证" />
-            </Form.Item>
-            <Form.Item name="description" label="系统说明">
-              <Input.TextArea
-                rows={3}
-                placeholder="请输入系统说明及业务使用场景"
-                style={{ borderRadius: 'var(--radius-btn)' }}
-              />
-            </Form.Item>
-            <Form.Item
-              name="sort"
-              label="展示排序"
-              rules={[{ required: true, message: '请输入排序数值' }]}
-              style={{ marginBottom: 0 }}
-            >
-              <InputNumber
-                precision={0}
-                style={{ width: '100%', borderRadius: 'var(--radius-btn)' }}
-                placeholder="数值越小排序越靠前"
-              />
-            </Form.Item>
-          </div>
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            name="name"
+            label="系统名称"
+            rules={[{ required: true, message: '请输入系统名称' }]}
+          >
+            <Input className={styles.formControl} placeholder="例如：统一身份认证" />
+          </Form.Item>
+          <Form.Item name="description" label="系统说明">
+            <Input.TextArea
+              rows={3}
+              placeholder="请输入系统说明及业务使用场景"
+              style={{ borderRadius: 'var(--radius-btn)' }}
+            />
+          </Form.Item>
+          <Form.Item
+            name="sort"
+            label="展示排序"
+            rules={[{ required: true, message: '请输入排序数值' }]}
+            style={{ marginBottom: 0 }}
+          >
+            <InputNumber
+              precision={0}
+              style={{ width: '100%', borderRadius: 'var(--radius-btn)' }}
+              placeholder="数值越小排序越靠前"
+            />
+          </Form.Item>
         </Form>
       </Modal>
 

@@ -9,6 +9,7 @@ import {
   Button,
   Card,
   Checkbox,
+  Col,
   Descriptions,
   Empty,
   Form,
@@ -16,6 +17,7 @@ import {
   List,
   Modal,
   Popconfirm,
+  Row,
   Select,
   Space,
   Switch,
@@ -544,13 +546,6 @@ export default function PositionManagement() {
 
           <Space size={12}>
             <Button
-              icon={<ReloadOutlined spin={loading} />}
-              onClick={() => void loadPositions()}
-              style={{ borderRadius: 'var(--radius-btn)' }}
-            >
-              刷新
-            </Button>
-            <Button
               type="primary"
               className="create-primary-button"
               icon={<PlusOutlined />}
@@ -604,166 +599,195 @@ export default function PositionManagement() {
         okText="保存提交"
         cancelText="取消"
         className={styles.userModal}
-        width={680}
+        width={860}
       >
         {formLoading ? (
           <div className={styles.formLoading}>正在加载岗位权限配置...</div>
         ) : null}
-        <Form form={form} layout="vertical" style={{ marginTop: 12 }}>
-          {/* 基本信息卡片 */}
-          <div className={styles.sectionCard}>
-            <div className={styles.sectionTitle}>
-              <div className={styles.sectionTitleLeft}>
-                <SolutionOutlined style={{ color: 'var(--color-primary)' }} />
-                <span>岗位基本资料</span>
-              </div>
-            </div>
-            <Form.Item
-              name="systemId"
-              label="所属系统"
-              rules={[{ required: true, message: '请选择所属系统' }]}
-            >
-              <Select
-                placeholder="请选择系统"
-                options={systems.map((item) => ({ label: item.name, value: item.id }))}
-                onChange={handleFormSystemChange}
-                disabled={formLoading || submitting}
-                className={styles.formControl}
-              />
-            </Form.Item>
-            <Form.Item
-              name="name"
-              label="岗位名称"
-              rules={[{ required: true, message: '请输入岗位名称' }]}
-            >
-              <Input
-                placeholder="例如：系统管理员"
-                disabled={formLoading || submitting}
-                className={styles.formControl}
-              />
-            </Form.Item>
-            <Form.Item name="description" label="岗位说明">
-              <Input.TextArea
-                rows={3}
-                placeholder="请输入岗位职责与说明"
-                disabled={formLoading || submitting}
-                style={{ borderRadius: 'var(--radius-btn)' }}
-              />
-            </Form.Item>
-            <Form.Item
-              name="isEnabled"
-              label="启用状态"
-              valuePropName="checked"
-              style={{ marginBottom: 0 }}
-            >
-              <Switch
-                checkedChildren="启用"
-                unCheckedChildren="停用"
-                disabled={formLoading || submitting}
-              />
-            </Form.Item>
-          </div>
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item name="permissionIds" hidden>
+            <Input />
+          </Form.Item>
 
-          {/* 岗位权限选择卡片 */}
-          <div className={styles.sectionCard} style={{ marginBottom: 0 }}>
-            <div className={styles.sectionTitle}>
-              <div className={styles.sectionTitleLeft}>
-                <KeyOutlined style={{ color: 'var(--color-primary)' }} />
-                <span>关联系统权限</span>
+          <Row gutter={[20, 20]}>
+            {/* 左侧：岗位基本资料 */}
+            <Col xs={24} md={10}>
+              <div className={styles.modalColCard}>
+                <div className={styles.colHeader}>
+                  <Space size={6}>
+                    <SolutionOutlined style={{ color: 'var(--color-primary)' }} />
+                    <span className={styles.colTitle}>岗位基本资料</span>
+                  </Space>
+                </div>
+
+                <Form.Item
+                  name="systemId"
+                  label="所属系统"
+                  rules={[{ required: true, message: '请选择所属系统' }]}
+                >
+                  <Select
+                    placeholder="请选择系统"
+                    options={systems.map((item) => ({ label: item.name, value: item.id }))}
+                    onChange={handleFormSystemChange}
+                    disabled={formLoading || submitting}
+                    className={styles.formControl}
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="name"
+                  label="岗位名称"
+                  rules={[{ required: true, message: '请输入岗位名称' }]}
+                >
+                  <Input
+                    placeholder="例如：系统管理员"
+                    disabled={formLoading || submitting}
+                    className={styles.formControl}
+                  />
+                </Form.Item>
+                <Form.Item name="description" label="岗位说明">
+                  <Input.TextArea
+                    rows={4}
+                    placeholder="请输入岗位职责与说明"
+                    disabled={formLoading || submitting}
+                    style={{ borderRadius: 'var(--radius-btn)' }}
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="isEnabled"
+                  label="启用状态"
+                  valuePropName="checked"
+                  style={{ marginBottom: 0 }}
+                >
+                  <Switch
+                    checkedChildren="启用"
+                    unCheckedChildren="停用"
+                    disabled={formLoading || submitting}
+                  />
+                </Form.Item>
               </div>
-              <Tag color="blue" style={{ borderRadius: 10 }}>
-                已选 {selectedPermissionIds.length} 项
-              </Tag>
-            </div>
-            <Form.Item name="permissionIds" hidden>
-              <Input />
-            </Form.Item>
-            <div
-              className={styles.permissionPanel}
-              aria-disabled={formLoading || submitting || !formSystemId}
-            >
-              <div className={styles.permissionToolbar}>
-                <Input.Search
-                  allowClear
-                  value={permissionSearch}
-                  placeholder={formSystemId ? '搜索系统权限名称...' : '请先选择所属系统'}
-                  onChange={(event) => setPermissionSearch(event.target.value)}
-                  disabled={formLoading || submitting || !formSystemId}
-                  className={styles.formControl}
-                />
-                <Space size={8} wrap style={{ justifyContent: 'flex-end' }}>
-                  <Button
-                    type="link"
-                    size="small"
-                    onClick={selectVisiblePermissions}
-                    disabled={
-                      !formSystemId ||
-                      !visiblePermissionOptions.length ||
-                      formLoading ||
-                      submitting
-                    }
-                  >
-                    全选当前过滤项
-                  </Button>
-                  <Button
-                    type="link"
-                    size="small"
-                    onClick={clearVisiblePermissions}
-                    disabled={
-                      !selectedPermissionIds.length ||
-                      !visiblePermissionOptions.length ||
-                      formLoading ||
-                      submitting
-                    }
-                  >
-                    清除当前过滤项
-                  </Button>
-                </Space>
-              </div>
-              <List
-                className={styles.permissionList}
-                bordered
-                size="small"
-                loading={permissionLoading}
-                dataSource={visiblePermissionOptions}
-                locale={{
-                  emptyText: permissionLoadError
-                    ? '权限加载失败，请重试'
-                    : formSystemId
-                    ? '当前系统暂无匹配权限'
-                    : '请选择系统以加载可选权限',
-                }}
-                renderItem={(permission) => (
-                  <List.Item>
-                    <Checkbox
-                      checked={selectedPermissionIds.includes(permission.id)}
-                      onChange={(event) =>
-                        handlePermissionToggle(permission.id, event.target.checked)
-                      }
+            </Col>
+
+            {/* 右侧：关联系统权限 */}
+            <Col xs={24} md={14}>
+              <div className={styles.modalColCard}>
+                <div className={styles.colHeader}>
+                  <Space size={6}>
+                    <KeyOutlined style={{ color: 'var(--color-primary)' }} />
+                    <span className={styles.colTitle}>关联系统权限</span>
+                  </Space>
+                  <Tag color="blue" style={{ borderRadius: 10, margin: 0 }}>
+                    已选 {selectedPermissionIds.length} 项
+                  </Tag>
+                </div>
+
+                <div
+                  className={styles.permissionPanel}
+                  aria-disabled={formLoading || submitting || !formSystemId}
+                >
+                  <div className={styles.permissionToolbar}>
+                    <Input.Search
+                      allowClear
+                      value={permissionSearch}
+                      placeholder={formSystemId ? '搜索权限名称或说明...' : '请先在左侧选择所属系统'}
+                      onChange={(event) => setPermissionSearch(event.target.value)}
                       disabled={formLoading || submitting || !formSystemId}
-                    >
-                      <span className={styles.permissionName}>{permission.name}</span>
-                      {permission.description ? (
-                        <Text type="secondary" className={styles.permissionDescription}>
-                          {permission.description}
-                        </Text>
-                      ) : null}
-                    </Checkbox>
-                  </List.Item>
-                )}
-              />
-            </div>
-            {permissionLoadError ? (
-              <Button
-                type="link"
-                size="small"
-                className={styles.retryButton}
-                onClick={() => void loadPermissions(formSystemId)}
-              >
-                重新加载权限
-              </Button>
-            ) : null}
-          </div>
+                      className={styles.formControl}
+                    />
+                    <div className={styles.permissionActions}>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {formSystemId ? `共 ${visiblePermissionOptions.length} 项可选` : '未选择系统'}
+                      </Text>
+                      <Space size={8}>
+                        <Button
+                          type="link"
+                          size="small"
+                          onClick={selectVisiblePermissions}
+                          disabled={
+                            !formSystemId ||
+                            !visiblePermissionOptions.length ||
+                            formLoading ||
+                            submitting
+                          }
+                        >
+                          全选当前
+                        </Button>
+                        <Button
+                          type="link"
+                          size="small"
+                          onClick={clearVisiblePermissions}
+                          disabled={
+                            !selectedPermissionIds.length ||
+                            !visiblePermissionOptions.length ||
+                            formLoading ||
+                            submitting
+                          }
+                        >
+                          清除已选
+                        </Button>
+                      </Space>
+                    </div>
+                  </div>
+
+                  <List
+                    className={styles.permissionList}
+                    bordered
+                    size="small"
+                    loading={permissionLoading}
+                    dataSource={visiblePermissionOptions}
+                    locale={{
+                      emptyText: permissionLoadError
+                        ? '权限加载失败，请重试'
+                        : formSystemId
+                        ? '当前系统暂无匹配权限'
+                        : '请先在左侧选择系统以加载可选权限',
+                    }}
+                    renderItem={(permission) => {
+                      const isChecked = selectedPermissionIds.includes(permission.id);
+                      return (
+                        <List.Item
+                          className={`${styles.permissionItem} ${isChecked ? styles.permissionItemSelected : ''}`}
+                          onClick={() => {
+                            if (!formLoading && !submitting && formSystemId) {
+                              handlePermissionToggle(permission.id, !isChecked);
+                            }
+                          }}
+                        >
+                          <Checkbox
+                            checked={isChecked}
+                            onChange={(event) =>
+                              handlePermissionToggle(permission.id, event.target.checked)
+                            }
+                            disabled={formLoading || submitting || !formSystemId}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className={styles.permissionItemContent}>
+                              <span className={styles.permissionName}>{permission.name}</span>
+                              {permission.description ? (
+                                <Text type="secondary" className={styles.permissionDescription}>
+                                  {permission.description}
+                                </Text>
+                              ) : null}
+                            </div>
+                          </Checkbox>
+                        </List.Item>
+                      );
+                    }}
+                  />
+                </div>
+
+                {permissionLoadError ? (
+                  <Button
+                    type="link"
+                    size="small"
+                    className={styles.retryButton}
+                    onClick={() => void loadPermissions(formSystemId)}
+                  >
+                    重新加载权限
+                  </Button>
+                ) : null}
+              </div>
+            </Col>
+          </Row>
         </Form>
       </Modal>
 

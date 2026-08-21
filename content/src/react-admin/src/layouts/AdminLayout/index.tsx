@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import {
   Menu,
@@ -18,11 +18,15 @@ import {
   SafetyCertificateOutlined,
   BookOutlined,
   AuditOutlined,
+  AppstoreOutlined,
+  SolutionOutlined,
+  ApartmentOutlined,
+  FolderOpenOutlined,
 } from '@ant-design/icons';
 import styles from './AdminLayout.module.css';
 import './menu-compat.css';
 
-import type { LoginUserPositionResultDto } from '../../apiServices';
+import { MenuApiService, type CurrentUserMenuResultDto, type LoginUserPositionResultDto } from '../../apiServices';
 
 interface AdminLayoutProps {
   children?: React.ReactNode;
@@ -42,6 +46,28 @@ interface CurrentUser {
   permissions: string[];
   /** 用户关联的岗位列表。 */
   positions: LoginUserPositionResultDto[];
+}
+
+/**
+ * 图标映射字典，支持后端动态配置图标名称。
+ */
+const iconMap: Record<string, React.ReactNode> = {
+  DashboardOutlined: <DashboardOutlined />,
+  SettingOutlined: <SettingOutlined />,
+  AppstoreOutlined: <AppstoreOutlined />,
+  SafetyCertificateOutlined: <SafetyCertificateOutlined />,
+  MenuOutlined: <SettingOutlined />,
+  SolutionOutlined: <SolutionOutlined />,
+  UserOutlined: <UserOutlined />,
+  BookOutlined: <BookOutlined />,
+  AuditOutlined: <AuditOutlined />,
+  ApartmentOutlined: <ApartmentOutlined />,
+  FolderOpenOutlined: <FolderOpenOutlined />,
+};
+
+function getMenuIcon(iconName: string | null | undefined): React.ReactNode {
+  if (!iconName) return <SettingOutlined />;
+  return iconMap[iconName] ?? <SettingOutlined />;
 }
 
 /**
@@ -70,31 +96,47 @@ function getCurrentUser(): CurrentUser {
   }
 }
 
-const getMenuItems = (canViewLoginAudits: boolean): MenuProps['items'] => [
-  {
-    key: '/dashboard',
-    icon: <DashboardOutlined />,
-    label: '仪表盘',
-  },
-  {
-    key: '/system',
-    icon: <SettingOutlined />,
-    label: '系统管理',
-    children: [
-      { key: '/system/systems', icon: <SettingOutlined />, label: '系统管理' },
-      { key: '/system/permissions', icon: <SafetyCertificateOutlined />, label: '权限管理' },
-      { key: '/system/menus', icon: <SettingOutlined />, label: '菜单管理' },
-      { key: '/system/positions', icon: <SafetyCertificateOutlined />, label: '岗位管理' },
-      { key: '/system/users', icon: <UserOutlined />, label: '用户管理' },
-      { key: '/system/dictionaries', icon: <BookOutlined />, label: '字典管理' },
-      ...(canViewLoginAudits
-        ? [{ key: '/system/login-audits', icon: <AuditOutlined />, label: '登录审计' }]
-        : []),
-    ],
-  },
-];
+/**
+ * 将后端返回的多级动态菜单树转换为 Ant Design Menu 所需的数据结构（已保持 Sort 升序）。
+ */
+function transformToMenuItems(menus: CurrentUserMenuResultDto[]): MenuProps['items'] {
+  return menus.map((menu) => {
+    const key = menu.routePath || menu.code || menu.id;
+    const hasChildren = menu.children && menu.children.length > 0;
 
-const pageTitles: Record<string, string> = {
+    if (hasChildren) {
+      return {
+        key,
+        icon: getMenuIcon(menu.icon),
+        label: menu.name,
+        children: transformToMenuItems(menu.children),
+      };
+    }
+
+    return {
+      key,
+      icon: getMenuIcon(menu.icon),
+      label: menu.name,
+    };
+  });
+}
+
+/**
+ * 递归收集所有路由路径对应的页面标题。
+ */
+function collectPageTitles(menus: CurrentUserMenuResultDto[], acc: Record<string, string> = {}): Record<string, string> {
+  for (const menu of menus) {
+    if (menu.routePath) {
+      acc[menu.routePath] = menu.name;
+    }
+    if (menu.children && menu.children.length > 0) {
+      collectPageTitles(menu.children, acc);
+    }
+  }
+  return acc;
+}
+
+const defaultPageTitles: Record<string, string> = {
   '/dashboard': '仪表盘',
   '/system/users': '用户管理',
   '/system/systems': '系统管理',
@@ -109,31 +151,87 @@ const pageTitles: Record<string, string> = {
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const [userMenus, setUserMenus] = useState<CurrentUserMenuResultDto[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
 
   const token = localStorage.getItem('access_token');
   const currentUser = getCurrentUser();
 
+  // 加载当前用户可访问的动态菜单
+  useEffect(() => {
+    let active = true;
+    if (token) {
+      MenuApiService.getCurrentUserMenus()
+        .then((menus) => {
+          if (active && Array.isArray(menus)) {
+            setUserMenus(menus);
+          }
+        })
+        .catch(() => {
+          // 降级使用默认静态菜单处理
+        });
+    }
+    return () => {
+      active = false;
+    };
+  }, [token]);
+
   // 未登录或没有有效用户信息时，自动重定向至登录页
   if (!token || !currentUser.account) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  const menuItems = getMenuItems(currentUser.permissions.includes('LoginAudits.View'));
+  // 动态生成菜单项与标题映射表
+  const menuItems = useMemo(() => {
+    if (userMenus.length > 0) {
+      return transformToMenuItems(userMenus);
+    }
+    // 降级兜底静态菜单
+    return [
+      { key: '/dashboard', icon: <DashboardOutlined />, label: '仪表盘' },
+      {
+        key: '/system',
+        icon: <SettingOutlined />,
+        label: '系统管理',
+        children: [
+          { key: '/system/systems', icon: <AppstoreOutlined />, label: '系统管理' },
+          { key: '/system/permissions', icon: <SafetyCertificateOutlined />, label: '权限管理' },
+          { key: '/system/menus', icon: <SettingOutlined />, label: '菜单管理' },
+          { key: '/system/positions', icon: <SolutionOutlined />, label: '岗位管理' },
+          { key: '/system/users', icon: <UserOutlined />, label: '用户管理' },
+          { key: '/system/dictionaries', icon: <BookOutlined />, label: '字典管理' },
+          ...(currentUser.permissions.includes('system:login-audits:view')
+            ? [{ key: '/system/login-audits', icon: <AuditOutlined />, label: '登录审计' }]
+            : []),
+        ],
+      },
+    ];
+  }, [userMenus, currentUser.permissions]);
+
+  const pageTitles = useMemo(() => {
+    const dynamicTitles = collectPageTitles(userMenus);
+    return { ...defaultPageTitles, ...dynamicTitles };
+  }, [userMenus]);
 
   // 当前选中的菜单项
   const selectedKeys = [location.pathname || '/dashboard'];
   const currentPageTitle = pageTitles[selectedKeys[0]] ?? '页面';
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {
-    navigate(e.key);
+    if (e.key.startsWith('/')) {
+      navigate(e.key);
+    }
   };
 
   const handleUserMenuClick: MenuProps['onClick'] = (e) => {
     if (e.key === 'profile') navigate('/profile');
     else if (e.key === 'password') navigate('/change-password');
-    else if (e.key === 'logout') { localStorage.removeItem('access_token'); localStorage.removeItem('current_user'); navigate('/login'); }
+    else if (e.key === 'logout') {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('current_user');
+      navigate('/login');
+    }
   };
 
   // 用户下拉菜单项
@@ -164,7 +262,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       {/* 左侧功能菜单 */}
       <aside
         className={`${styles.sider} ${collapsed ? 'admin-sider-collapsed' : ''}`}
-        style={{ width: collapsed ? 64 : 240 }}
+        style={{ width: collapsed ? 64 : 200 }}
       >
         {/* Logo 区域 */}
         <div className={`${styles.logoArea} admin-logo-area`}>

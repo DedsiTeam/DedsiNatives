@@ -35,7 +35,6 @@ import {
   KeyOutlined,
   CheckCircleOutlined,
   StopOutlined,
-  SafetyCertificateOutlined,
 } from '@ant-design/icons';
 import {
   PermissionApiService,
@@ -421,13 +420,6 @@ export default function PermissionManagement() {
 
           <Space size={12}>
             <Button
-              icon={<ReloadOutlined spin={loading} />}
-              onClick={() => void loadPermissions()}
-              style={{ borderRadius: 'var(--radius-btn)' }}
-            >
-              刷新
-            </Button>
-            <Button
               type="primary"
               className="create-primary-button"
               icon={<PlusOutlined />}
@@ -483,41 +475,35 @@ export default function PermissionManagement() {
         className={styles.userModal}
         width={540}
       >
-        <Form form={form} layout="vertical" style={{ marginTop: 12 }}>
-          <div className={styles.sectionCard}>
-            <div className={styles.sectionTitle}>
-              <SafetyCertificateOutlined style={{ color: 'var(--color-primary)' }} />
-              <span>权限配置信息</span>
-            </div>
-            <Form.Item
-              name="systemId"
-              label="所属系统"
-              rules={[{ required: true, message: '请选择所属系统' }]}
-            >
-              <Select
-                placeholder="请选择归属系统"
-                options={systems.map((system) => ({ label: system.name, value: system.id }))}
-                className={styles.formControl}
-              />
-            </Form.Item>
-            <Form.Item
-              name="name"
-              label="权限名称/标识"
-              rules={[{ required: true, message: '请输入权限名称' }]}
-            >
-              <Input className={styles.formControl} placeholder="例如：user.read 或 用户查看" />
-            </Form.Item>
-            <Form.Item name="description" label="权限说明">
-              <Input.TextArea
-                rows={3}
-                placeholder="请输入权限说明与作用范围"
-                style={{ borderRadius: 'var(--radius-btn)' }}
-              />
-            </Form.Item>
-            <Form.Item name="isEnabled" label="启用状态" valuePropName="checked" style={{ marginBottom: 0 }}>
-              <Switch checkedChildren="启用" unCheckedChildren="停用" />
-            </Form.Item>
-          </div>
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            name="systemId"
+            label="所属系统"
+            rules={[{ required: true, message: '请选择所属系统' }]}
+          >
+            <Select
+              placeholder="请选择归属系统"
+              options={systems.map((system) => ({ label: system.name, value: system.id }))}
+              className={styles.formControl}
+            />
+          </Form.Item>
+          <Form.Item
+            name="name"
+            label="权限名称/标识"
+            rules={[{ required: true, message: '请输入权限名称' }]}
+          >
+            <Input className={styles.formControl} placeholder="例如：user.read 或 用户查看" />
+          </Form.Item>
+          <Form.Item name="description" label="权限说明">
+            <Input.TextArea
+              rows={3}
+              placeholder="请输入权限说明与作用范围"
+              style={{ borderRadius: 'var(--radius-btn)' }}
+            />
+          </Form.Item>
+          <Form.Item name="isEnabled" label="启用状态" valuePropName="checked" style={{ marginBottom: 0 }}>
+            <Switch checkedChildren="启用" unCheckedChildren="停用" />
+          </Form.Item>
         </Form>
       </Modal>
 

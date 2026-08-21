@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Checkbox, message, Typography } from 'antd';
 import { UserOutlined, LockOutlined, ArrowRightOutlined } from '@ant-design/icons';
@@ -7,10 +7,42 @@ import styles from './Login.module.css';
 
 const { Link } = Typography;
 
+// 自动动态扫描 assets/login-bg 下的所有背景图（支持 jpeg/jpg/png/webp）
+const bgModules = import.meta.glob<{ default: string }>(
+  '../../assets/login-bg/*.{jpeg,jpg,png,webp}',
+  { eager: true }
+);
+
+const ALL_BG_IMAGES = Object.values(bgModules).map((mod) => mod.default);
+
+/**
+ * Fisher-Yates 随机打乱数组算法
+ */
+function shuffleImages<T>(array: T[]): T[] {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
 export const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  // 每次进入页面随机乱序图片列表，确保第一张和后续轮播顺序均随机
+  const [bgImages] = useState<string[]>(() => shuffleImages(ALL_BG_IMAGES));
+  const [currentBgIndex, setCurrentBgIndex] = useState(0);
   const navigate = useNavigate();
   const [form] = Form.useForm();
+
+  // 背景图片自动平滑轮播切换
+  useEffect(() => {
+    if (bgImages.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentBgIndex((prev) => (prev + 1) % bgImages.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [bgImages.length]);
 
   // 提交登录 API 请求
   const onFinish = async (values: { username: string; password: string; remember?: boolean }) => {
@@ -38,18 +70,26 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className={styles.loginContainer}>
-      {/* 动态科技背景网格与微流体动画 */}
-      <div className={styles.gridPattern} />
-      <div className={styles.orb1} />
-      <div className={styles.orb2} />
+      {/* 动态全屏背景图随机轮播与缓动效果 */}
+      <div className={styles.bgWrapper}>
+        {bgImages.map((img, index) => (
+          <div
+            key={img}
+            className={`${styles.bgSlide} ${index === currentBgIndex ? styles.bgSlideActive : ''}`}
+            style={{ backgroundImage: `url(${img})` }}
+          />
+        ))}
+        {/* 背景遮罩层，提升卡片对比度与高端质感 */}
+        <div className={styles.bgOverlay} />
+      </div>
 
-      {/* 居中核心登录卡片 */}
+      {/* 上下左右居中核心登录卡片 */}
       <div className={styles.loginCard}>
         {/* 顶部 Logo 与系统名称 */}
         <div className={styles.cardHeader}>
           <div className={styles.logoBadge}>D</div>
           <h1 className={styles.brandName}>Dedsi Admin</h1>
-          <p className={styles.subTitle}>请输入您的系统账号与密码以登录</p>
+          <p className={styles.subTitle}>统一身份与访问控制管理中台</p>
         </div>
 
         {/* 表单 */}
@@ -68,7 +108,7 @@ export const LoginPage: React.FC = () => {
           >
             <Input
               prefix={<UserOutlined style={{ color: 'var(--color-placeholder)', marginRight: 4 }} />}
-              placeholder="例如: admin"
+              placeholder="请输入登录账号"
               style={{ borderRadius: 8 }}
             />
           </Form.Item>
@@ -80,7 +120,7 @@ export const LoginPage: React.FC = () => {
           >
             <Input.Password
               prefix={<LockOutlined style={{ color: 'var(--color-placeholder)', marginRight: 4 }} />}
-              placeholder="••••••••"
+              placeholder="请输入登录密码"
               style={{ borderRadius: 8 }}
             />
           </Form.Item>
@@ -94,7 +134,7 @@ export const LoginPage: React.FC = () => {
             </Link>
           </div>
 
-          <Form.Item style={{ marginBottom: 16 }}>
+          <Form.Item style={{ marginBottom: 8 }}>
             <Button
               type="primary"
               htmlType="submit"
@@ -106,12 +146,12 @@ export const LoginPage: React.FC = () => {
             </Button>
           </Form.Item>
         </Form>
-      </div>
 
-      {/* 页脚版权信息 */}
-      <footer className={styles.footer}>
-        © {new Date().getFullYear()} Dedsi Team. All Rights Reserved.
-      </footer>
+        {/* 页脚版权信息 */}
+        <footer className={styles.footer}>
+          © {new Date().getFullYear()} Dedsi Team. All Rights Reserved.
+        </footer>
+      </div>
     </div>
   );
 };

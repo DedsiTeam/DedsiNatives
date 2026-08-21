@@ -657,13 +657,6 @@ export const UserManagement: React.FC = () => {
 
           <Space size={12}>
             <Button
-              icon={<ReloadOutlined spin={loading} />}
-              onClick={() => void fetchUsers()}
-              style={{ borderRadius: 'var(--radius-btn)' }}
-            >
-              刷新
-            </Button>
-            <Button
               type="primary"
               className="create-primary-button"
               icon={<UserAddOutlined />}

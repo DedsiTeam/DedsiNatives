@@ -6,9 +6,14 @@ using DedsiNative.Menus;
 using DedsiNative.Users;
 using DedsiNative.Dictionaries;
 using DedsiNative.LoginAudits;
+using DedsiNative.Organizations;
+using DedsiNative.StorageFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.BlobStoring.Minio;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.DependencyInjection;
 using Volo.Abp.EntityFrameworkCore.PostgreSql;
@@ -18,11 +23,11 @@ using Volo.Abp.Timing;
 namespace DedsiNative;
 
 /// <summary>
-/// DedsiNative 基础设施层模块，负责注册 EntityFrameworkCore 数据库上下文及仓储实现。
+/// DedsiNative 基础设施层模块，负责注册 EntityFrameworkCore 数据库上下文、ABP BlobStoring MinIO 对象存储及仓储实现。
 /// </summary>
 [DependsOn(
     typeof(AbpEntityFrameworkCorePostgreSqlModule),
-    
+    typeof(AbpBlobStoringMinioModule),
     typeof(DedsiNativeCoreModule),
     typeof(DedsiCleanArchitectureInfrastructureModule)
 )]
@@ -41,6 +46,7 @@ public class DedsiNativeInfrastructureModule : AbpModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var hostEnvironment = context.Services.GetAbpHostEnvironment();
+        var configuration = context.Services.GetConfiguration();
         
         // EntityFrameworkCore
         context.Services.AddAbpDbContext<DedsiNativeDbContext>(options =>
@@ -68,6 +74,55 @@ public class DedsiNativeInfrastructureModule : AbpModule
                         EnableSensitiveDataLogging();
                 }
                 dbConfigContext.UseNpgsql();
+            });
+        });
+
+        // 配置 ABP BlobStoring MinIO 默认存储容器
+        Configure<AbpBlobStoringOptions>(options =>
+        {
+            options.Containers.ConfigureDefault(container =>
+            {
+                container.UseMinio(minio =>
+                {
+                    var connectionString = configuration.GetConnectionString("dedsinative-minio");
+                    string endpoint = "127.0.0.1:9000";
+                    string accessKey = "minioadmin";
+                    string secretKey = "minioadmin";
+                    bool useSsl = false;
+
+                    if (!string.IsNullOrWhiteSpace(connectionString))
+                    {
+                        var dict = connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(part => part.Split('=', 2))
+                            .Where(parts => parts.Length == 2)
+                            .ToDictionary(parts => parts[0].Trim(), parts => parts[1].Trim(), StringComparer.OrdinalIgnoreCase);
+
+                        if (dict.TryGetValue("Endpoint", out var ep))
+                        {
+                            endpoint = ep.Replace("http://", "").Replace("https://", "").TrimEnd('/');
+                        }
+                        if (dict.TryGetValue("AccessKey", out var ak)) accessKey = ak;
+                        if (dict.TryGetValue("SecretKey", out var sk)) secretKey = sk;
+                        if (dict.TryGetValue("UseSSL", out var sslStr) && bool.TryParse(sslStr, out var parsedSsl)) useSsl = parsedSsl;
+                    }
+                    else
+                    {
+                        endpoint = configuration["Minio:Endpoint"] ?? endpoint;
+                        accessKey = configuration["Minio:AccessKey"] ?? accessKey;
+                        secretKey = configuration["Minio:SecretKey"] ?? secretKey;
+                        if (bool.TryParse(configuration["Minio:UseSSL"], out var parsedSsl))
+                        {
+                            useSsl = parsedSsl;
+                        }
+                    }
+
+                    minio.EndPoint = endpoint;
+                    minio.AccessKey = accessKey;
+                    minio.SecretKey = secretKey;
+                    minio.BucketName = configuration["Minio:BucketName"] ?? "dedsinative";
+                    minio.WithSSL = useSsl;
+                    minio.CreateBucketIfNotExists = true;
+                });
             });
         });
 
@@ -118,6 +173,18 @@ public class DedsiNativeInfrastructureModule : AbpModule
                 loginAuditOptions.DefaultWithDetailsFunc = query => query;
             });
 
+            options.Entity<Organization>(orgOptions =>
+            {
+                orgOptions.DefaultWithDetailsFunc = query => query;
+            });
+
+            options.Entity<StorageFile>(storageOptions =>
+            {
+                storageOptions.DefaultWithDetailsFunc = query => query;
+            });
         });
+
+        // 注册 MinIO 对象存储提供者（基于 ABP Blob Storing）
+        context.Services.AddTransient<DedsiNative.StorageFiles.IStorageProvider, DedsiNative.Infrastructure.StorageFiles.MinioStorageProvider>();
     }
 }

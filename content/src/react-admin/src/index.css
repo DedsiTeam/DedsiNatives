@@ -58,6 +58,18 @@
   --color-info-border: #bae6fd;
   --color-info-text: #0369a1;
 
+  /* 辅助色彩与扩展颜色 */
+  --color-white: #ffffff;
+  --color-text-secondary: var(--color-neutral-gray);
+  --color-surface-muted: #f1f5f9;
+  --color-border-subtle: #f1f5f9;
+  --color-primary-border: #e2e8f0;
+  --color-primary-border-strong: #cbd5e1;
+  --color-purple: #7c3aed;
+  --color-pink: #db2777;
+  --color-warning-strong: #b45309;
+  --color-warning-light: #fffbeb;
+
   /* ─────────────────────────────────────────────────────────────
      4. 规范度量 (Metrics, Elevation & Radii)
      ───────────────────────────────────────────────────────────── */
@@ -67,6 +79,17 @@
   --radius-xl: 12px;
   --radius-card: var(--radius-lg);
   --radius-btn: var(--radius-md);
+
+  /* 间距度量规范 (Spacing) */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
 
   --shadow-subtle: 0 1px 2px 0 rgba(9, 10, 15, 0.05);
   --shadow-floating-modal: 0 12px 32px -4px rgba(9, 10, 15, 0.12), 0 0 0 1px rgba(9, 10, 15, 0.05);

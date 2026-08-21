@@ -31,28 +31,13 @@ public sealed record LoginRequest(string Username, string Password);
 public sealed record LoginResponse(string Token, DateTime ExpiresAt, LoginUserResponse User);
 
 /// <summary>
-/// 登录响应中岗位包含的有效权限响应模型。
-/// </summary>
-/// <param name="PermissionId">权限唯一标识。</param>
-/// <param name="PermissionName">权限名称快照。</param>
-/// <param name="SystemId">权限所属系统标识。</param>
-/// <param name="SystemName">权限所属系统名称快照。</param>
-public sealed record LoginPositionPermissionResponse(
-    string PermissionId,
-    string PermissionName,
-    string SystemId,
-    string SystemName);
-
-/// <summary>
-/// 登录响应中用户所属岗位及其有效权限。
+/// 登录响应中用户所属岗位。
 /// </summary>
 /// <param name="PositionId">岗位唯一标识。</param>
 /// <param name="PositionName">岗位名称。</param>
-/// <param name="Permissions">岗位包含的有效权限列表。</param>
 public sealed record LoginUserPositionResponse(
     string PositionId,
-    string PositionName,
-    IReadOnlyList<LoginPositionPermissionResponse> Permissions);
+    string PositionName);
 
 /// <summary>
 /// 登录成功后返回的当前用户基本资料。
@@ -448,28 +433,16 @@ public sealed class LoginEndpoint(
             }
         }
 
-        var userPositions = new List<LoginUserPositionResponse>();
-        foreach (var position in activePositions)
-        {
-            var positionPermissions = position.Permissions
-                .Where(permission => enabledPermissions.ContainsKey(permission.PermissionId))
-                .Select(permission => new LoginPositionPermissionResponse(
-                    permission.PermissionId,
-                    enabledPermissions[permission.PermissionId],
-                    permission.SystemId,
-                    permission.SystemName))
-                .ToList();
-
-            userPositions.Add(new LoginUserPositionResponse(
+        var userPositions = activePositions
+            .Select(position => new LoginUserPositionResponse(
                 position.Id,
-                position.Name,
-                positionPermissions));
-        }
+                position.Name))
+            .ToList();
 
-        var permissionNames = userPositions
-            .SelectMany(p => p.Permissions)
-            .Select(p => p.PermissionName)
-            .Distinct(StringComparer.Ordinal)
+        var permissionNames = allPositionPermissions
+            .Where(permission => enabledPermissions.ContainsKey(permission.PermissionId))
+            .Select(permission => enabledPermissions[permission.PermissionId])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(permissionName => permissionName, StringComparer.Ordinal)
             .ToList();
 

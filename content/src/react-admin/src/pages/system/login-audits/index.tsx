@@ -21,7 +21,6 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   EyeOutlined,
-  ReloadOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
@@ -258,7 +257,6 @@ export default function LoginAuditManagement() {
           <Space wrap>
             <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>查询</Button>
             <Button onClick={handleReset}>重置</Button>
-            <Button icon={<ReloadOutlined spin={loading} />} disabled={loading} onClick={() => void loadAudits()}>刷新</Button>
           </Space>
         </div>
       </Card>

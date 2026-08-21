@@ -1,0 +1,90 @@
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20, 20px);
+  width: 100%;
+}
+
+.headerCard,
+.tableCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card, 12px);
+  box-shadow: var(--shadow-sm);
+  background: var(--color-surface, #ffffff);
+}
+
+.searchHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.searchForm {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.fileNameWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fileIcon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.fileImagePreview {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+}
+
+.fileMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fileName {
+  font-weight: 600;
+  color: var(--color-title, #0f172a);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.fileSubMeta {
+  font-size: 12px;
+  color: var(--color-muted, #64748b);
+}
+
+.uploadDraggerArea {
+  padding: 16px 0;
+}
+
+.previewModalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-height: 600px;
+  overflow: auto;
+}
+
+.previewImage {
+  max-width: 100%;
+  max-height: 500px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}

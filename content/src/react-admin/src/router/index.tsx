@@ -1,10 +1,13 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import AdminLayout from '../layouts/AdminLayout';
+import AuthGuard from '../components/AuthGuard';
 import Dashboard from '../pages/dashboard';
 import UserManagement from '../pages/system/users';
 import SystemManagement from '../pages/system/systems';
 import PermissionManagement from '../pages/system/permissions';
 import PositionManagement from '../pages/system/positions';
+import OrganizationManagement from '../pages/system/organizations';
+import StorageManagement from '../pages/system/storage';
 import MenuManagement from '../pages/system/menus';
 import DictionaryManagement from '../pages/system/dictionaries';
 import LoginAuditManagement from '../pages/system/login-audits';
@@ -32,23 +35,76 @@ export const router = createBrowserRouter([
       },
       {
         path: 'system/users',
-        element: <UserManagement />,
+        element: (
+          <AuthGuard permission="system:users:view">
+            <UserManagement />
+          </AuthGuard>
+        ),
       },
       {
         path: 'system/systems',
-        element: <SystemManagement />,
+        element: (
+          <AuthGuard permission="system:systems:view">
+            <SystemManagement />
+          </AuthGuard>
+        ),
       },
       {
         path: 'system/permissions',
-        element: <PermissionManagement />,
+        element: (
+          <AuthGuard permission="system:permissions:view">
+            <PermissionManagement />
+          </AuthGuard>
+        ),
       },
       {
         path: 'system/positions',
-        element: <PositionManagement />,
+        element: (
+          <AuthGuard permission="system:positions:view">
+            <PositionManagement />
+          </AuthGuard>
+        ),
       },
-      { path: 'system/menus', element: <MenuManagement /> },
-      { path: 'system/dictionaries', element: <DictionaryManagement /> },
-      { path: 'system/login-audits', element: <LoginAuditManagement /> },
+      {
+        path: 'system/organizations',
+        element: (
+          <AuthGuard permission="system:organizations:view">
+            <OrganizationManagement />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: 'system/storage',
+        element: (
+          <AuthGuard permission="system:storage:view">
+            <StorageManagement />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: 'system/menus',
+        element: (
+          <AuthGuard permission="system:menus:view">
+            <MenuManagement />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: 'system/dictionaries',
+        element: (
+          <AuthGuard permission="system:dictionaries:view">
+            <DictionaryManagement />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: 'system/login-audits',
+        element: (
+          <AuthGuard permission="system:login-audits:view">
+            <LoginAuditManagement />
+          </AuthGuard>
+        ),
+      },
       { path: 'profile', element: <ProfilePage /> },
       { path: 'change-password', element: <ChangePasswordPage /> },
       {
@@ -57,7 +113,7 @@ export const router = createBrowserRouter([
       },
       {
         path: '*',
-        element: <Dashboard />,
+        element: <Navigate to="/dashboard" replace />,
       },
     ],
   },

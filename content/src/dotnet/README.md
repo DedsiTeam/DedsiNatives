@@ -52,7 +52,7 @@ dotnet ef database update \
 | [FastEndpoints](https://fast-endpoints.com) | 8.2.0 | 高性能 API 端点框架 |
 | [PostgreSQL (Npgsql)](https://www.npgsql.org) | 10.0.3 | 数据库提供程序 |
 | [Serilog](https://serilog.net) | 10.0.0 | 结构化日志 |
-| [.NET Aspire](https://learn.microsoft.com/aspire) | 13.4.6 | 可观测性 & 服务默认值 |
+| [.NET Aspire](https://learn.microsoft.com/aspire) | 13.5.1 | 可观测性 & 服务默认值 |
 
 ## 项目结构
 
