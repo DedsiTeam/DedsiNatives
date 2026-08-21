@@ -53,6 +53,14 @@ public class DedsiNativeInfrastructureModule : AbpModule
         {
             options.AddDefaultRepositories(true);
         });
+
+        // OpenIddict Core 注册（供 Host 业务 API 和 AuthServer 统一注入 OpenIddict Managers）
+        context.Services.AddOpenIddict()
+            .AddCore(options =>
+            {
+                options.UseEntityFrameworkCore()
+                    .UseDbContext<DedsiNativeDbContext>();
+            });
         
         // 审计与实体时间字段使用本地时间（北京时间）。
         Configure<AbpClockOptions>(options =>

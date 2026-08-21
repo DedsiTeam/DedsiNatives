@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DedsiNative SSO 统一认证中心</title>
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="auth-container">
+        @RenderBody()
+    </div>
+
+    <footer class="auth-footer">
+        <p>&copy; @DateTime.Now.Year DedsiNative. All rights reserved. Powered by OpenIddict &amp; ABP Framework.</p>
+    </footer>
+
+    <script src="~/js/auth.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

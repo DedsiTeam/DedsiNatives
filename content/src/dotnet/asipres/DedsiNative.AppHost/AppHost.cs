@@ -32,6 +32,15 @@ var minio = builder.AddMinioContainer("DedsiCohenMinio", rootUser: minioUserName
 #endregion
 
 builder
+    .AddProject<Projects.DedsiNative_AuthServer>("dedsinative-authserver")
+    .WithReference(dedsiNativeDB)
+    .WithReference(rabbitMq)
+    .WithReference(minio)
+    .WaitFor(dedsiNativeDB)
+    .WaitFor(rabbitMq)
+    .WaitFor(minio);
+
+builder
     .AddProject<Projects.DedsiNative_Host>("dedsinative-host")
     .WithReference(dedsiNativeDB)
     .WithReference(rabbitMq)

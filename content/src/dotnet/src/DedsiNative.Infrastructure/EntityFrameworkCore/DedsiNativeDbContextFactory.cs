@@ -12,7 +12,7 @@ public sealed class DedsiNativeDbContextFactory : IDesignTimeDbContextFactory<De
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         var options = new DbContextOptionsBuilder<DedsiNativeDbContext>()
-            .UseNpgsql("Host=localhost;Port=10812;Database=DedsiNativeDB;Username=postgres;Password=LgMqGRGEqAp93xPZGVzA")
+            .UseNpgsql("Host=localhost;Port=10812;Database=DedsiNativeDB;Username=DedsiCohen;Password=N9wK3vR8mY7pQ2tX4cZ6sF1b")
             .Options;
         return new DedsiNativeDbContext(options);
     }

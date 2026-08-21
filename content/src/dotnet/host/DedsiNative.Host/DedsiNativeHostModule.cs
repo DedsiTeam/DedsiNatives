@@ -82,6 +82,18 @@ public class DedsiNativeHostModule : AbpModule
                 .RequireClaim(
                     LoginAuditPermissions.ClaimType,
                     LoginAuditPermissions.View));
+
+            options.AddPolicy(DedsiNative.OpenIddict.OpenIddictPermissions.View, policy => policy
+                .RequireAuthenticatedUser()
+                .RequireClaim(
+                    DedsiNative.OpenIddict.OpenIddictPermissions.ClaimType,
+                    DedsiNative.OpenIddict.OpenIddictPermissions.View));
+
+            options.AddPolicy(DedsiNative.OpenIddict.OpenIddictPermissions.Manage, policy => policy
+                .RequireAuthenticatedUser()
+                .RequireClaim(
+                    DedsiNative.OpenIddict.OpenIddictPermissions.ClaimType,
+                    DedsiNative.OpenIddict.OpenIddictPermissions.Manage));
         });
 
         // PostConfigure 在所有模块 Configure 之后执行，确保 ABP/Dedsi 设置的

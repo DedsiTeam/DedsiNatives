@@ -22,6 +22,7 @@ import {
   SolutionOutlined,
   ApartmentOutlined,
   FolderOpenOutlined,
+  KeyOutlined,
 } from '@ant-design/icons';
 import styles from './AdminLayout.module.css';
 import './menu-compat.css';
@@ -63,6 +64,7 @@ const iconMap: Record<string, React.ReactNode> = {
   AuditOutlined: <AuditOutlined />,
   ApartmentOutlined: <ApartmentOutlined />,
   FolderOpenOutlined: <FolderOpenOutlined />,
+  KeyOutlined: <KeyOutlined />,
 };
 
 function getMenuIcon(iconName: string | null | undefined): React.ReactNode {
@@ -145,6 +147,10 @@ const defaultPageTitles: Record<string, string> = {
   '/system/menus': '菜单管理',
   '/system/dictionaries': '字典管理',
   '/system/login-audits': '登录审计',
+  '/sso/applications': '客户端应用',
+  '/sso/scopes': '权限作用域',
+  '/sso/authorizations': '用户授权记录',
+  '/sso/tokens': '活跃令牌审计',
   '/profile': '个人中心',
   '/change-password': '修改密码',
 };
@@ -204,6 +210,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           ...(currentUser.permissions.includes('system:login-audits:view')
             ? [{ key: '/system/login-audits', icon: <AuditOutlined />, label: '登录审计' }]
             : []),
+        ],
+      },
+      {
+        key: '/sso',
+        icon: <SafetyCertificateOutlined />,
+        label: 'SSO 认证管理',
+        children: [
+          { key: '/sso/applications', icon: <AppstoreOutlined />, label: '客户端应用' },
+          { key: '/sso/scopes', icon: <SafetyCertificateOutlined />, label: '权限作用域' },
+          { key: '/sso/authorizations', icon: <KeyOutlined />, label: '用户授权记录' },
+          { key: '/sso/tokens', icon: <AuditOutlined />, label: '活跃令牌审计' },
         ],
       },
     ];

@@ -177,6 +177,36 @@ export class HttpClient {
       .post<TResponse, AxiosResponse<TResponse, TBody>, TBody>(url, data, config)
       .then((response) => response.data);
   }
+
+  /**
+   * PUT 请求方法
+   * @param url 请求相对路径
+   * @param data Body 请求体数据
+   * @param config 额外配置参数
+   */
+  public put<TResponse, TBody = unknown>(
+    url: string,
+    data?: TBody,
+    config?: AxiosRequestConfig<TBody>,
+  ): Promise<TResponse> {
+    return this.instance
+      .put<TResponse, AxiosResponse<TResponse, TBody>, TBody>(url, data, config)
+      .then((response) => response.data);
+  }
+
+  /**
+   * DELETE 请求方法
+   * @param url 请求相对路径
+   * @param config 额外配置参数
+   */
+  public delete<TResponse>(
+    url: string,
+    config?: AxiosRequestConfig,
+  ): Promise<TResponse> {
+    return this.instance
+      .delete<TResponse>(url, config)
+      .then((response) => response.data);
+  }
 }
 
 /**

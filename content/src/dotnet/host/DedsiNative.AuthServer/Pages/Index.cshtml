@@ -1,0 +1,32 @@
+@page
+@model DedsiNative.AuthServer.Pages.IndexModel
+@{
+    ViewData["Title"] = "认证服务首页";
+}
+
+<div class="auth-card">
+    <div class="auth-brand">
+        <div class="auth-logo">DN</div>
+        <h1 class="auth-title">DedsiNative SSO</h1>
+        <p class="auth-subtitle">企业级统一身份认证与单点登录授权中心</p>
+    </div>
+
+    @if (Model.IsAuthenticated)
+    {
+        <div class="alert alert-success">
+            <span>✅ 您已登录为：<strong>@Model.UserName</strong></span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem;">
+            <a href="/Account/Logout" class="btn btn-secondary">退出登录</a>
+            <a href="/.well-known/openid-configuration" target="_blank" class="btn btn-secondary">查看 OIDC 发现文档</a>
+        </div>
+    }
+    else
+    {
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem;">
+            <a href="/Account/Login" class="btn btn-primary">立即登录</a>
+            <a href="/.well-known/openid-configuration" target="_blank" class="btn btn-secondary">查看 OIDC 发现文档</a>
+        </div>
+    }
+</div>

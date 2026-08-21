@@ -66,3 +66,8 @@ export * from './modules/organization/dtos/organization-result.dto';
 export * from './modules/storage/storage-file.service';
 export * from './modules/storage/dtos/storage-file-request.dto';
 export * from './modules/storage/dtos/storage-file-result.dto';
+
+// 10. 导出 SSO 单点登录 (OpenIddict) 业务模块及其 DTO
+export * from './modules/openiddict/openiddict.service';
+export * from './modules/openiddict/dtos/openiddict-input.dto';
+export * from './modules/openiddict/dtos/openiddict-result.dto';

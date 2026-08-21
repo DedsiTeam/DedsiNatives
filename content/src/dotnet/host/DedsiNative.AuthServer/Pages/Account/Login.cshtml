@@ -1,0 +1,48 @@
+@page
+@model DedsiNative.AuthServer.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "用户登录";
+}
+
+<div class="auth-card">
+    <div class="auth-brand">
+        <div class="auth-logo">DN</div>
+        <h1 class="auth-title">DedsiNative</h1>
+        <p class="auth-subtitle">统一身份认证中心</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            <span>⚠️ @Model.ErrorMessage</span>
+        </div>
+    }
+
+    <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
+        <div class="form-group">
+            <label class="form-label" asp-for="Input.Account">登录账号</label>
+            <div class="input-wrapper">
+                <input class="form-control" asp-for="Input.Account" placeholder="请输入用户名 / 账号" autofocus autocomplete="username" />
+            </div>
+            <span asp-validation-for="Input.Account" class="text-danger" style="font-size: 0.8rem; color: var(--color-danger); margin-top: 0.25rem; display: block;"></span>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" asp-for="Input.Password">登录密码</label>
+            <div class="input-wrapper">
+                <input class="form-control" asp-for="Input.Password" id="passwordInput" placeholder="请输入登录密码" autocomplete="current-password" />
+                <button type="button" class="toggle-password" data-target="passwordInput">显示</button>
+            </div>
+            <span asp-validation-for="Input.Password" class="text-danger" style="font-size: 0.8rem; color: var(--color-danger); margin-top: 0.25rem; display: block;"></span>
+        </div>
+
+        <div class="form-options">
+            <label class="checkbox-label">
+                <input type="checkbox" asp-for="Input.RememberMe" />
+                <span>记住登录状态 (7天)</span>
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">登 录</button>
+    </form>
+</div>

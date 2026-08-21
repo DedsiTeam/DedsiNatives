@@ -4,6 +4,7 @@
     <Project Path="asipres/DedsiNative.ServiceDefaults/DedsiNative.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/host/">
+    <Project Path="host/DedsiNative.AuthServer/DedsiNative.AuthServer.csproj" />
     <Project Path="host/DedsiNative.Host/DedsiNative.Host.csproj" />
   </Folder>
   <Folder Name="/src/">

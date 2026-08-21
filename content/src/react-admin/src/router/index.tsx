@@ -11,6 +11,10 @@ import StorageManagement from '../pages/system/storage';
 import MenuManagement from '../pages/system/menus';
 import DictionaryManagement from '../pages/system/dictionaries';
 import LoginAuditManagement from '../pages/system/login-audits';
+import SsoApplications from '../pages/sso/applications';
+import SsoScopes from '../pages/sso/scopes';
+import SsoAuthorizations from '../pages/sso/authorizations';
+import SsoTokens from '../pages/sso/tokens';
 import ProfilePage from '../pages/profile';
 import ChangePasswordPage from '../pages/change-password';
 import LoginPage from '../pages/login';
@@ -102,6 +106,38 @@ export const router = createBrowserRouter([
         element: (
           <AuthGuard permission="system:login-audits:view">
             <LoginAuditManagement />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: 'sso/applications',
+        element: (
+          <AuthGuard permission="system:openiddict:view">
+            <SsoApplications />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: 'sso/scopes',
+        element: (
+          <AuthGuard permission="system:openiddict:view">
+            <SsoScopes />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: 'sso/authorizations',
+        element: (
+          <AuthGuard permission="system:openiddict:view">
+            <SsoAuthorizations />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: 'sso/tokens',
+        element: (
+          <AuthGuard permission="system:openiddict:view">
+            <SsoTokens />
           </AuthGuard>
         ),
       },

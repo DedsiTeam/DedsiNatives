@@ -131,6 +131,8 @@ public class DedsiNativeDbContext(DbContextOptions<DedsiNativeDbContext> options
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DedsiNativeDbContext).Assembly);
 
+        modelBuilder.UseOpenIddict();
+
         base.OnModelCreating(modelBuilder);
     }
 }

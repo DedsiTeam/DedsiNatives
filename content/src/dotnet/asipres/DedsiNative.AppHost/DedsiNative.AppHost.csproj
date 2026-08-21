@@ -9,6 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\host\DedsiNative.AuthServer\DedsiNative.AuthServer.csproj" />
       <ProjectReference Include="..\..\host\DedsiNative.Host\DedsiNative.Host.csproj" />
     </ItemGroup>
     

@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "授权确认";
+    var appName = ViewBag.ApplicationName as string ?? "第三方应用";
+    var scopes = ViewBag.Scopes as List<(string Name, string DisplayName, string Description)> ?? new();
+    var returnUrl = ViewBag.ReturnUrl as string ?? "/";
+    var userName = ViewBag.UserName as string ?? "当前用户";
+}
+
+<div class="auth-card">
+    <div class="auth-brand">
+        <div class="auth-logo">DN</div>
+        <h1 class="auth-title">应用授权申请</h1>
+        <p class="auth-subtitle"><strong>@appName</strong> 正在申请访问您的账号权限</p>
+    </div>
+
+    <div class="alert alert-success" style="margin-bottom: 1.25rem;">
+        <span>👤 当前登录身份：<strong>@userName</strong></span>
+    </div>
+
+    <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">该应用将获取以下权限：</p>
+
+    <ul class="scope-list">
+        @foreach (var scope in scopes)
+        {
+            <li class="scope-item">
+                <div class="scope-icon">✓</div>
+                <div class="scope-info">
+                    <div class="scope-title">@scope.DisplayName</div>
+                    @if (!string.IsNullOrEmpty(scope.Description))
+                    {
+                        <div class="scope-desc">@scope.Description</div>
+                    }
+                </div>
+            </li>
+        }
+    </ul>
+
+    <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+        <form method="post" action="/Consent" style="flex: 1;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@returnUrl" />
+            <button type="submit" class="btn btn-primary">同意授权</button>
+        </form>
+
+        <form method="post" action="/Consent/Deny" style="flex: 1;">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-secondary">拒绝</button>
+        </form>
+    </div>
+</div>
