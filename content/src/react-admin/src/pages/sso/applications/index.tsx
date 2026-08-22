@@ -6,6 +6,7 @@
 
 import { useState, useMemo } from 'react';
 import {
+  Alert,
   Button,
   Form,
   Input,
@@ -18,6 +19,8 @@ import {
   message,
   Typography,
   Checkbox,
+  Divider,
+  Tabs,
   type TableProps,
 } from 'antd';
 import {
@@ -26,6 +29,11 @@ import {
   EditOutlined,
   DeleteOutlined,
   CopyOutlined,
+  PlusOutlined,
+  LinkOutlined,
+  InfoCircleOutlined,
+  SettingOutlined,
+  SafetyCertificateOutlined,
 } from '@ant-design/icons';
 import {
   OpenIddictApiService,
@@ -43,7 +51,7 @@ import styles from '../sso.module.css';
 
 const { Text } = Typography;
 
-const STANDARD_PERMISSIONS = [
+const ENDPOINT_AND_FLOW_PERMISSIONS = [
   { label: '授权码端点 (Endpoints.Authorization)', value: 'ept:authorization' },
   { label: '令牌端点 (Endpoints.Token)', value: 'ept:token' },
   { label: '注销端点 (Endpoints.EndSession)', value: 'ept:logout' },
@@ -51,6 +59,9 @@ const STANDARD_PERMISSIONS = [
   { label: '客户端凭据模式 (GrantTypes.ClientCredentials)', value: 'gt:client_credentials' },
   { label: '刷新令牌 (GrantTypes.RefreshToken)', value: 'gt:refresh_token' },
   { label: '响应类型 Code (ResponseTypes.Code)', value: 'rst:code' },
+];
+
+const SCOPE_PERMISSIONS = [
   { label: 'OpenId 作用域 (scp:openid)', value: 'scp:openid' },
   { label: 'Profile 资料作用域 (scp:profile)', value: 'scp:profile' },
   { label: 'Email 邮箱作用域 (scp:email)', value: 'scp:email' },
@@ -105,6 +116,8 @@ export default function SsoApplications() {
     form.setFieldsValue({
       clientType: 'public',
       consentType: 'explicit',
+      redirectUris: ['http://localhost:11026/signin-oidc'],
+      postLogoutRedirectUris: ['http://localhost:11026/signout-callback-oidc'],
       permissions: [
         'ept:authorization',
         'ept:token',
@@ -129,8 +142,8 @@ export default function SsoApplications() {
       displayName: record.displayName,
       clientType: record.clientType,
       consentType: record.consentType,
-      redirectUris: record.redirectUris,
-      postLogoutRedirectUris: record.postLogoutRedirectUris,
+      redirectUris: record.redirectUris && record.redirectUris.length > 0 ? record.redirectUris : [''],
+      postLogoutRedirectUris: record.postLogoutRedirectUris && record.postLogoutRedirectUris.length > 0 ? record.postLogoutRedirectUris : [''],
       permissions: record.permissions,
     });
     setModalOpen(true);
@@ -141,17 +154,13 @@ export default function SsoApplications() {
       const values = await form.validateFields();
       setSubmitting(true);
 
-      const redirectUris = Array.isArray(values.redirectUris)
-        ? values.redirectUris
-        : typeof values.redirectUris === 'string'
-        ? (values.redirectUris as string).split('\n').map((s) => s.trim()).filter(Boolean)
-        : [];
+      const redirectUris = (values.redirectUris || [])
+        .filter((u: unknown): u is string => typeof u === 'string' && u.trim().length > 0)
+        .map((u) => u.trim());
 
-      const postLogoutRedirectUris = Array.isArray(values.postLogoutRedirectUris)
-        ? values.postLogoutRedirectUris
-        : typeof values.postLogoutRedirectUris === 'string'
-        ? (values.postLogoutRedirectUris as string).split('\n').map((s) => s.trim()).filter(Boolean)
-        : [];
+      const postLogoutRedirectUris = (values.postLogoutRedirectUris || [])
+        .filter((u: unknown): u is string => typeof u === 'string' && u.trim().length > 0)
+        .map((u) => u.trim());
 
       if (editing) {
         await OpenIddictApiService.updateApplication(editing.id, {
@@ -251,7 +260,7 @@ export default function SsoApplications() {
     {
       title: '操作',
       key: 'action',
-      width: 210,
+      width: 300,
       fixed: 'right',
       render: (_, record) => (
         <Space size={8}>
@@ -340,92 +349,230 @@ export default function SsoApplications() {
         okText="保存"
         cancelText="取消"
         className={styles.userModal}
-        width={680}
+        width={760}
         destroyOnClose
       >
-        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
-          <Form.Item
-            name="clientId"
-            label="客户端唯一标识 (ClientId)"
-            rules={[{ required: true, message: '请输入 ClientId' }]}
-          >
-            <Input
-              disabled={!!editing}
-              placeholder="例如: dedsinative-web / my-custom-app"
-              className={styles.formControl}
-            />
-          </Form.Item>
+        <Form form={form} layout="vertical" style={{ marginTop: 8 }}>
+          <Tabs
+            defaultActiveKey="basic"
+            items={[
+              {
+                key: 'basic',
+                label: (
+                  <Space size={6}>
+                    <SettingOutlined />
+                    <span>基础信息</span>
+                  </Space>
+                ),
+                children: (
+                  <div style={{ paddingTop: 8 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
+                      <Form.Item
+                        name="clientId"
+                        label="客户端唯一标识 (ClientId)"
+                        rules={[{ required: true, message: '请输入 ClientId' }]}
+                      >
+                        <Input
+                          disabled={!!editing}
+                          placeholder="例如: dedsinative-web / my-custom-app"
+                          className={styles.formControl}
+                        />
+                      </Form.Item>
 
-          <Form.Item
-            name="displayName"
-            label="客户端显示名称"
-            rules={[{ required: true, message: '请输入显示名称' }]}
-          >
-            <Input placeholder="例如: 业务管理控制台 Web 应用" className={styles.formControl} />
-          </Form.Item>
+                      <Form.Item
+                        name="displayName"
+                        label="客户端显示名称"
+                        rules={[{ required: true, message: '请输入显示名称' }]}
+                      >
+                        <Input placeholder="例如: 业务管理控制台 Web 应用" className={styles.formControl} />
+                      </Form.Item>
+                    </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <Form.Item
-              name="clientType"
-              label="客户端类型"
-              rules={[{ required: true, message: '请选择客户端类型' }]}
-            >
-              <Select className={styles.formControl}>
-                <Select.Option value="public">Public (公开应用，如 SPA/移动端，配合 PKCE)</Select.Option>
-                <Select.Option value="confidential">Confidential (机密应用，如服务端系统，需 Secret)</Select.Option>
-              </Select>
-            </Form.Item>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
+                      <Form.Item
+                        name="clientType"
+                        label="客户端类型"
+                        rules={[{ required: true, message: '请选择客户端类型' }]}
+                      >
+                        <Select className={styles.formControl}>
+                          <Select.Option value="public">Public (公开应用，如 SPA/移动端，配合 PKCE)</Select.Option>
+                          <Select.Option value="confidential">Confidential (机密应用，如服务端系统，需 Secret)</Select.Option>
+                        </Select>
+                      </Form.Item>
 
-            <Form.Item name="consentType" label="授权确认模式 (Consent)">
-              <Select className={styles.formControl}>
-                <Select.Option value="explicit">Explicit (用户必须显式确认授权)</Select.Option>
-                <Select.Option value="implicit">Implicit (第一方信任应用，免显式确认)</Select.Option>
-              </Select>
-            </Form.Item>
-          </div>
+                      <Form.Item name="consentType" label="授权确认模式 (Consent)">
+                        <Select className={styles.formControl}>
+                          <Select.Option value="explicit">Explicit (用户必须显式确认授权)</Select.Option>
+                          <Select.Option value="implicit">Implicit (第一方信任应用，免显式确认)</Select.Option>
+                        </Select>
+                      </Form.Item>
+                    </div>
 
-          <Form.Item
-            noStyle
-            shouldUpdate={(prev, curr) => prev.clientType !== curr.clientType}
-          >
-            {({ getFieldValue }) =>
-              getFieldValue('clientType') === 'confidential' && !editing && (
-                <Form.Item name="clientSecret" label="初始密钥 (ClientSecret，留空将自动生成)">
-                  <Input.Password placeholder="请输入高强度密钥" className={styles.formControl} />
-                </Form.Item>
-              )
-            }
-          </Form.Item>
+                    <Form.Item
+                      noStyle
+                      shouldUpdate={(prev, curr) => prev.clientType !== curr.clientType}
+                    >
+                      {({ getFieldValue }) =>
+                        getFieldValue('clientType') === 'confidential' && !editing && (
+                          <Form.Item name="clientSecret" label="初始密钥 (ClientSecret，留空将自动生成)">
+                            <Input.Password placeholder="请输入高强度密钥" className={styles.formControl} />
+                          </Form.Item>
+                        )
+                      }
+                    </Form.Item>
+                  </div>
+                ),
+              },
+              {
+                key: 'uris',
+                label: (
+                  <Space size={6}>
+                    <LinkOutlined />
+                    <span>回调地址</span>
+                  </Space>
+                ),
+                children: (
+                  <div style={{ paddingTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div className={styles.formCardSection} style={{ marginBottom: 0 }}>
+                      <div className={styles.formCardTitle}>
+                        <LinkOutlined style={{ color: 'var(--color-primary)' }} />
+                        <span>登录回调地址 (RedirectUris)</span>
+                        <Tooltip title="OIDC 认证成功后允许重定向的回调 URL 列表，每行一个">
+                          <InfoCircleOutlined style={{ color: 'var(--color-neutral-gray)', cursor: 'pointer' }} />
+                        </Tooltip>
+                      </div>
 
-          <Form.Item
-            name="redirectUris"
-            label="登录回调地址 (RedirectUris，每行一个)"
-            tooltip="OIDC 认证成功后允许重定向的回调 URL 列表"
-          >
-            <Input.TextArea
-              rows={3}
-              placeholder={'http://localhost:11026/signin-oidc\nhttp://localhost:12256/swagger/oauth2-redirect.html'}
-              style={{ borderRadius: 'var(--radius-btn)' }}
-            />
-          </Form.Item>
+                      <Form.List name="redirectUris">
+                        {(fields, { add, remove }) => (
+                          <div className={styles.uriListContainer}>
+                            {fields.map((field) => (
+                              <div key={field.key} className={styles.uriRow}>
+                                <Form.Item
+                                  {...field}
+                                  noStyle
+                                  rules={[{ required: true, message: '请输入回调地址或删除此项' }]}
+                                >
+                                  <Input
+                                    placeholder="例如: http://localhost:11026/signin-oidc"
+                                    className={styles.uriInput}
+                                    prefix={<LinkOutlined style={{ color: 'var(--color-neutral-gray)' }} />}
+                                  />
+                                </Form.Item>
+                                <Button
+                                  type="text"
+                                  danger
+                                  icon={<DeleteOutlined />}
+                                  onClick={() => remove(field.name)}
+                                  title="删除此项"
+                                />
+                              </div>
+                            ))}
+                            <Button
+                              type="dashed"
+                              onClick={() => add()}
+                              icon={<PlusOutlined />}
+                              style={{ width: '100%', borderRadius: 'var(--radius-btn)' }}
+                            >
+                              添加登录回调地址
+                            </Button>
+                          </div>
+                        )}
+                      </Form.List>
+                    </div>
 
-          <Form.Item
-            name="postLogoutRedirectUris"
-            label="登出回调地址 (PostLogoutRedirectUris，每行一个)"
-          >
-            <Input.TextArea
-              rows={2}
-              placeholder={'http://localhost:11026/signout-callback-oidc\nhttp://localhost:11026/'}
-              style={{ borderRadius: 'var(--radius-btn)' }}
-            />
-          </Form.Item>
+                    <div className={styles.formCardSection} style={{ marginBottom: 0 }}>
+                      <div className={styles.formCardTitle}>
+                        <LinkOutlined style={{ color: 'var(--color-primary)' }} />
+                        <span>登出回调地址 (PostLogoutRedirectUris)</span>
+                        <Tooltip title="OIDC 注销登录后允许重定向的回调 URL 列表，每行一个">
+                          <InfoCircleOutlined style={{ color: 'var(--color-neutral-gray)', cursor: 'pointer' }} />
+                        </Tooltip>
+                      </div>
 
-          <Form.Item name="permissions" label="支持的端点、流程与作用域权限">
-            <Checkbox.Group
-              options={STANDARD_PERMISSIONS}
-              style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px' }}
-            />
-          </Form.Item>
+                      <Form.List name="postLogoutRedirectUris">
+                        {(fields, { add, remove }) => (
+                          <div className={styles.uriListContainer}>
+                            {fields.map((field) => (
+                              <div key={field.key} className={styles.uriRow}>
+                                <Form.Item
+                                  {...field}
+                                  noStyle
+                                  rules={[{ required: true, message: '请输入登出回调地址或删除此项' }]}
+                                >
+                                  <Input
+                                    placeholder="例如: http://localhost:11026/signout-callback-oidc"
+                                    className={styles.uriInput}
+                                    prefix={<LinkOutlined style={{ color: 'var(--color-neutral-gray)' }} />}
+                                  />
+                                </Form.Item>
+                                <Button
+                                  type="text"
+                                  danger
+                                  icon={<DeleteOutlined />}
+                                  onClick={() => remove(field.name)}
+                                  title="删除此项"
+                                />
+                              </div>
+                            ))}
+                            <Button
+                              type="dashed"
+                              onClick={() => add()}
+                              icon={<PlusOutlined />}
+                              style={{ width: '100%', borderRadius: 'var(--radius-btn)' }}
+                            >
+                              添加登出回调地址
+                            </Button>
+                          </div>
+                        )}
+                      </Form.List>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                key: 'permissions',
+                label: (
+                  <Space size={6}>
+                    <SafetyCertificateOutlined />
+                    <span>权限与作用域</span>
+                  </Space>
+                ),
+                children: (
+                  <div style={{ paddingTop: 8 }}>
+                    <Form.Item name="permissions" noStyle>
+                      <Checkbox.Group style={{ width: '100%' }}>
+                        <div className={styles.permissionSection}>
+                          <div>
+                            <div className={styles.permissionCategoryTitle}>端点与授权流程 (Endpoints & Grant Types)</div>
+                            <div className={styles.permissionGrid}>
+                              {ENDPOINT_AND_FLOW_PERMISSIONS.map((p) => (
+                                <Checkbox key={p.value} value={p.value}>
+                                  {p.label}
+                                </Checkbox>
+                              ))}
+                            </div>
+                          </div>
+
+                          <Divider style={{ margin: '4px 0' }} />
+
+                          <div>
+                            <div className={styles.permissionCategoryTitle}>作用域权限 (Scopes)</div>
+                            <div className={styles.permissionGrid}>
+                              {SCOPE_PERMISSIONS.map((p) => (
+                                <Checkbox key={p.value} value={p.value}>
+                                  {p.label}
+                                </Checkbox>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </Checkbox.Group>
+                    </Form.Item>
+                  </div>
+                ),
+              },
+            ]}
+          />
         </Form>
       </Modal>
 
@@ -437,6 +584,7 @@ export default function SsoApplications() {
             <span style={{ fontWeight: 700, fontSize: 16 }}>客户端密钥已重置</span>
           </Space>
         }
+        width={560}
         open={secretModalOpen}
         onOk={() => setSecretModalOpen(false)}
         onCancel={() => setSecretModalOpen(false)}
@@ -447,22 +595,38 @@ export default function SsoApplications() {
         ]}
         className={styles.userModal}
       >
-        <p style={{ color: 'var(--color-warning-strong)', marginTop: 12 }}>
-          请务必立即复制并妥善保存新的 ClientSecret，该密钥仅展示一次：
-        </p>
-        <div className={styles.secretBox}>
-          <Text code copyable>{newSecretVal}</Text>
-          <Button
-            type="primary"
-            icon={<CopyOutlined />}
-            size="small"
+        <Alert
+          type="warning"
+          showIcon
+          message="请妥善保存客户端密钥"
+          description="请务必立即复制并妥善保存新的 ClientSecret，该密钥仅在此展示一次，关闭后将无法再次查看。"
+          style={{ marginTop: 12, marginBottom: 4 }}
+        />
+        <div className={styles.secretCard}>
+          <div className={styles.secretCardHeader}>
+            <span className={styles.secretCardTitle}>新的 ClientSecret</span>
+            <Button
+              type="primary"
+              icon={<CopyOutlined />}
+              size="small"
+              onClick={() => {
+                navigator.clipboard.writeText(newSecretVal);
+                message.success('密钥已复制到剪贴板');
+              }}
+            >
+              复制密钥
+            </Button>
+          </div>
+          <div
+            className={styles.secretCodeBox}
             onClick={() => {
               navigator.clipboard.writeText(newSecretVal);
               message.success('密钥已复制到剪贴板');
             }}
+            title="点击复制密钥"
           >
-            复制密钥
-          </Button>
+            <code>{newSecretVal}</code>
+          </div>
         </div>
       </Modal>
     </div>

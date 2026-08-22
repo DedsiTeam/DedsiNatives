@@ -48,7 +48,7 @@ public class ResetOpenIddictApplicationSecretEndpoint(IOpenIddictApplicationMana
         }
 
         var newSecret = string.IsNullOrWhiteSpace(req.NewSecret)
-            ? Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N")
+            ? $"{Ulid.NewUlid()}{Guid.NewGuid():N}{Ulid.NewUlid()}"
             : req.NewSecret.Trim();
 
         var descriptor = new OpenIddictApplicationDescriptor();

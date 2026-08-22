@@ -80,13 +80,14 @@ export default function SsoTokens() {
       title: '用户标识 (Subject)',
       dataIndex: 'subject',
       key: 'subject',
+      width: 200,
       render: (val) => (val ? <Text code>{val}</Text> : <Text type="secondary">-</Text>),
     },
     {
       title: '令牌类型',
       dataIndex: 'type',
       key: 'type',
-      width: 140,
+      width: 300,
       render: (val) => <Tag color="purple">{val}</Tag>,
     },
     {

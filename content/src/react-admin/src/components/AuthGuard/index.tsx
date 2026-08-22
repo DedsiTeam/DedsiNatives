@@ -44,7 +44,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ permission, children }) =>
   }, [hasPermission, location.pathname]);
 
   if (!hasPermission) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/403" replace />;
   }
 
   return <>{children}</>;

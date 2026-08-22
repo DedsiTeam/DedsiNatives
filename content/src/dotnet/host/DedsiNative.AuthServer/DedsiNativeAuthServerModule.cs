@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using Quartz;
 using Serilog;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Serilog;
@@ -47,12 +48,21 @@ public class DedsiNativeAuthServerModule : AbpModule
                 options.Cookie.SameSite = SameSiteMode.Lax;
             });
 
-        // 3. OpenIddict 配置
+        // 3. Quartz 定时任务调度器配置（用于 OpenIddict 自动修剪与后台任务）
+        context.Services.AddQuartz(options =>
+        {
+            options.UseSimpleTypeLoader();
+            options.UseInMemoryStore();
+        });
+        context.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
+
+        // 4. OpenIddict 配置
         context.Services.AddOpenIddict()
             .AddCore(options =>
             {
                 options.UseEntityFrameworkCore()
                     .UseDbContext<DedsiNativeDbContext>();
+                options.UseQuartz(); // 启用 Quartz 自动修剪过期的 Token 与授权记录
             })
             .AddServer(options =>
             {

@@ -5,6 +5,7 @@ import {
   Avatar,
   Dropdown,
   Breadcrumb,
+  Watermark,
   type MenuProps,
 } from 'antd';
 import {
@@ -26,6 +27,8 @@ import {
 } from '@ant-design/icons';
 import styles from './AdminLayout.module.css';
 import './menu-compat.css';
+import { PageTabs } from './PageTabs';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 
 import { MenuApiService, type CurrentUserMenuResultDto, type LoginUserPositionResultDto } from '../../apiServices';
 import { SsoAuthService } from '../../auth/authService';
@@ -139,12 +142,58 @@ function collectPageTitles(menus: CurrentUserMenuResultDto[], acc: Record<string
   return acc;
 }
 
+/**
+ * 递归查找当前选中的菜单路径名称列表（如 ['系统管理', '菜单管理']）。
+ */
+function findBreadcrumbPath(
+  items: MenuProps['items'],
+  targetKey: string,
+  currentPath: string[] = []
+): string[] | undefined {
+  if (!items) return undefined;
+  for (const item of items) {
+    if (!item || typeof item !== 'object' || !('key' in item)) continue;
+    const rawLabel = 'label' in item ? item.label : undefined;
+    const label = typeof rawLabel === 'string' ? rawLabel : String(rawLabel ?? '');
+    const newPath = [...currentPath, label];
+
+    if (String(item.key) === targetKey) {
+      return newPath;
+    }
+
+    if ('children' in item && Array.isArray(item.children)) {
+      const found = findBreadcrumbPath(item.children as MenuProps['items'], targetKey, newPath);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * 递归查找当前选中的叶子菜单所归属的父级菜单 Key。
+ */
+function findParentKey(items: MenuProps['items'], targetKey: string): string | undefined {
+  if (!items) return undefined;
+  for (const item of items) {
+    if (item && typeof item === 'object' && 'children' in item && Array.isArray(item.children)) {
+      if (item.children.some((child) => child && typeof child === 'object' && 'key' in child && child.key === targetKey)) {
+        return String(item.key);
+      }
+      const deeper = findParentKey(item.children as MenuProps['items'], targetKey);
+      if (deeper) return String(item.key);
+    }
+  }
+  return undefined;
+}
+
 const defaultPageTitles: Record<string, string> = {
   '/dashboard': '仪表盘',
   '/system/users': '用户管理',
   '/system/systems': '系统管理',
   '/system/permissions': '权限管理',
   '/system/positions': '岗位管理',
+  '/system/organizations': '组织架构',
+  '/system/storage': '文件管理',
   '/system/menus': '菜单管理',
   '/system/dictionaries': '字典管理',
   '/system/login-audits': '登录审计',
@@ -159,6 +208,7 @@ const defaultPageTitles: Record<string, string> = {
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [userMenus, setUserMenus] = useState<CurrentUserMenuResultDto[]>([]);
+  const [reloadKey, setReloadKey] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -207,6 +257,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           { key: '/system/menus', icon: <SettingOutlined />, label: '菜单管理' },
           { key: '/system/positions', icon: <SolutionOutlined />, label: '岗位管理' },
           { key: '/system/users', icon: <UserOutlined />, label: '用户管理' },
+          { key: '/system/organizations', icon: <ApartmentOutlined />, label: '组织架构' },
+          { key: '/system/storage', icon: <FolderOpenOutlined />, label: '文件管理' },
           { key: '/system/dictionaries', icon: <BookOutlined />, label: '字典管理' },
           ...(currentUser.permissions.includes('system:login-audits:view')
             ? [{ key: '/system/login-audits', icon: <AuditOutlined />, label: '登录审计' }]
@@ -234,7 +286,68 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
   // 当前选中的菜单项
   const selectedKeys = [location.pathname || '/dashboard'];
-  const currentPageTitle = pageTitles[selectedKeys[0]] ?? '页面';
+
+  // 面包屑层级路径（按当前选中菜单层级展示：一级/二级）
+  const breadcrumbItems = useMemo(() => {
+    const currentPath = location.pathname || '/dashboard';
+    const pathList = findBreadcrumbPath(menuItems, currentPath);
+    if (pathList && pathList.length > 0) {
+      return pathList.map((title) => ({ title }));
+    }
+    return [{ title: pageTitles[currentPath] ?? '页面' }];
+  }, [menuItems, location.pathname, pageTitles]);
+
+  // 顶层含有子菜单的 Key 列表（用于手风琴模式互斥）
+  const rootSubmenuKeys = useMemo(() => {
+    if (!menuItems) return [];
+    return menuItems
+      .filter((item): item is { key: string; children: unknown[] } =>
+        Boolean(item && typeof item === 'object' && 'children' in item && item.children)
+      )
+      .map((item) => String(item.key));
+  }, [menuItems]);
+
+  // 当前展开的子菜单（手风琴模式）
+  const [openKeys, setOpenKeys] = useState<string[]>(() => {
+    const currentPath = location.pathname || '/dashboard';
+    const parentKey = findParentKey(menuItems, currentPath);
+    return parentKey ? [parentKey] : [];
+  });
+
+  // 当路由实际跳转变化时，自动定位并展开新页面所属的父级目录
+  useEffect(() => {
+    const parentKey = findParentKey(menuItems, location.pathname);
+    if (parentKey) {
+      setOpenKeys([parentKey]);
+    }
+  }, [location.pathname]);
+
+  // 当动态菜单初次加载完成时，同步展开当前页面父菜单
+  useEffect(() => {
+    if (userMenus.length > 0) {
+      const parentKey = findParentKey(menuItems, location.pathname);
+      if (parentKey) {
+        setOpenKeys([parentKey]);
+      }
+    }
+  }, [userMenus]);
+
+  // 手风琴展开/收起交互
+  const handleOpenChange: MenuProps['onOpenChange'] = (keys) => {
+    const latestOpenKey = keys.find((key) => !openKeys.includes(key));
+    if (!latestOpenKey) {
+      // 用户主动收起当前展开的菜单
+      setOpenKeys([]);
+      return;
+    }
+    if (rootSubmenuKeys.includes(latestOpenKey)) {
+      // 顶层菜单互斥（手风琴：只保留最新点击展开的主菜单）
+      setOpenKeys([latestOpenKey]);
+    } else {
+      // 多级子菜单情况兼容
+      setOpenKeys(keys);
+    }
+  };
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {
     if (e.key.startsWith('/')) {
@@ -273,76 +386,96 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     },
   ];
 
+  const systemName = 'Dedsi Admin';
+  const userName = currentUser.name || currentUser.account || '系统用户';
+
   return (
-    <div className={styles.layoutContainer}>
-      {/* 左侧功能菜单 */}
-      <aside
-        className={`${styles.sider} ${collapsed ? 'admin-sider-collapsed' : ''}`}
-        style={{ width: collapsed ? 64 : 200 }}
-      >
-        {/* Logo 区域 */}
-        <div className={`${styles.logoArea} admin-logo-area`}>
-          <div className={styles.logoBadge}>D</div>
-          {!collapsed && <span className={styles.logoTitle}>Dedsi Admin</span>}
-        </div>
+    <Watermark
+      content={[systemName, userName]}
+      font={{
+        color: 'rgba(0, 0, 0, 0.08)',
+        fontSize: 14,
+        fontWeight: 500,
+      }}
+      gap={[140, 120]}
+      rotate={-22}
+      zIndex={999}
+    >
+      <div className={styles.layoutContainer}>
+        {/* 左侧功能菜单 */}
+        <aside
+          className={`${styles.sider} ${collapsed ? 'admin-sider-collapsed' : ''}`}
+          style={{ width: collapsed ? 64 : 200 }}
+        >
+          {/* Logo 区域 */}
+          <div className={`${styles.logoArea} admin-logo-area`}>
+            <div className={styles.logoBadge}>D</div>
+            {!collapsed && <span className={styles.logoTitle}>Dedsi Admin</span>}
+          </div>
 
-        {/* 菜单树 */}
-        <div className={`${styles.menuContainer} admin-sider-menu`}>
-          <Menu
-            mode="inline"
-            inlineCollapsed={collapsed}
-            selectedKeys={selectedKeys}
-            items={menuItems}
-            onClick={handleMenuClick}
-            style={{ borderRight: 0 }}
-          />
-        </div>
-      </aside>
-
-      {/* 右侧主区域 */}
-      <div className={styles.mainWrapper}>
-        {/* 右侧上方功能栏 (固定 60px 高度) */}
-        <header className={styles.headerBar}>
-          <div className={styles.headerLeft}>
-            <div
-              className={styles.triggerBtn}
-              onClick={() => setCollapsed(!collapsed)}
-            >
-              {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            </div>
-
-            <Breadcrumb
-              items={[
-                { title: '首页' },
-                { title: currentPageTitle },
-              ]}
+          {/* 菜单树 */}
+          <div className={`${styles.menuContainer} admin-sider-menu`}>
+            <Menu
+              mode="inline"
+              inlineCollapsed={collapsed}
+              selectedKeys={selectedKeys}
+              openKeys={openKeys}
+              onOpenChange={handleOpenChange}
+              items={menuItems}
+              onClick={handleMenuClick}
+              style={{ borderRight: 0 }}
             />
           </div>
+        </aside>
 
-          <div className={styles.headerRight}>
-            <Dropdown menu={{ items: userMenuItems, onClick: handleUserMenuClick }} placement="bottomRight">
-              <div className={styles.userInfo}>
-                <Avatar
-                  size="default"
-                  style={{ backgroundColor: 'var(--color-primary)', cursor: 'pointer' }}
-                >
-                  {(currentUser.name || currentUser.account || 'U').charAt(0).toUpperCase()}
-                </Avatar>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span className={styles.userName}>{currentUser.name || currentUser.account || '未登录用户'}</span>
-                  <span className={styles.userRole}>{currentUser.email || currentUser.account || '-'}</span>
-                </div>
+        {/* 右侧主区域 */}
+        <div className={styles.mainWrapper}>
+          {/* 右侧上方功能栏 (固定 60px 高度) */}
+          <header className={styles.headerBar}>
+            <div className={styles.headerLeft}>
+              <div
+                className={styles.triggerBtn}
+                onClick={() => setCollapsed(!collapsed)}
+              >
+                {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               </div>
-            </Dropdown>
-          </div>
-        </header>
 
-        {/* 下方内容区域 */}
-        <main className={styles.contentArea}>
-          {children || <Outlet />}
-        </main>
+              <Breadcrumb items={breadcrumbItems} />
+            </div>
+
+            <div className={styles.headerRight}>
+              <Dropdown menu={{ items: userMenuItems, onClick: handleUserMenuClick }} placement="bottomRight">
+                <div className={styles.userInfo}>
+                  <Avatar
+                    size="default"
+                    style={{ backgroundColor: 'var(--color-primary)', cursor: 'pointer' }}
+                  >
+                    {(currentUser.name || currentUser.account || 'U').charAt(0).toUpperCase()}
+                  </Avatar>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span className={styles.userName}>{currentUser.name || currentUser.account || '未登录用户'}</span>
+                    <span className={styles.userRole}>{currentUser.email || currentUser.account || '-'}</span>
+                  </div>
+                </div>
+              </Dropdown>
+            </div>
+          </header>
+
+          {/* 多标签页导航栏 */}
+          <PageTabs
+            pageTitles={pageTitles}
+            onReload={() => setReloadKey((k) => k + 1)}
+          />
+
+          {/* 下方主体内容区域 */}
+          <main className={styles.contentArea}>
+            <ErrorBoundary key={reloadKey}>
+              {children || <Outlet key={reloadKey} />}
+            </ErrorBoundary>
+          </main>
+        </div>
       </div>
-    </div>
+    </Watermark>
   );
 };
 

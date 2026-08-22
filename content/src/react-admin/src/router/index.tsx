@@ -20,6 +20,9 @@ import ChangePasswordPage from '../pages/change-password';
 import LoginPage from '../pages/login';
 import CallbackPage from '../pages/callback';
 import OrderDetail from '../pages/orders/detail';
+import ForbiddenPage from '../pages/exception/403';
+import NotFoundPage from '../pages/exception/404';
+import ServerErrorPage from '../pages/exception/500';
 
 export const router = createBrowserRouter([
   {
@@ -83,12 +86,20 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'system/organization',
+        element: <Navigate to="/system/organizations" replace />,
+      },
+      {
         path: 'system/storage',
         element: (
           <AuthGuard permission="system:storage:view">
             <StorageManagement />
           </AuthGuard>
         ),
+      },
+      {
+        path: 'system/storages',
+        element: <Navigate to="/system/storage" replace />,
       },
       {
         path: 'system/menus',
@@ -152,9 +163,11 @@ export const router = createBrowserRouter([
         path: 'orders',
         element: <OrderDetail />,
       },
+      { path: '403', element: <ForbiddenPage /> },
+      { path: '500', element: <ServerErrorPage /> },
       {
         path: '*',
-        element: <Navigate to="/dashboard" replace />,
+        element: <NotFoundPage />,
       },
     ],
   },
