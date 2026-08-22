@@ -3,19 +3,26 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - DedsiNative SSO 统一认证中心</title>
+    <title>@ViewData["Title"] - DedsiNative 统一认证中心</title>
     <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
 </head>
 <body>
-    <div class="auth-container">
-        @RenderBody()
+    <div class="auth-wrapper">
+        <main class="auth-container">
+            @RenderBody()
+        </main>
     </div>
 
     <footer class="auth-footer">
-        <p>&copy; @DateTime.Now.Year DedsiNative. All rights reserved. Powered by OpenIddict &amp; ABP Framework.</p>
+        <div class="footer-links">
+            <a href="javascript:void(0);">使用条款</a>
+            <a href="javascript:void(0);">隐私与 Cookie</a>
+            <span>&copy; @DateTime.Now.Year DedsiNative. Powered by OpenIddict &amp; ABP.</span>
+        </div>
     </footer>
 
     <script src="~/js/auth.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+

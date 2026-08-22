@@ -4,17 +4,27 @@
     ViewData["Title"] = "退出登录";
 }
 
-<div class="auth-card">
-    <div class="auth-brand">
-        <div class="auth-logo">DN</div>
-        <h1 class="auth-title">退出登录</h1>
-        <p class="auth-subtitle">您确定要退出当前账号吗？</p>
-    </div>
-
-    <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
-        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem;">
-            <button type="submit" class="btn btn-primary">确认退出</button>
-            <a href="/" class="btn btn-secondary">取消</a>
+<div class="auth-card-container">
+    <div class="auth-card">
+        <!-- 品牌标识 Header -->
+        <div class="auth-brand">
+            <div class="auth-logo-badge">
+                <span class="logo-grid-item logo-grid-1"></span>
+                <span class="logo-grid-item logo-grid-2"></span>
+                <span class="logo-grid-item logo-grid-3"></span>
+                <span class="logo-grid-item logo-grid-4"></span>
+            </div>
+            <span class="auth-brand-name">DedsiNative</span>
         </div>
-    </form>
+
+        <h1 class="auth-title">注销登录</h1>
+        <p class="auth-subtitle">您确定要从 DedsiNative 统一身份认证中心注销当前会话吗？</p>
+
+        <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
+            <div class="form-actions" style="margin-top: 2rem; justify-content: flex-end; gap: 0.75rem;">
+                <a href="/" class="btn btn-secondary btn-ms">取消</a>
+                <button type="submit" class="btn btn-primary btn-ms">确认退出</button>
+            </div>
+        </form>
+    </div>
 </div>

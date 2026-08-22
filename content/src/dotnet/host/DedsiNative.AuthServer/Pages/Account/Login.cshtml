@@ -2,47 +2,146 @@
 @model DedsiNative.AuthServer.Pages.Account.LoginModel
 @{
     ViewData["Title"] = "用户登录";
+    var hasError = !string.IsNullOrEmpty(Model.ErrorMessage);
+    var startAtStep2 = hasError && !string.IsNullOrEmpty(Model.Input?.Account);
 }
 
-<div class="auth-card">
-    <div class="auth-brand">
-        <div class="auth-logo">DN</div>
-        <h1 class="auth-title">DedsiNative</h1>
-        <p class="auth-subtitle">统一身份认证中心</p>
+<div class="auth-card-container">
+    <div class="auth-card" id="mainAuthCard">
+        <!-- 品牌标识 Header (微软 Fluent 风格居左) -->
+        <div class="auth-brand">
+            <div class="auth-logo-badge">
+                <span class="logo-grid-item logo-grid-1"></span>
+                <span class="logo-grid-item logo-grid-2"></span>
+                <span class="logo-grid-item logo-grid-3"></span>
+                <span class="logo-grid-item logo-grid-4"></span>
+            </div>
+            <span class="auth-brand-name">DedsiNative</span>
+        </div>
+
+        @if (hasError)
+        {
+            <div class="alert alert-danger" id="serverAlert">
+                <svg class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                <span>@Model.ErrorMessage</span>
+            </div>
+        }
+
+        <form method="post" asp-route-returnUrl="@Model.ReturnUrl" id="ssoLoginForm" novalidate>
+            <!-- 分步切换视口容器 -->
+            <div class="steps-viewport">
+                <!-- STEP 1: 输入账号 -->
+                <div class="step-panel @(startAtStep2 ? "slide-left-exit" : "active")" id="step1Panel">
+                    <h1 class="auth-title">登录</h1>
+                    <p class="auth-subtitle">使用您的 DedsiNative 账号登录统一身份中心</p>
+
+                    <div class="form-group">
+                        <div class="input-wrapper">
+                            <input class="form-control ms-input" 
+                                   asp-for="Input.Account" 
+                                   id="accountInput" 
+                                   placeholder="电子邮件、手机或用户名" 
+                                   autofocus 
+                                   autocomplete="username" />
+                        </div>
+                        <span id="accountClientError" class="text-danger-msg"></span>
+                        <span asp-validation-for="Input.Account" class="text-danger-msg"></span>
+                    </div>
+
+                    <div class="auth-helper-links">
+                        <p class="helper-text">没有账户？ <a href="javascript:void(0);" class="link-action">创建一个!</a></p>
+                        <p class="helper-text"><a href="javascript:void(0);" class="link-action">无法访问你的账户？</a></p>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary btn-ms" id="btnNext">下一步</button>
+                    </div>
+                </div>
+
+                <!-- STEP 2: 输入密码 -->
+                <div class="step-panel @(startAtStep2 ? "active" : "slide-right-hidden")" id="step2Panel">
+                    <!-- 账号回显与返回修改胶囊条 -->
+                    <div class="user-identity-bar">
+                        <button type="button" class="btn-back-step" id="btnBackToStep1" title="切换账号" aria-label="返回上一步">
+                            <svg class="icon-arrow-back" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </button>
+                        <span class="user-identity-text" id="userAccountDisplay">@(Model.Input?.Account ?? "用户账号")</span>
+                    </div>
+
+                    <h1 class="auth-title">输入密码</h1>
+
+                    <div class="form-group">
+                        <div class="input-wrapper">
+                            <input class="form-control ms-input" 
+                                   asp-for="Input.Password" 
+                                   id="passwordInput" 
+                                   placeholder="密码" 
+                                   autocomplete="current-password" />
+                            <button type="button" class="toggle-password" data-target="passwordInput" title="显示/隐藏密码">
+                                <svg class="eye-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                        <span id="passwordClientError" class="text-danger-msg"></span>
+                        <span asp-validation-for="Input.Password" class="text-danger-msg"></span>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" asp-for="Input.RememberMe" />
+                            <span>保持登录状态</span>
+                        </label>
+                        <a href="javascript:void(0);" class="link-action">忘记了密码？</a>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-ms" id="btnSubmit">登 录</button>
+                    </div>
+                </div>
+            </div>
+        </form>
     </div>
 
-    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-    {
-        <div class="alert alert-danger">
-            <span>⚠️ @Model.ErrorMessage</span>
-        </div>
-    }
+    <!-- 微软 SSO 经典「登录选项」扩展卡片 -->
+    <div class="auth-card-options">
+        <button type="button" class="btn-sign-in-options" id="btnToggleOptions">
+            <svg class="key-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5L11 9l-1.5-1.5L8 9l-1.5-1.5L3 11a5 5 0 007 7l11-11v-5z"></path>
+            </svg>
+            <span>登录选项</span>
+        </button>
+    </div>
 
-    <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
-        <div class="form-group">
-            <label class="form-label" asp-for="Input.Account">登录账号</label>
-            <div class="input-wrapper">
-                <input class="form-control" asp-for="Input.Account" placeholder="请输入用户名 / 账号" autofocus autocomplete="username" />
+    <!-- 登录选项弹出层/抽屉 -->
+    <div class="options-modal-backdrop" id="optionsModal" style="display: none;">
+        <div class="options-modal">
+            <div class="options-modal-header">
+                <h3>其他登录方式</h3>
+                <button type="button" class="btn-close-modal" id="btnCloseOptions">&times;</button>
             </div>
-            <span asp-validation-for="Input.Account" class="text-danger" style="font-size: 0.8rem; color: var(--color-danger); margin-top: 0.25rem; display: block;"></span>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label" asp-for="Input.Password">登录密码</label>
-            <div class="input-wrapper">
-                <input class="form-control" asp-for="Input.Password" id="passwordInput" placeholder="请输入登录密码" autocomplete="current-password" />
-                <button type="button" class="toggle-password" data-target="passwordInput">显示</button>
+            <div class="options-modal-body">
+                <div class="option-item" onclick="selectOption('fido')">
+                    <div class="option-icon">🔐</div>
+                    <div class="option-text">
+                        <strong>安全密钥 (FIDO2 / Windows Hello)</strong>
+                        <span>使用物理安全密钥或生物识别登录</span>
+                    </div>
+                </div>
+                <div class="option-item" onclick="selectOption('sso')">
+                    <div class="option-icon">🏢</div>
+                    <div class="option-text">
+                        <strong>企业组织 SSO</strong>
+                        <span>使用您的组织域名直接单点登录</span>
+                    </div>
+                </div>
             </div>
-            <span asp-validation-for="Input.Password" class="text-danger" style="font-size: 0.8rem; color: var(--color-danger); margin-top: 0.25rem; display: block;"></span>
         </div>
-
-        <div class="form-options">
-            <label class="checkbox-label">
-                <input type="checkbox" asp-for="Input.RememberMe" />
-                <span>记住登录状态 (7天)</span>
-            </label>
-        </div>
-
-        <button type="submit" class="btn btn-primary">登 录</button>
-    </form>
+    </div>
 </div>

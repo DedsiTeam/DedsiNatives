@@ -1,32 +1,49 @@
 @page
 @model DedsiNative.AuthServer.Pages.IndexModel
 @{
-    ViewData["Title"] = "认证服务首页";
+    ViewData["Title"] = "认证服务中心";
 }
 
-<div class="auth-card">
-    <div class="auth-brand">
-        <div class="auth-logo">DN</div>
-        <h1 class="auth-title">DedsiNative SSO</h1>
-        <p class="auth-subtitle">企业级统一身份认证与单点登录授权中心</p>
+<div class="auth-card-container">
+    <div class="auth-card">
+        <!-- 品牌标识 Header -->
+        <div class="auth-brand">
+            <div class="auth-logo-badge">
+                <span class="logo-grid-item logo-grid-1"></span>
+                <span class="logo-grid-item logo-grid-2"></span>
+                <span class="logo-grid-item logo-grid-3"></span>
+                <span class="logo-grid-item logo-grid-4"></span>
+            </div>
+            <span class="auth-brand-name">DedsiNative</span>
+        </div>
+
+        <h1 class="auth-title">统一身份认证中心</h1>
+        <p class="auth-subtitle">基于 OpenIddict &amp; ABP Framework 的现代化单点登录 (SSO) 与 OAuth 2.0 / OIDC 身份中心</p>
+
+        @if (Model.IsAuthenticated)
+        {
+            <div class="user-identity-bar" style="margin: 1.5rem 0 1.25rem 0;">
+                <div class="user-avatar-mini">👤</div>
+                <span class="user-identity-text"><strong>@Model.UserName</strong>（已登录）</span>
+            </div>
+
+            <div class="form-actions" style="margin-top: 1.5rem; justify-content: flex-end; gap: 0.75rem;">
+                <a href="/.well-known/openid-configuration" target="_blank" class="btn btn-secondary btn-ms">OIDC 发现文档</a>
+                <a href="/Account/Logout" class="btn btn-primary btn-ms">退出登录</a>
+            </div>
+        }
+        else
+        {
+            <div style="margin: 1.75rem 0 1rem 0;">
+                <p style="font-size: 0.875rem; color: var(--color-text-muted);">
+                    请使用您的组织凭据登录以访问受保护的企业应用与微服务资源。
+                </p>
+            </div>
+
+            <div class="form-actions" style="margin-top: 1.5rem; justify-content: flex-end; gap: 0.75rem;">
+                <a href="/.well-known/openid-configuration" target="_blank" class="btn btn-secondary btn-ms">OIDC 文档</a>
+                <a href="/Account/Login" class="btn btn-primary btn-ms">前往登录</a>
+            </div>
+        }
     </div>
-
-    @if (Model.IsAuthenticated)
-    {
-        <div class="alert alert-success">
-            <span>✅ 您已登录为：<strong>@Model.UserName</strong></span>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem;">
-            <a href="/Account/Logout" class="btn btn-secondary">退出登录</a>
-            <a href="/.well-known/openid-configuration" target="_blank" class="btn btn-secondary">查看 OIDC 发现文档</a>
-        </div>
-    }
-    else
-    {
-        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem;">
-            <a href="/Account/Login" class="btn btn-primary">立即登录</a>
-            <a href="/.well-known/openid-configuration" target="_blank" class="btn btn-secondary">查看 OIDC 发现文档</a>
-        </div>
-    }
 </div>
