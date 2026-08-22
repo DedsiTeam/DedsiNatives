@@ -45,6 +45,7 @@ public sealed class PagedPositionEndpoint(IPositionQuery positionQuery)
     public override void Configure()
     {
         Post("/api/position/pagedQuery");
+        Policies(ManagementPermissions.Positions.View);
         Description(x => x.WithTags("岗位管理"));
         Summary(s =>
         {

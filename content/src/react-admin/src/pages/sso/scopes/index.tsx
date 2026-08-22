@@ -38,7 +38,11 @@ import styles from '../sso.module.css';
 
 const { Text } = Typography;
 
+import { checkPermission } from '../../../components/Auth';
+import { PERMISSIONS } from '../../../auth/permissions';
+
 export default function SsoScopes() {
+  const canManage = checkPermission(PERMISSIONS.openiddict.manage);
   // 1. 查询筛选状态
   const [draftName, setDraftName] = useState('');
   const [name, setName] = useState('');
@@ -154,6 +158,7 @@ export default function SsoScopes() {
             type="text"
             size="small"
             icon={<EditOutlined />}
+            hidden={!canManage}
             onClick={() => handleOpenEdit(record)}
             style={{ fontWeight: 500 }}
           >
@@ -167,7 +172,7 @@ export default function SsoScopes() {
             cancelText="取消"
             okButtonProps={{ danger: true }}
           >
-            <Button type="text" size="small" danger icon={<DeleteOutlined />} style={{ fontWeight: 500 }}>
+            <Button type="text" size="small" danger icon={<DeleteOutlined />} hidden={!canManage} style={{ fontWeight: 500 }}>
               删除
             </Button>
           </Popconfirm>
@@ -190,6 +195,7 @@ export default function SsoScopes() {
         }}
         createButton={{
           text: '新增作用域',
+          hidden: !canManage,
           onClick: handleOpenCreate,
         }}
       />

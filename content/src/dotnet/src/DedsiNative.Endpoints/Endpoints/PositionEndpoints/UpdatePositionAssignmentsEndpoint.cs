@@ -26,6 +26,7 @@ public sealed class UpdatePositionAssignmentsEndpoint(
     public override void Configure()
     {
         Post("/api/position/assignments/{id}");
+        Policies(ManagementPermissions.Positions.Assign);
         Description(x => x.WithTags("岗位管理"));
         Summary(s =>
         {

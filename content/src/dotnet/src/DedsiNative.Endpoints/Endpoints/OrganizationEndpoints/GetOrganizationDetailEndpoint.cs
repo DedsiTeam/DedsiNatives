@@ -46,6 +46,7 @@ public sealed class GetOrganizationDetailEndpoint(IOrganizationRepository organi
     public override void Configure()
     {
         Get("/api/organization/{id}");
+        Policies(ManagementPermissions.Organizations.View);
         Description(d => d.WithTags("组织机构管理"));
         Summary(s =>
         {

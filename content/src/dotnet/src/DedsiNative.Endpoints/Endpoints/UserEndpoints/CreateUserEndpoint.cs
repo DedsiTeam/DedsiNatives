@@ -43,6 +43,7 @@ public sealed class CreateUserEndpoint(
     public override void Configure()
     {
         Post("/api/user/create");
+        Policies(ManagementPermissions.Users.Create);
         Description(x => x.WithTags("用户管理"));
         Summary(s =>
         {

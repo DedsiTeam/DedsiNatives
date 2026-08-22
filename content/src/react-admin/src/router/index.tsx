@@ -19,10 +19,10 @@ import ProfilePage from '../pages/profile';
 import ChangePasswordPage from '../pages/change-password';
 import LoginPage from '../pages/login';
 import CallbackPage from '../pages/callback';
-import OrderDetail from '../pages/orders/detail';
 import ForbiddenPage from '../pages/exception/403';
 import NotFoundPage from '../pages/exception/404';
 import ServerErrorPage from '../pages/exception/500';
+import { PERMISSIONS } from '../auth/permissions';
 
 export const router = createBrowserRouter([
   {
@@ -48,7 +48,7 @@ export const router = createBrowserRouter([
       {
         path: 'system/users',
         element: (
-          <AuthGuard permission="system:users:view">
+          <AuthGuard permission={PERMISSIONS.users.view}>
             <UserManagement />
           </AuthGuard>
         ),
@@ -56,7 +56,7 @@ export const router = createBrowserRouter([
       {
         path: 'system/systems',
         element: (
-          <AuthGuard permission="system:systems:view">
+          <AuthGuard permission={PERMISSIONS.systems.view}>
             <SystemManagement />
           </AuthGuard>
         ),
@@ -64,7 +64,7 @@ export const router = createBrowserRouter([
       {
         path: 'system/permissions',
         element: (
-          <AuthGuard permission="system:permissions:view">
+          <AuthGuard permission={PERMISSIONS.permissions.view}>
             <PermissionManagement />
           </AuthGuard>
         ),
@@ -72,7 +72,7 @@ export const router = createBrowserRouter([
       {
         path: 'system/positions',
         element: (
-          <AuthGuard permission="system:positions:view">
+          <AuthGuard permission={PERMISSIONS.positions.view}>
             <PositionManagement />
           </AuthGuard>
         ),
@@ -80,7 +80,7 @@ export const router = createBrowserRouter([
       {
         path: 'system/organizations',
         element: (
-          <AuthGuard permission="system:organizations:view">
+          <AuthGuard permission={PERMISSIONS.organizations.view}>
             <OrganizationManagement />
           </AuthGuard>
         ),
@@ -92,7 +92,7 @@ export const router = createBrowserRouter([
       {
         path: 'system/storage',
         element: (
-          <AuthGuard permission="system:storage:view">
+          <AuthGuard permission={PERMISSIONS.storage.view}>
             <StorageManagement />
           </AuthGuard>
         ),
@@ -104,7 +104,7 @@ export const router = createBrowserRouter([
       {
         path: 'system/menus',
         element: (
-          <AuthGuard permission="system:menus:view">
+          <AuthGuard permission={PERMISSIONS.menus.view}>
             <MenuManagement />
           </AuthGuard>
         ),
@@ -112,7 +112,7 @@ export const router = createBrowserRouter([
       {
         path: 'system/dictionaries',
         element: (
-          <AuthGuard permission="system:dictionaries:view">
+          <AuthGuard permission={PERMISSIONS.dictionaries.view}>
             <DictionaryManagement />
           </AuthGuard>
         ),
@@ -120,7 +120,7 @@ export const router = createBrowserRouter([
       {
         path: 'system/login-audits',
         element: (
-          <AuthGuard permission="system:login-audits:view">
+          <AuthGuard permission={PERMISSIONS.loginAudits.view}>
             <LoginAuditManagement />
           </AuthGuard>
         ),
@@ -128,7 +128,7 @@ export const router = createBrowserRouter([
       {
         path: 'sso/applications',
         element: (
-          <AuthGuard permission="system:openiddict:view">
+          <AuthGuard permission={PERMISSIONS.openiddict.view}>
             <SsoApplications />
           </AuthGuard>
         ),
@@ -136,7 +136,7 @@ export const router = createBrowserRouter([
       {
         path: 'sso/scopes',
         element: (
-          <AuthGuard permission="system:openiddict:view">
+          <AuthGuard permission={PERMISSIONS.openiddict.view}>
             <SsoScopes />
           </AuthGuard>
         ),
@@ -144,7 +144,7 @@ export const router = createBrowserRouter([
       {
         path: 'sso/authorizations',
         element: (
-          <AuthGuard permission="system:openiddict:view">
+          <AuthGuard permission={PERMISSIONS.openiddict.view}>
             <SsoAuthorizations />
           </AuthGuard>
         ),
@@ -152,17 +152,13 @@ export const router = createBrowserRouter([
       {
         path: 'sso/tokens',
         element: (
-          <AuthGuard permission="system:openiddict:view">
+          <AuthGuard permission={PERMISSIONS.openiddict.view}>
             <SsoTokens />
           </AuthGuard>
         ),
       },
       { path: 'profile', element: <ProfilePage /> },
       { path: 'change-password', element: <ChangePasswordPage /> },
-      {
-        path: 'orders',
-        element: <OrderDetail />,
-      },
       { path: '403', element: <ForbiddenPage /> },
       { path: '500', element: <ServerErrorPage /> },
       {

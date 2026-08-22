@@ -35,6 +35,7 @@ public sealed class CreatePositionEndpoint(
     public override void Configure()
     {
         Post("/api/position/create");
+        Policies(ManagementPermissions.Positions.Create);
         Description(x => x.WithTags("岗位管理"));
         Summary(s =>
         {

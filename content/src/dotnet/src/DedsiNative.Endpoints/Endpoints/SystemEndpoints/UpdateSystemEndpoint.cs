@@ -18,6 +18,7 @@ public sealed class UpdateSystemEndpoint(ISystemRepository systemRepository)
     public override void Configure()
     {
         Post("/api/system/update/{id}");
+        Policies(ManagementPermissions.Systems.Update);
         Description(x => x.WithTags("系统管理"));
         Summary(s =>
         {

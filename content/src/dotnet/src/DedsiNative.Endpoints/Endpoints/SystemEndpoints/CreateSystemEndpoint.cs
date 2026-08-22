@@ -23,6 +23,7 @@ public sealed class CreateSystemEndpoint(ISystemRepository systemRepository)
     public override void Configure()
     {
         Post("/api/system/create");
+        Policies(ManagementPermissions.Systems.Create);
         Description(x => x.WithTags("系统管理"));
         Summary(s =>
         {

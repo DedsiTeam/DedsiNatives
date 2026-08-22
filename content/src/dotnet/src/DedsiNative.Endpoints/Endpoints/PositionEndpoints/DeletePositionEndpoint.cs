@@ -11,6 +11,7 @@ public sealed class DeletePositionEndpoint(IPositionRepository positionRepositor
     public override void Configure()
     {
         Post("/api/position/delete/{id}");
+        Policies(ManagementPermissions.Positions.Delete);
         Description(x => x.WithTags("岗位管理"));
         Summary(s =>
         {

@@ -4,6 +4,7 @@ using System.Text;
 using Dedsi.CleanArchitecture.HttpApi;
 using DedsiNative.Exceptions;
 using DedsiNative.LoginAudits;
+using DedsiNative.Permissions;
 using DedsiNative.Serialization;
 using FastEndpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -132,6 +133,13 @@ public class DedsiNativeHostModule : AbpModule
 
         context.Services.AddAuthorization(options =>
         {
+            foreach (var permission in ManagementPermissions.All)
+            {
+                options.AddPolicy(permission, policy => policy
+                    .RequireAuthenticatedUser()
+                    .RequireClaim(ManagementPermissions.ClaimType, permission));
+            }
+
             options.AddPolicy(LoginAuditPermissions.View, policy => policy
                 .RequireAuthenticatedUser()
                 .RequireClaim(

@@ -58,7 +58,13 @@ interface OrganizationFormValues {
   description?: string;
 }
 
+import { checkPermission } from '../../../components/Auth';
+import { PERMISSIONS } from '../../../auth/permissions';
+
 export default function OrganizationManagement() {
+  const canCreate = checkPermission(PERMISSIONS.organizations.create);
+  const canUpdate = checkPermission(PERMISSIONS.organizations.update);
+  const canDelete = checkPermission(PERMISSIONS.organizations.delete);
   const [treeData, setTreeData] = useState<OrganizationTreeNodeResultDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [systems, setSystems] = useState<SystemRowResultDto[]>([]);
@@ -323,6 +329,7 @@ export default function OrganizationManagement() {
         <Switch
           size="small"
           checked={isEnabled}
+          disabled={!canUpdate}
           checkedChildren="启用"
           unCheckedChildren="停用"
           onChange={(checked) => void handleToggleStatus(record, checked)}
@@ -359,6 +366,7 @@ export default function OrganizationManagement() {
               type="text"
               size="small"
               icon={<PlusOutlined />}
+              hidden={!canCreate}
               onClick={() => openCreate(record)}
               style={{ color: '#52c41a', fontWeight: 500 }}
             >
@@ -370,6 +378,7 @@ export default function OrganizationManagement() {
               type="text"
               size="small"
               icon={<EditOutlined />}
+              hidden={!canUpdate}
               onClick={() => openEdit(record)}
               style={{ color: 'var(--color-primary)', fontWeight: 500 }}
             >
@@ -384,7 +393,7 @@ export default function OrganizationManagement() {
             okButtonProps={{ danger: true }}
             onConfirm={() => void handleDelete(record.id)}
           >
-            <Button type="text" size="small" danger icon={<DeleteOutlined />} style={{ fontWeight: 500 }}>
+            <Button type="text" size="small" danger icon={<DeleteOutlined />} hidden={!canDelete} style={{ fontWeight: 500 }}>
               删除
             </Button>
           </Popconfirm>
@@ -425,6 +434,7 @@ export default function OrganizationManagement() {
             type="primary"
             className="create-primary-button"
             icon={<PlusOutlined />}
+            hidden={!canCreate}
             onClick={() => openCreate()}
           >
             新增组织机构

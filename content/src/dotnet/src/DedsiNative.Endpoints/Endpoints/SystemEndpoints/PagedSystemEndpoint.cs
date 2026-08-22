@@ -30,6 +30,7 @@ public sealed class PagedSystemEndpoint(ISystemQuery systemQuery)
     public override void Configure()
     {
         Post("/api/system/pagedQuery");
+        Policies(ManagementPermissions.Systems.View);
         Description(x => x.WithTags("系统管理"));
         Summary(s =>
         {

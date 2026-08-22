@@ -57,7 +57,12 @@ function toItemInput(item: DictionaryItemResultDto): SaveDictionaryItemInputDto 
 }
 
 /** 字典分组与字典项的一体化管理页面。 */
+import { checkPermission } from '../../../components/Auth';
+import { PERMISSIONS } from '../../../auth/permissions';
+
 export default function DictionaryManagement() {
+  const canCreate = checkPermission(PERMISSIONS.dictionaries.create);
+  const canUpdate = checkPermission(PERMISSIONS.dictionaries.update);
   // 1. 系统选项与搜索筛选状态
   const [systems, setSystems] = useState<SystemRowResultDto[]>([]);
   const [draftName, setDraftName] = useState('');
@@ -261,7 +266,7 @@ export default function DictionaryManagement() {
           <Button type="link" icon={<EyeOutlined />} onClick={() => openDetail(group)}>
             管理字典项
           </Button>
-          <Button type="link" icon={<EditOutlined />} onClick={() => openGroupForm(group)}>
+          <Button type="link" icon={<EditOutlined />} hidden={!canUpdate} onClick={() => openGroupForm(group)}>
             编辑
           </Button>
         </Space>
@@ -302,6 +307,7 @@ export default function DictionaryManagement() {
         <Switch
           size="small"
           checked={isEnabled}
+          disabled={!canUpdate}
           loading={togglingItemId === item.id}
           onChange={(checked) => void toggleEnabled(item, checked)}
         />
@@ -312,7 +318,7 @@ export default function DictionaryManagement() {
       key: 'actions',
       width: 90,
       render: (_, item) => (
-        <Button type="link" icon={<EditOutlined />} onClick={() => openItemForm(item)}>
+        <Button type="link" icon={<EditOutlined />} hidden={!canUpdate} onClick={() => openItemForm(item)}>
           编辑
         </Button>
       ),
@@ -330,6 +336,7 @@ export default function DictionaryManagement() {
         onReset={handleReset}
         createButton={{
           text: '新增字典分组',
+          hidden: !canCreate,
           onClick: () => openGroupForm(),
         }}
         extraFilters={
@@ -412,7 +419,7 @@ export default function DictionaryManagement() {
             type="primary"
             className="create-primary-button"
             icon={<PlusOutlined />}
-            disabled={!detail}
+            disabled={!detail || !canCreate}
             onClick={() => openItemForm()}
           >
             新增字典项

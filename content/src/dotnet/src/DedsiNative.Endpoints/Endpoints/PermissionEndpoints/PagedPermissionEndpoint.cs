@@ -44,6 +44,7 @@ public sealed class PagedPermissionEndpoint(IPermissionQuery permissionQuery)
     public override void Configure()
     {
         Post("/api/permission/pagedQuery");
+        Policies(ManagementPermissions.Permissions.View);
         Description(x => x.WithTags("权限管理"));
         Summary(s =>
         {

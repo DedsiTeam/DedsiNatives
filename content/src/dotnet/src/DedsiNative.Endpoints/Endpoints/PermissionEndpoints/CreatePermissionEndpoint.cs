@@ -31,6 +31,7 @@ public sealed class CreatePermissionEndpoint(
     public override void Configure()
     {
         Post("/api/permission/create");
+        Policies(ManagementPermissions.Permissions.Create);
         Description(x => x.WithTags("权限管理"));
         Summary(s =>
         {

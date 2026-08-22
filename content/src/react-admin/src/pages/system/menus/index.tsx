@@ -69,7 +69,13 @@ function toMenuInput(menu: MenuResultDto): MenuInputDto {
 }
 
 /** 菜单管理页面，覆盖筛选、维护、详情与删除确认。 */
+import { checkPermission } from '../../../components/Auth';
+import { PERMISSIONS } from '../../../auth/permissions';
+
 export default function MenuManagement() {
+  const canCreate = checkPermission(PERMISSIONS.menus.create);
+  const canUpdate = checkPermission(PERMISSIONS.menus.update);
+  const canDelete = checkPermission(PERMISSIONS.menus.delete);
   const [draftName, setDraftName] = useState('');
   const [name, setName] = useState('');
   const [editing, setEditing] = useState<MenuResultDto | null | undefined>(undefined);
@@ -185,6 +191,7 @@ export default function MenuManagement() {
             type="text"
             size="small"
             icon={<EditOutlined />}
+            hidden={!canUpdate}
             onClick={() => {
               setEditing(menu);
               form.setFieldsValue(toMenuInput(menu));
@@ -197,7 +204,7 @@ export default function MenuManagement() {
             description="存在子菜单时系统会拒绝删除。"
             onConfirm={() => void handleDelete(menu.id, '菜单已删除。')}
           >
-            <Button danger type="text" size="small" icon={<DeleteOutlined />}>
+            <Button danger type="text" size="small" icon={<DeleteOutlined />} hidden={!canDelete}>
               删除
             </Button>
           </Popconfirm>
@@ -217,6 +224,7 @@ export default function MenuManagement() {
         onReset={resetSearch}
         createButton={{
           text: '新增菜单',
+          hidden: !canCreate,
           onClick: openCreate,
         }}
       />

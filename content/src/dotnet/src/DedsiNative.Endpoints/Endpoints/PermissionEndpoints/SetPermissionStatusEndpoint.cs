@@ -16,6 +16,7 @@ public sealed class SetPermissionStatusEndpoint(IPermissionRepository permission
     public override void Configure()
     {
         Post("/api/permission/status/{id}");
+        Policies(ManagementPermissions.Permissions.Update);
         Description(x => x.WithTags("权限管理"));
         Summary(s =>
         {
@@ -31,6 +32,10 @@ public sealed class SetPermissionStatusEndpoint(IPermissionRepository permission
     {
         var id = Route<string>("id")!;
         var permission = await permissionRepository.GetAsync(id, true, ct);
+        if (BuiltInPermissionNames.Contains(permission.Name))
+        {
+            ThrowError("平台内置权限不能停用或启用。");
+        }
 
         if (req.IsEnabled)
         {

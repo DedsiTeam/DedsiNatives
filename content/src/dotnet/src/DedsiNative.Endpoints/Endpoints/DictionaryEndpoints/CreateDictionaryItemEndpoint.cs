@@ -43,6 +43,7 @@ public sealed class CreateDictionaryItemEndpoint(IDictionaryRepository dictionar
     public override void Configure()
     {
         Post("/api/dictionary/{dictionaryId}/item/create");
+        Policies(ManagementPermissions.Dictionaries.Create);
         Description(description => description.WithTags("字典管理"));
         Summary(summary => summary.Summary = "创建字典项");
     }

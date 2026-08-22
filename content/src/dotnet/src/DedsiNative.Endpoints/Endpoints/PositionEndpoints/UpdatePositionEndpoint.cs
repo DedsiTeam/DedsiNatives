@@ -20,6 +20,7 @@ public sealed class UpdatePositionEndpoint(
     public override void Configure()
     {
         Post("/api/position/update/{id}");
+        Policies(ManagementPermissions.Positions.Update);
         Description(x => x.WithTags("岗位管理"));
         Summary(s =>
         {

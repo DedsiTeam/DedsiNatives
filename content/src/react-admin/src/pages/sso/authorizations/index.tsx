@@ -32,7 +32,11 @@ import styles from '../sso.module.css';
 
 const { Text } = Typography;
 
+import { checkPermission } from '../../../components/Auth';
+import { PERMISSIONS } from '../../../auth/permissions';
+
 export default function SsoAuthorizations() {
+  const canManage = checkPermission(PERMISSIONS.openiddict.manage);
   // 1. 查询筛选状态
   const [draftSubject, setDraftSubject] = useState('');
   const [subject, setSubject] = useState('');
@@ -128,7 +132,7 @@ export default function SsoAuthorizations() {
             cancelText="取消"
             okButtonProps={{ danger: true }}
           >
-            <Button type="text" size="small" danger icon={<StopOutlined />} style={{ fontWeight: 500 }}>
+            <Button type="text" size="small" danger icon={<StopOutlined />} hidden={!canManage} style={{ fontWeight: 500 }}>
               吊销
             </Button>
           </Popconfirm>

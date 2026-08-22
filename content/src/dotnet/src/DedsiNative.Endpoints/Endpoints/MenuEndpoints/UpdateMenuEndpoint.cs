@@ -24,6 +24,7 @@ public sealed class UpdateMenuEndpoint(
     public override void Configure()
     {
         Post("/api/menu/update/{id}");
+        Policies(ManagementPermissions.Menus.Update);
     }
 
     /// <summary>

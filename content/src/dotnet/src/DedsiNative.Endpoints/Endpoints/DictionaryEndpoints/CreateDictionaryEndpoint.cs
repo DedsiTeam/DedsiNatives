@@ -34,6 +34,7 @@ public sealed class CreateDictionaryEndpoint(
     public override void Configure()
     {
         Post("/api/dictionary/create");
+        Policies(ManagementPermissions.Dictionaries.Create);
         Description(description => description.WithTags("字典管理"));
         Summary(summary =>
         {

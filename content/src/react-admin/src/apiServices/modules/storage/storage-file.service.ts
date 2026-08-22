@@ -1,5 +1,4 @@
 import request from '../../core/request';
-import { DefaultApiServiceUrl } from '../../../configs';
 import type { StorageFilePagedRequestDto } from './dtos/storage-file-request.dto';
 import type {
   StorageFilePagedResultDto,
@@ -60,18 +59,20 @@ export class StorageApiService {
   }
 
   /**
-   * 获取文件后端真实下载完整直链
+   * 使用当前登录令牌下载文件内容。
    */
-  static getDownloadUrl(id: string) {
-    const base = DefaultApiServiceUrl || '';
-    return `${base}/api/storage/download/${id}`;
+  static downloadFile(id: string): Promise<Blob> {
+    return request.get<Blob>(`/api/storage/download/${encodeURIComponent(id)}`, {
+      responseType: 'blob',
+    });
   }
 
   /**
-   * 获取文件后端真实预览/访问完整直链
+   * 使用当前登录令牌读取文件预览内容。
    */
-  static getPreviewUrl(id: string) {
-    const base = DefaultApiServiceUrl || '';
-    return `${base}/api/storage/preview/${id}`;
+  static previewFile(id: string): Promise<Blob> {
+    return request.get<Blob>(`/api/storage/preview/${encodeURIComponent(id)}`, {
+      responseType: 'blob',
+    });
   }
 }

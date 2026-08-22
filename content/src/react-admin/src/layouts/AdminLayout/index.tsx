@@ -32,6 +32,7 @@ import { ErrorBoundary } from '../../components/ErrorBoundary';
 
 import { MenuApiService, type CurrentUserMenuResultDto, type LoginUserPositionResultDto } from '../../apiServices';
 import { SsoAuthService } from '../../auth/authService';
+import { PERMISSIONS } from '../../auth/permissions';
 
 interface AdminLayoutProps {
   children?: React.ReactNode;
@@ -252,20 +253,36 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         icon: <SettingOutlined />,
         label: '系统管理',
         children: [
-          { key: '/system/systems', icon: <AppstoreOutlined />, label: '系统管理' },
-          { key: '/system/permissions', icon: <SafetyCertificateOutlined />, label: '权限管理' },
-          { key: '/system/menus', icon: <SettingOutlined />, label: '菜单管理' },
-          { key: '/system/positions', icon: <SolutionOutlined />, label: '岗位管理' },
-          { key: '/system/users', icon: <UserOutlined />, label: '用户管理' },
-          { key: '/system/organizations', icon: <ApartmentOutlined />, label: '组织架构' },
-          { key: '/system/storage', icon: <FolderOpenOutlined />, label: '文件管理' },
-          { key: '/system/dictionaries', icon: <BookOutlined />, label: '字典管理' },
-          ...(currentUser.permissions.includes('system:login-audits:view')
+          ...(currentUser.permissions.includes(PERMISSIONS.systems.view)
+            ? [{ key: '/system/systems', icon: <AppstoreOutlined />, label: '系统管理' }]
+            : []),
+          ...(currentUser.permissions.includes(PERMISSIONS.permissions.view)
+            ? [{ key: '/system/permissions', icon: <SafetyCertificateOutlined />, label: '权限管理' }]
+            : []),
+          ...(currentUser.permissions.includes(PERMISSIONS.menus.view)
+            ? [{ key: '/system/menus', icon: <SettingOutlined />, label: '菜单管理' }]
+            : []),
+          ...(currentUser.permissions.includes(PERMISSIONS.positions.view)
+            ? [{ key: '/system/positions', icon: <SolutionOutlined />, label: '岗位管理' }]
+            : []),
+          ...(currentUser.permissions.includes(PERMISSIONS.users.view)
+            ? [{ key: '/system/users', icon: <UserOutlined />, label: '用户管理' }]
+            : []),
+          ...(currentUser.permissions.includes(PERMISSIONS.organizations.view)
+            ? [{ key: '/system/organizations', icon: <ApartmentOutlined />, label: '组织架构' }]
+            : []),
+          ...(currentUser.permissions.includes(PERMISSIONS.storage.view)
+            ? [{ key: '/system/storage', icon: <FolderOpenOutlined />, label: '文件管理' }]
+            : []),
+          ...(currentUser.permissions.includes(PERMISSIONS.dictionaries.view)
+            ? [{ key: '/system/dictionaries', icon: <BookOutlined />, label: '字典管理' }]
+            : []),
+          ...(currentUser.permissions.includes(PERMISSIONS.loginAudits.view)
             ? [{ key: '/system/login-audits', icon: <AuditOutlined />, label: '登录审计' }]
             : []),
         ],
       },
-      {
+      ...(currentUser.permissions.includes(PERMISSIONS.openiddict.view) ? [{
         key: '/sso',
         icon: <SafetyCertificateOutlined />,
         label: 'SSO 认证管理',
@@ -275,7 +292,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           { key: '/sso/authorizations', icon: <KeyOutlined />, label: '用户授权记录' },
           { key: '/sso/tokens', icon: <AuditOutlined />, label: '活跃令牌审计' },
         ],
-      },
+      }] : []),
     ];
   }, [userMenus, currentUser.permissions]);
 

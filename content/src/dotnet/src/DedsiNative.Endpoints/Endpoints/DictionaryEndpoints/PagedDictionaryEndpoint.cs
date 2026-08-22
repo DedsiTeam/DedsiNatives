@@ -53,6 +53,7 @@ public sealed class PagedDictionaryEndpoint(IDictionaryQuery dictionaryQuery)
     public override void Configure()
     {
         Post("/api/dictionary/pagedQuery");
+        Policies(ManagementPermissions.Dictionaries.View);
         Description(description => description.WithTags("字典管理"));
         Summary(summary =>
         {

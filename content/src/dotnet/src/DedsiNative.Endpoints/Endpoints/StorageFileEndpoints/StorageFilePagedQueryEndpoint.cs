@@ -45,6 +45,7 @@ public sealed class StorageFilePagedQueryEndpoint(IStorageFileQuery storageFileQ
     public override void Configure()
     {
         Post("/api/storage/pagedQuery");
+        Policies(ManagementPermissions.Storage.View);
         Description(d => d.WithTags("文件存储管理"));
         Summary(s =>
         {

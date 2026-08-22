@@ -16,7 +16,7 @@ public sealed class PreviewStorageFileEndpoint(
     public override void Configure()
     {
         Get("/api/storage/preview/{id}");
-        AllowAnonymous();
+        Policies(ManagementPermissions.Storage.View);
         Description(d => d.WithTags("文件存储管理"));
         Summary(s =>
         {

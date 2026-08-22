@@ -21,6 +21,7 @@ public sealed class DeleteStorageFileEndpoint(
     public override void Configure()
     {
         Post("/api/storage/delete/{id}");
+        Policies(ManagementPermissions.Storage.Delete);
         Description(d => d.WithTags("文件存储管理"));
         Summary(s =>
         {

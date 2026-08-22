@@ -27,6 +27,7 @@ public sealed class GetPermissionEndpoint(IPermissionRepository permissionReposi
     public override void Configure()
     {
         Get("/api/permission/{id}");
+        Policies(ManagementPermissions.Permissions.View);
         Description(x => x.WithTags("权限管理"));
         Summary(s =>
         {

@@ -16,6 +16,7 @@ public sealed class GetAllSystemEndpoint(ISystemQuery systemQuery)
     public override void Configure()
     {
         Get("/api/system/getAll");
+        Policies(ManagementPermissions.Systems.View);
     }
 
     /// <summary>

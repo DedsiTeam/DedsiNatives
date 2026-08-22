@@ -71,6 +71,7 @@ public sealed class UploadStorageFileEndpoint(
     public override void Configure()
     {
         Post("/api/storage/upload");
+        Policies(ManagementPermissions.Storage.Upload);
         AllowFileUploads();
         Description(d => d.WithTags("文件存储管理"));
         Summary(s =>

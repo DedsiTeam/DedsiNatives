@@ -42,6 +42,7 @@ public class UpdateUserEndpoint(
     public override void Configure()
     {
         Post("/api/user/update/{id}");
+        Policies(ManagementPermissions.Users.Update);
         Description(x => x.WithTags("用户管理"));
         Summary(s =>
         {

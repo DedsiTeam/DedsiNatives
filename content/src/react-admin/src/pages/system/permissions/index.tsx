@@ -66,7 +66,13 @@ const getAvatarColor = (name: string): string => {
 };
 
 /** 权限管理页面，负责权限查询、维护和启用状态管理。 */
+import { checkPermission } from '../../../components/Auth';
+import { BUILT_IN_PERMISSION_NAMES, PERMISSIONS } from '../../../auth/permissions';
+
 export default function PermissionManagement() {
+  const canCreate = checkPermission(PERMISSIONS.permissions.create);
+  const canUpdate = checkPermission(PERMISSIONS.permissions.update);
+  const canDelete = checkPermission(PERMISSIONS.permissions.delete);
   // 1. 系统选项与搜索筛选状态
   const [systems, setSystems] = useState<SystemRowResultDto[]>([]);
   const [draftName, setDraftName] = useState('');
@@ -264,6 +270,7 @@ export default function PermissionManagement() {
         <Space size={8}>
           <Switch
             checked={isEnabled}
+            disabled={!canUpdate || BUILT_IN_PERMISSION_NAMES.has(record.name)}
             onChange={(checked) => void handleStatusChange(record, checked)}
             size="small"
           />
@@ -301,6 +308,7 @@ export default function PermissionManagement() {
             <Button
               type="text"
               icon={<EditOutlined />}
+              hidden={!canUpdate || BUILT_IN_PERMISSION_NAMES.has(record.name)}
               size="small"
               onClick={() => openForm(record)}
               style={{ color: 'var(--color-primary)', fontWeight: 500 }}
@@ -316,7 +324,7 @@ export default function PermissionManagement() {
             okButtonProps={{ danger: true }}
             onConfirm={() => void handleDelete(record.id, '权限已删除')}
           >
-            <Button type="text" danger icon={<DeleteOutlined />} size="small" style={{ fontWeight: 500 }}>
+            <Button type="text" danger icon={<DeleteOutlined />} size="small" hidden={!canDelete || BUILT_IN_PERMISSION_NAMES.has(record.name)} style={{ fontWeight: 500 }}>
               删除
             </Button>
           </Popconfirm>
@@ -336,6 +344,7 @@ export default function PermissionManagement() {
         onReset={handleResetSearch}
         createButton={{
           text: '新增权限',
+          hidden: !canCreate,
           onClick: () => openForm(),
         }}
         extraFilters={

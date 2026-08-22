@@ -13,6 +13,7 @@ public sealed class GetAllOrganizationTreeEndpoint(IOrganizationQuery organizati
     public override void Configure()
     {
         Get("/api/organization/all-tree", "/api/organization/tree");
+        Policies(ManagementPermissions.Organizations.View);
         Description(d => d.WithTags("组织机构管理"));
         Summary(s =>
         {

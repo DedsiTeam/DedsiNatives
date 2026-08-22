@@ -16,6 +16,7 @@ public sealed class GetAllMenuEndpoint(IMenuQuery menuQuery)
     public override void Configure()
     {
         Get("/api/menu/getAll/{systemId}");
+        Policies(ManagementPermissions.Menus.View);
     }
 
     /// <summary>

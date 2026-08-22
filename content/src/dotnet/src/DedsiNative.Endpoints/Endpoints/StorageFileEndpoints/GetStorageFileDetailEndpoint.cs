@@ -46,6 +46,7 @@ public sealed class GetStorageFileDetailEndpoint(IStorageFileRepository storageF
     public override void Configure()
     {
         Get("/api/storage/{id}");
+        Policies(ManagementPermissions.Storage.View);
         Description(d => d.WithTags("文件存储管理"));
         Summary(s =>
         {

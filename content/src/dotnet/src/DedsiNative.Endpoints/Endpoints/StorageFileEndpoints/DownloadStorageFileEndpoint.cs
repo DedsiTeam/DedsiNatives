@@ -17,7 +17,7 @@ public sealed class DownloadStorageFileEndpoint(
     public override void Configure()
     {
         Get("/api/storage/download/{id}");
-        AllowAnonymous();
+        Policies(ManagementPermissions.Storage.View);
         Description(d => d.WithTags("文件存储管理"));
         Summary(s =>
         {

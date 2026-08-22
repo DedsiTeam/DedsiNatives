@@ -397,7 +397,15 @@ const SelectableOrganizationTree: React.FC<SelectableOrganizationTreeProps> = ({
 /**
  * 用户管理主页面组件
  */
+import { checkPermission } from '../../../components/Auth';
+import { PERMISSIONS } from '../../../auth/permissions';
+
 export const UserManagement: React.FC = () => {
+  const canCreate = checkPermission(PERMISSIONS.users.create);
+  const canUpdate = checkPermission(PERMISSIONS.users.update);
+  const canDelete = checkPermission(PERMISSIONS.users.delete);
+  const canResetPassword = checkPermission(PERMISSIONS.users.resetPassword);
+  const canAssignPosition = checkPermission(PERMISSIONS.users.assignPosition);
   // ---------------------------------------------------------------------------
   // State 状态声明
   // ---------------------------------------------------------------------------
@@ -814,6 +822,7 @@ export const UserManagement: React.FC = () => {
             <Button
               type="text"
               icon={<EditOutlined />}
+              hidden={!canUpdate || !canAssignPosition}
               size="small"
               onClick={() => void openModal(record)}
               style={{ color: 'var(--color-primary)', fontWeight: 500 }}
@@ -834,6 +843,7 @@ export const UserManagement: React.FC = () => {
                 type="text"
                 icon={<LockOutlined />}
                 size="small"
+                hidden={!canResetPassword}
                 style={{ color: 'var(--color-warning-strong)', fontWeight: 500 }}
               >
                 重置密码
@@ -848,7 +858,7 @@ export const UserManagement: React.FC = () => {
             cancelText="取消"
             okButtonProps={{ danger: true }}
           >
-            <Button type="text" danger icon={<DeleteOutlined />} size="small" style={{ fontWeight: 500 }}>
+            <Button type="text" danger icon={<DeleteOutlined />} size="small" hidden={!canDelete} style={{ fontWeight: 500 }}>
               删除
             </Button>
           </Popconfirm>
@@ -877,6 +887,7 @@ export const UserManagement: React.FC = () => {
         createButton={{
           text: '新增用户',
           icon: <UserAddOutlined />,
+          hidden: !canCreate,
           onClick: () => void openModal(),
         }}
         extraFilters={

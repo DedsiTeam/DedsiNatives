@@ -84,7 +84,14 @@ const getAvatarColor = (name: string): string => {
 };
 
 /** 岗位管理页面，负责岗位资料、状态和关联数量展示。 */
+import { checkPermission } from '../../../components/Auth';
+import { PERMISSIONS } from '../../../auth/permissions';
+
 export default function PositionManagement() {
+  const canCreate = checkPermission(PERMISSIONS.positions.create);
+  const canUpdate = checkPermission(PERMISSIONS.positions.update);
+  const canDelete = checkPermission(PERMISSIONS.positions.delete);
+  const canAssign = checkPermission(PERMISSIONS.positions.assign);
   // 1. 系统选项与搜索筛选状态
   const [systems, setSystems] = useState<SystemRowResultDto[]>([]);
   const [draftName, setDraftName] = useState('');
@@ -383,6 +390,7 @@ export default function PositionManagement() {
         <Space size={8}>
           <Switch
             checked={isEnabled}
+            disabled={!canUpdate}
             onChange={(checked) => void handleStatusChange(record, checked)}
             size="small"
           />
@@ -420,6 +428,7 @@ export default function PositionManagement() {
             <Button
               type="text"
               icon={<EditOutlined />}
+              hidden={!canUpdate || !canAssign}
               size="small"
               onClick={() => void openForm(record)}
               style={{ color: 'var(--color-primary)', fontWeight: 500 }}
@@ -435,7 +444,7 @@ export default function PositionManagement() {
             okButtonProps={{ danger: true }}
             onConfirm={() => void handleDelete(record.id, '岗位已删除')}
           >
-            <Button type="text" danger icon={<DeleteOutlined />} size="small" style={{ fontWeight: 500 }}>
+            <Button type="text" danger icon={<DeleteOutlined />} size="small" hidden={!canDelete} style={{ fontWeight: 500 }}>
               删除
             </Button>
           </Popconfirm>
@@ -455,6 +464,7 @@ export default function PositionManagement() {
         onReset={handleResetSearch}
         createButton={{
           text: '新增岗位',
+          hidden: !canCreate,
           onClick: () => void openForm(),
         }}
         extraFilters={

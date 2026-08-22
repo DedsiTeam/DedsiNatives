@@ -3,9 +3,8 @@
  * @description 基于通用 CrudToolbar / CrudTable / useCrudTable / CopyableIdTag 组件。
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
-  CopyOutlined,
   DeleteOutlined,
   DownloadOutlined,
   EyeOutlined,
@@ -104,7 +103,12 @@ function getFileIcon(ext: string, previewUrl?: string) {
   return <FileOutlined style={{ color: '#8c8c8c' }} className={styles.fileIcon} />;
 }
 
+import { checkPermission } from '../../../components/Auth';
+import { PERMISSIONS } from '../../../auth/permissions';
+
 export default function StorageManagement() {
+  const canUpload = checkPermission(PERMISSIONS.storage.upload);
+  const canDelete = checkPermission(PERMISSIONS.storage.delete);
   // 检索草稿与实际条件
   const [draftKeyword, setDraftKeyword] = useState('');
   const [keyword, setKeyword] = useState('');
@@ -120,6 +124,11 @@ export default function StorageManagement() {
   // 预览与详情
   const [detailFile, setDetailFile] = useState<StorageFileResultDto | undefined>();
   const [previewFile, setPreviewFile] = useState<StorageFileResultDto | undefined>();
+  const [previewUrl, setPreviewUrl] = useState<string>();
+
+  useEffect(() => () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
 
   // 通用 CRUD Hook
   const queryFilters = useMemo(
@@ -192,11 +201,30 @@ export default function StorageManagement() {
     }
   };
 
-  // 复制访问直链
-  const copyFileUrl = (item: StorageFileResultDto) => {
-    const fullUrl = StorageApiService.getPreviewUrl(item.id);
-    void navigator.clipboard.writeText(fullUrl);
-    message.success('文件直链已复制到剪贴板。');
+  /** 通过带 Bearer Token 的请求加载预览，避免受保护文件暴露匿名直链。 */
+  const openPreview = async (item: StorageFileResultDto) => {
+    try {
+      const blob = await StorageApiService.previewFile(item.id);
+      setPreviewUrl(URL.createObjectURL(blob));
+      setPreviewFile(item);
+    } catch {
+      // 通用错误由请求拦截器统一提示。
+    }
+  };
+
+  /** 通过带 Bearer Token 的请求下载文件。 */
+  const downloadFile = async (item: StorageFileResultDto) => {
+    try {
+      const blob = await StorageApiService.downloadFile(item.id);
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = objectUrl;
+      anchor.download = item.fileName;
+      anchor.click();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+    } catch {
+      // 通用错误由请求拦截器统一提示。
+    }
   };
 
   const columns: ColumnsType<StorageFileResultDto> = [
@@ -207,7 +235,7 @@ export default function StorageManagement() {
       width: 260,
       render: (name: string, record) => (
         <div className={styles.fileNameWrapper}>
-          {getFileIcon(record.extension, StorageApiService.getPreviewUrl(record.id))}
+          {getFileIcon(record.extension)}
           <div className={styles.fileMeta}>
             <Tooltip title={name}>
               <span className={styles.fileName}>{name}</span>
@@ -281,31 +309,19 @@ export default function StorageManagement() {
                 type="text"
                 size="small"
                 icon={<FileImageOutlined />}
-                onClick={() => setPreviewFile(record)}
+                onClick={() => void openPreview(record)}
                 style={{ color: '#13c2c2', fontWeight: 500 }}
               >
                 预览
               </Button>
             </Tooltip>
           )}
-          <Tooltip title="复制文件预览直链">
-            <Button
-              type="text"
-              size="small"
-              icon={<CopyOutlined />}
-              onClick={() => copyFileUrl(record)}
-              style={{ color: '#722ed1', fontWeight: 500 }}
-            >
-              直链
-            </Button>
-          </Tooltip>
           <Tooltip title="下载文件至本地">
             <Button
               type="text"
               size="small"
               icon={<DownloadOutlined />}
-              href={StorageApiService.getDownloadUrl(record.id)}
-              target="_blank"
+              onClick={() => void downloadFile(record)}
               style={{ color: '#52c41a', fontWeight: 500 }}
             >
               下载
@@ -319,7 +335,7 @@ export default function StorageManagement() {
             okButtonProps={{ danger: true }}
             onConfirm={() => void handleDelete(record.id, '文件已成功删除。')}
           >
-            <Button type="text" size="small" danger icon={<DeleteOutlined />} style={{ fontWeight: 500 }}>
+            <Button type="text" size="small" danger icon={<DeleteOutlined />} hidden={!canDelete} style={{ fontWeight: 500 }}>
               删除
             </Button>
           </Popconfirm>
@@ -339,6 +355,7 @@ export default function StorageManagement() {
         onReset={resetSearch}
         createButton={{
           text: '上传文件',
+          hidden: !canUpload,
           onClick: () => {
             setFileList([]);
             uploadForm.resetFields();
@@ -484,11 +501,6 @@ export default function StorageManagement() {
             <Descriptions.Item label="业务分类">
               <Tag color="geekblue">{detailFile.category}</Tag>
             </Descriptions.Item>
-            <Descriptions.Item label="访问直链" span={2}>
-              <Text code copyable>
-                {StorageApiService.getPreviewUrl(detailFile.id)}
-              </Text>
-            </Descriptions.Item>
             <Descriptions.Item label="MD5 哈希" span={2}>
               <Text code>{detailFile.md5Hash || '-'}</Text>
             </Descriptions.Item>
@@ -506,13 +518,15 @@ export default function StorageManagement() {
       <Modal
         title={previewFile?.fileName || '文件在线预览'}
         open={Boolean(previewFile)}
-        onCancel={() => setPreviewFile(undefined)}
+        onCancel={() => {
+          setPreviewFile(undefined);
+          setPreviewUrl(undefined);
+        }}
         footer={[
           <Button
             key="download"
             icon={<DownloadOutlined />}
-            href={previewFile ? StorageApiService.getDownloadUrl(previewFile.id) : undefined}
-            target="_blank"
+            onClick={() => previewFile && void downloadFile(previewFile)}
           >
             下载原文件
           </Button>,
@@ -528,13 +542,13 @@ export default function StorageManagement() {
               previewFile.extension.toLowerCase()
             ) ? (
               <img
-                src={StorageApiService.getPreviewUrl(previewFile.id)}
+                src={previewUrl}
                 alt={previewFile.fileName}
                 className={styles.previewImage}
               />
             ) : previewFile.extension.toLowerCase() === '.pdf' ? (
               <iframe
-                src={StorageApiService.getPreviewUrl(previewFile.id)}
+                src={previewUrl}
                 title={previewFile.fileName}
                 style={{ width: '100%', height: '500px', border: 'none' }}
               />

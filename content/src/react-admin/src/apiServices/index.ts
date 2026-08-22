@@ -11,12 +11,7 @@ export * from './modules/user/user.service';
 export * from './modules/user/dtos/user-input.dto';
 export * from './modules/user/dtos/user-result.dto';
 
-// 3. 导出订单业务模块及其 DTO
-export * from './modules/order/order.service';
-export * from './modules/order/dtos/order-input.dto';
-export * from './modules/order/dtos/order-result.dto';
-
-// 4. 导出认证业务模块及其 DTO
+// 3. 导出认证业务模块及其 DTO
 export * from './modules/auth/auth.service';
 export * from './modules/auth/dtos/auth-input.dto';
 export * from './modules/auth/dtos/auth-result.dto';

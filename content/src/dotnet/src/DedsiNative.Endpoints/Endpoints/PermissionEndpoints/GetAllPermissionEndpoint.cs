@@ -16,6 +16,7 @@ public sealed class GetAllPermissionEndpoint(IPermissionQuery permissionQuery)
     public override void Configure()
     {
         Get("/api/permission/getAll/{systemId}");
+        Policies(ManagementPermissions.Permissions.View);
     }
 
     /// <summary>

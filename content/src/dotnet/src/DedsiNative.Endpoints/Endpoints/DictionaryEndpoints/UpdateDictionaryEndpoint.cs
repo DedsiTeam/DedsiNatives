@@ -25,6 +25,7 @@ public sealed class UpdateDictionaryEndpoint(
     public override void Configure()
     {
         Post("/api/dictionary/update/{id}");
+        Policies(ManagementPermissions.Dictionaries.Update);
         Description(description => description.WithTags("字典管理"));
         Summary(summary =>
         {

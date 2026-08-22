@@ -24,6 +24,7 @@ public sealed class GetUserOrganizationOptionsEndpoint(IOrganizationQuery organi
     public override void Configure()
     {
         Get("/api/organization/user-options");
+        Policies(ManagementPermissions.Organizations.View);
         Description(d => d.WithTags("组织机构管理"));
         Summary(s =>
         {

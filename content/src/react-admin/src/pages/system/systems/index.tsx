@@ -61,7 +61,13 @@ const getAvatarColor = (name: string): string => {
 };
 
 /** 系统管理页面，负责系统列表查询及基础资料维护。 */
+import { checkPermission } from '../../../components/Auth';
+import { PERMISSIONS } from '../../../auth/permissions';
+
 export default function SystemManagement() {
+  const canCreate = checkPermission(PERMISSIONS.systems.create);
+  const canUpdate = checkPermission(PERMISSIONS.systems.update);
+  const canDelete = checkPermission(PERMISSIONS.systems.delete);
   // 1. 查询筛选状态
   const [draftName, setDraftName] = useState('');
   const [name, setName] = useState('');
@@ -219,6 +225,7 @@ export default function SystemManagement() {
             <Button
               type="text"
               icon={<EditOutlined />}
+              hidden={!canUpdate}
               size="small"
               onClick={() => openForm(record)}
               style={{ color: 'var(--color-primary)', fontWeight: 500 }}
@@ -234,7 +241,7 @@ export default function SystemManagement() {
             okButtonProps={{ danger: true }}
             onConfirm={() => void handleDelete(record.id, '系统已删除')}
           >
-            <Button type="text" danger icon={<DeleteOutlined />} size="small" style={{ fontWeight: 500 }}>
+            <Button type="text" danger icon={<DeleteOutlined />} size="small" hidden={!canDelete} style={{ fontWeight: 500 }}>
               删除
             </Button>
           </Popconfirm>
@@ -254,6 +261,7 @@ export default function SystemManagement() {
         onReset={handleResetSearch}
         createButton={{
           text: '新增系统',
+          hidden: !canCreate,
           onClick: () => openForm(),
         }}
       />

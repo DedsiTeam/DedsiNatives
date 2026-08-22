@@ -25,6 +25,7 @@ public sealed class UpdatePermissionEndpoint(
     public override void Configure()
     {
         Post("/api/permission/update/{id}");
+        Policies(ManagementPermissions.Permissions.Update);
         Description(x => x.WithTags("权限管理"));
         Summary(s =>
         {
@@ -40,6 +41,11 @@ public sealed class UpdatePermissionEndpoint(
     {
         var id = Route<string>("id")!;
         var permission = await permissionRepository.GetAsync(id, true, ct);
+        if (BuiltInPermissionNames.Contains(permission.Name))
+        {
+            ThrowError("平台内置权限不能修改。");
+        }
+
         var system = await systemRepository.GetAsync(req.SystemId, true, ct);
 
         permission

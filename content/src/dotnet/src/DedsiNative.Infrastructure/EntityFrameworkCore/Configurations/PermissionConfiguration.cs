@@ -1,5 +1,4 @@
 using DedsiNative.Permissions;
-using DedsiNative.LoginAudits;
 using DedsiNative.Systems;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -11,9 +10,6 @@ namespace DedsiNative.EntityFrameworkCore.Configurations;
 /// <summary>权限聚合根的 EF Core 数据库映射配置。</summary>
 public sealed class PermissionConfiguration : IEntityTypeConfiguration<Permission>
 {
-    private const string IdentitySystemId = "01ARZ3NDEKTSV4RRFFQ69G5FAV";
-    private const string LoginAuditViewPermissionId = "01ARZ3NDEKTSV4RRFFQ69G5FB2";
-
     /// <summary>配置权限表、系统关系、字段约束和并发令牌。</summary>
     /// <param name="builder">权限实体类型构建器。</param>
     public void Configure(EntityTypeBuilder<Permission> builder)
@@ -42,20 +38,20 @@ public sealed class PermissionConfiguration : IEntityTypeConfiguration<Permissio
             .IsRequired(false)
             .IsConcurrencyToken();
 
-        // 登录审计查询必须有可分配的权限数据，默认只授予既有系统管理员岗位。
-        builder.HasData(new
+        // 内置权限必须进入权限表，岗位分配和令牌签发才能使用同一份真实数据。
+        builder.HasData(BuiltInPermissionSeedCatalog.All.Select(permission => new
         {
-            Id = LoginAuditViewPermissionId,
-            SystemId = IdentitySystemId,
+            permission.Id,
+            SystemId = BuiltInPermissionSeedCatalog.IdentitySystemId,
             SystemName = "身份管理系统",
-            Name = LoginAuditPermissions.View,
-            Description = "查看登录审计列表和详情。",
+            permission.Name,
+            permission.Description,
             IsEnabled = true,
             ExtraProperties = new ExtraPropertyDictionary(),
             ConcurrencyStamp = (string?)null,
             CreatorId = Guid.Empty,
             CreatorName = "system",
             CreationTime = new DateTime(2026, 8, 4, 10, 30, 0)
-        });
+        }));
     }
 }

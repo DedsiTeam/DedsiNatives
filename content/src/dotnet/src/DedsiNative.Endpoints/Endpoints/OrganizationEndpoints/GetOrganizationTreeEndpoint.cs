@@ -48,6 +48,7 @@ public sealed class GetOrganizationTreeEndpoint(IOrganizationQuery organizationQ
     public override void Configure()
     {
         Get("/api/organization/tree/{systemId}");
+        Policies(ManagementPermissions.Organizations.View);
         Description(d => d.WithTags("组织机构管理"));
         Summary(s =>
         {

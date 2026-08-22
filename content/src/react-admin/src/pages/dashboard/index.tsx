@@ -31,6 +31,8 @@ import {
   LoginResult,
 } from '../../apiServices';
 import styles from './Dashboard.module.css';
+import { checkPermission } from '../../components/Auth';
+import { PERMISSIONS } from '../../auth/permissions';
 
 const { Text } = Typography;
 
@@ -42,6 +44,12 @@ interface DashboardStats {
 }
 
 export const Dashboard: React.FC = () => {
+  const canViewUsers = checkPermission(PERMISSIONS.users.view);
+  const canViewSystems = checkPermission(PERMISSIONS.systems.view);
+  const canViewPositions = checkPermission(PERMISSIONS.positions.view);
+  const canViewMenus = checkPermission(PERMISSIONS.menus.view);
+  const canViewDictionaries = checkPermission(PERMISSIONS.dictionaries.view);
+  const canViewLoginAudits = checkPermission(PERMISSIONS.loginAudits.view);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({
@@ -66,21 +74,21 @@ export const Dashboard: React.FC = () => {
     setLoading(true);
     try {
       const [usersRes, systemsRes, positionsRes, auditsRes] = await Promise.allSettled([
-        UserApiService.getPageList({ pageIndex: 1, pageSize: 1 }),
-        SystemApiService.getPageList({ pageIndex: 1, pageSize: 1 }),
-        PositionApiService.getPageList({ pageIndex: 1, pageSize: 1 }),
-        LoginAuditApiService.getPageList({ pageIndex: 1, pageSize: 6 }),
+        canViewUsers ? UserApiService.getPageList({ pageIndex: 1, pageSize: 1 }) : Promise.resolve(null),
+        canViewSystems ? SystemApiService.getPageList({ pageIndex: 1, pageSize: 1 }) : Promise.resolve(null),
+        canViewPositions ? PositionApiService.getPageList({ pageIndex: 1, pageSize: 1 }) : Promise.resolve(null),
+        canViewLoginAudits ? LoginAuditApiService.getPageList({ pageIndex: 1, pageSize: 6 }) : Promise.resolve(null),
       ]);
 
       setStats({
-        userCount: usersRes.status === 'fulfilled' ? usersRes.value.totalCount : 1,
-        systemCount: systemsRes.status === 'fulfilled' ? systemsRes.value.totalCount : 1,
-        positionCount: positionsRes.status === 'fulfilled' ? positionsRes.value.totalCount : 1,
-        auditCount: auditsRes.status === 'fulfilled' ? auditsRes.value.totalCount : 0,
+        userCount: usersRes.status === 'fulfilled' ? usersRes.value?.totalCount ?? 0 : 0,
+        systemCount: systemsRes.status === 'fulfilled' ? systemsRes.value?.totalCount ?? 0 : 0,
+        positionCount: positionsRes.status === 'fulfilled' ? positionsRes.value?.totalCount ?? 0 : 0,
+        auditCount: auditsRes.status === 'fulfilled' ? auditsRes.value?.totalCount ?? 0 : 0,
       });
 
       if (auditsRes.status === 'fulfilled') {
-        setRecentAudits(auditsRes.value.items || []);
+        setRecentAudits(auditsRes.value?.items || []);
       }
     } catch {
       // 错误由拦截器统一处理
@@ -154,7 +162,7 @@ export const Dashboard: React.FC = () => {
 
       {/* 核心指标卡片 */}
       <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={6} hidden={!canViewSystems}>
           <Card className={styles.statCard} bordered={false}>
             <Statistic
               title={<span style={{ color: '#6b7280', fontSize: 13 }}>接入系统</span>}
@@ -165,7 +173,7 @@ export const Dashboard: React.FC = () => {
           </Card>
         </Col>
 
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={6} hidden={!canViewUsers}>
           <Card className={styles.statCard} bordered={false}>
             <Statistic
               title={<span style={{ color: '#6b7280', fontSize: 13 }}>用户总数</span>}
@@ -176,7 +184,7 @@ export const Dashboard: React.FC = () => {
           </Card>
         </Col>
 
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={6} hidden={!canViewPositions}>
           <Card className={styles.statCard} bordered={false}>
             <Statistic
               title={<span style={{ color: '#6b7280', fontSize: 13 }}>岗位总数</span>}
@@ -187,7 +195,7 @@ export const Dashboard: React.FC = () => {
           </Card>
         </Col>
 
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={6} hidden={!canViewLoginAudits}>
           <Card className={styles.statCard} bordered={false}>
             <Statistic
               title={<span style={{ color: '#6b7280', fontSize: 13 }}>登录审计日志</span>}
@@ -206,7 +214,7 @@ export const Dashboard: React.FC = () => {
         style={{ borderRadius: 10 }}
       >
         <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} md={8} lg={4}>
+          <Col xs={24} sm={12} md={8} lg={4} hidden={!canViewUsers}>
             <div className={styles.quickActionCard} onClick={() => navigate('/system/users')}>
               <div className={styles.quickActionIcon} style={{ background: '#e6f4ff', color: '#1677ff' }}>
                 <UserOutlined />
@@ -218,7 +226,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </Col>
 
-          <Col xs={24} sm={12} md={8} lg={4}>
+          <Col xs={24} sm={12} md={8} lg={4} hidden={!canViewPositions}>
             <div className={styles.quickActionCard} onClick={() => navigate('/system/positions')}>
               <div className={styles.quickActionIcon} style={{ background: '#f9f0ff', color: '#722ed1' }}>
                 <SafetyCertificateOutlined />
@@ -230,7 +238,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </Col>
 
-          <Col xs={24} sm={12} md={8} lg={4}>
+          <Col xs={24} sm={12} md={8} lg={4} hidden={!canViewSystems}>
             <div className={styles.quickActionCard} onClick={() => navigate('/system/systems')}>
               <div className={styles.quickActionIcon} style={{ background: '#f0f5ff', color: '#2f54eb' }}>
                 <AppstoreOutlined />
@@ -242,7 +250,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </Col>
 
-          <Col xs={24} sm={12} md={8} lg={4}>
+          <Col xs={24} sm={12} md={8} lg={4} hidden={!canViewMenus}>
             <div className={styles.quickActionCard} onClick={() => navigate('/system/menus')}>
               <div className={styles.quickActionIcon} style={{ background: '#f6ffed', color: '#52c41a' }}>
                 <MenuOutlined />
@@ -254,7 +262,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </Col>
 
-          <Col xs={24} sm={12} md={8} lg={4}>
+          <Col xs={24} sm={12} md={8} lg={4} hidden={!canViewDictionaries}>
             <div className={styles.quickActionCard} onClick={() => navigate('/system/dictionaries')}>
               <div className={styles.quickActionIcon} style={{ background: '#fff7e6', color: '#fa8c16' }}>
                 <BookOutlined />
@@ -266,7 +274,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </Col>
 
-          <Col xs={24} sm={12} md={8} lg={4}>
+          <Col xs={24} sm={12} md={8} lg={4} hidden={!canViewLoginAudits}>
             <div className={styles.quickActionCard} onClick={() => navigate('/system/login-audits')}>
               <div className={styles.quickActionIcon} style={{ background: '#fff0f6', color: '#eb2f96' }}>
                 <AuditOutlined />
@@ -283,7 +291,7 @@ export const Dashboard: React.FC = () => {
       {/* 主体两列布局：最近审计 + 系统技术架构与健康 */}
       <Row gutter={[16, 16]}>
         {/* 左侧：最近安全审计 */}
-        <Col xs={24} lg={15}>
+        <Col xs={24} lg={15} hidden={!canViewLoginAudits}>
           <Card
             title={<span style={{ fontWeight: 600, fontSize: 15 }}>最近登录与安全审计</span>}
             extra={

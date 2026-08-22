@@ -7,7 +7,11 @@ public sealed class DeleteMenuEndpoint(
     IMenuRepository menus,
     IMenuQuery menuQuery) : EndpointWithoutRequest<bool>
 {
-    public override void Configure() => Post("/api/menu/delete/{id}");
+    public override void Configure()
+    {
+        Post("/api/menu/delete/{id}");
+        Policies(ManagementPermissions.Menus.Delete);
+    }
 
     public override async Task HandleAsync(CancellationToken ct)
     {

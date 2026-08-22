@@ -19,6 +19,7 @@ public sealed class GetSystemEndpoint(ISystemRepository systemRepository)
     public override void Configure()
     {
         Get("/api/system/{id}");
+        Policies(ManagementPermissions.Systems.View);
         Description(x => x.WithTags("系统管理"));
         Summary(s =>
         {

@@ -15,6 +15,7 @@ public class DeleteUserEndpoint(IUserRepository userRepository) : EndpointWithou
     public override void Configure()
     {
         Post("/api/user/delete/{id}");
+        Policies(ManagementPermissions.Users.Delete);
         Description(x => x.WithTags("用户管理"));
         Summary(s =>
         {

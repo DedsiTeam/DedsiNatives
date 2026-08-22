@@ -59,6 +59,7 @@ public class GetUserEndpoint(IUserRepository userRepository)
     public override void Configure()
     {
         Get("/api/user/{id}");
+        Policies(ManagementPermissions.Users.View);
         Description(x => x.WithTags("用户管理"));
         Summary(s =>
         {

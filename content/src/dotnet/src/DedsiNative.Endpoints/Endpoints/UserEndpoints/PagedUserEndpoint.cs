@@ -59,6 +59,7 @@ public class PagedUserEndpoint(IUserQuery userQuery)
     public override void Configure()
     {
         Post("/api/user/pagedQuery");
+        Policies(ManagementPermissions.Users.View);
         Description(x => x.WithTags("用户管理"));
         Summary(s =>
         {

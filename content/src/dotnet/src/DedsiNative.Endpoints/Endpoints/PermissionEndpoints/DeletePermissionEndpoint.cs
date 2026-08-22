@@ -12,6 +12,7 @@ public sealed class DeletePermissionEndpoint(IPermissionRepository permissionRep
     public override void Configure()
     {
         Post("/api/permission/delete/{id}");
+        Policies(ManagementPermissions.Permissions.Delete);
         Description(x => x.WithTags("权限管理"));
         Summary(s =>
         {
@@ -26,6 +27,11 @@ public sealed class DeletePermissionEndpoint(IPermissionRepository permissionRep
     {
         var id = Route<string>("id")!;
         var permission = await permissionRepository.GetAsync(id, true, ct);
+        if (BuiltInPermissionNames.Contains(permission.Name))
+        {
+            ThrowError("平台内置权限不能删除。");
+        }
+
         await permissionRepository.DeleteAsync(permission, true, ct);
         await Send.OkAsync(true, ct);
     }

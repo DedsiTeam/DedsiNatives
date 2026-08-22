@@ -69,7 +69,11 @@ const SCOPE_PERMISSIONS = [
   { label: 'DedsiNative API (scp:dedsinative_api)', value: 'scp:dedsinative_api' },
 ];
 
+import { checkPermission } from '../../../components/Auth';
+import { PERMISSIONS } from '../../../auth/permissions';
+
 export default function SsoApplications() {
+  const canManage = checkPermission(PERMISSIONS.openiddict.manage);
   // 1. 查询筛选状态
   const [draftClientId, setDraftClientId] = useState('');
   const [clientId, setClientId] = useState('');
@@ -268,6 +272,7 @@ export default function SsoApplications() {
             type="text"
             size="small"
             icon={<EditOutlined />}
+            hidden={!canManage}
             onClick={() => handleOpenEdit(record)}
             style={{ fontWeight: 500 }}
           >
@@ -281,7 +286,7 @@ export default function SsoApplications() {
               okText="确认重置"
               cancelText="取消"
             >
-              <Button type="text" size="small" icon={<KeyOutlined />} style={{ color: 'var(--color-purple)' }}>
+              <Button type="text" size="small" icon={<KeyOutlined />} hidden={!canManage} style={{ color: 'var(--color-purple)' }}>
                 重置密钥
               </Button>
             </Popconfirm>
@@ -294,7 +299,7 @@ export default function SsoApplications() {
             cancelText="取消"
             okButtonProps={{ danger: true }}
           >
-            <Button type="text" size="small" danger icon={<DeleteOutlined />} style={{ fontWeight: 500 }}>
+            <Button type="text" size="small" danger icon={<DeleteOutlined />} hidden={!canManage} style={{ fontWeight: 500 }}>
               删除
             </Button>
           </Popconfirm>
@@ -314,6 +319,7 @@ export default function SsoApplications() {
         onReset={handleReset}
         createButton={{
           text: '注册客户端',
+          hidden: !canManage,
           onClick: handleOpenCreate,
         }}
       />

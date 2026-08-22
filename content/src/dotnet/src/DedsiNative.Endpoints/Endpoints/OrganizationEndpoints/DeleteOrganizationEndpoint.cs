@@ -22,6 +22,7 @@ public sealed class DeleteOrganizationEndpoint(
     public override void Configure()
     {
         Post("/api/organization/delete/{id}");
+        Policies(ManagementPermissions.Organizations.Delete);
         Description(d => d.WithTags("组织机构管理"));
         Summary(s =>
         {

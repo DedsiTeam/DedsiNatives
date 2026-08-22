@@ -11,6 +11,7 @@ public sealed class DeleteSystemEndpoint(ISystemRepository systemRepository) : E
     public override void Configure()
     {
         Post("/api/system/delete/{id}");
+        Policies(ManagementPermissions.Systems.Delete);
         Description(x => x.WithTags("系统管理"));
         Summary(s =>
         {

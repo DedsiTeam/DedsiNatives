@@ -1,5 +1,4 @@
 using DedsiNative.Positions;
-using DedsiNative.LoginAudits;
 using DedsiNative.Permissions;
 using DedsiNative.Systems;
 using Microsoft.EntityFrameworkCore;
@@ -65,10 +64,6 @@ public sealed class PositionConfiguration : IEntityTypeConfiguration<Position>
 /// <summary>岗位权限子实体的 EF Core 映射配置。</summary>
 public sealed class PositionPermissionConfiguration : IEntityTypeConfiguration<PositionPermission>
 {
-    private const string IdentitySystemId = "01ARZ3NDEKTSV4RRFFQ69G5FAV";
-    private const string AdministratorPositionId = "01ARZ3NDEKTSV4RRFFQ69G5FB0";
-    private const string LoginAuditViewPermissionId = "01ARZ3NDEKTSV4RRFFQ69G5FB2";
-
     /// <summary>配置岗位权限复合主键和字段长度。</summary>
     public void Configure(EntityTypeBuilder<PositionPermission> builder)
     {
@@ -80,14 +75,15 @@ public sealed class PositionPermissionConfiguration : IEntityTypeConfiguration<P
         builder.Property(x => x.SystemId).HasMaxLength(26).IsRequired();
         builder.Property(x => x.SystemName).HasMaxLength(PermissionConsts.MaxNameLength).IsRequired();
 
-        builder.HasData(new
+        // 升级模板后保留默认管理员的完整管理能力，其他岗位仍按显式分配结果授权。
+        builder.HasData(BuiltInPermissionSeedCatalog.All.Select(permission => new
         {
-            PositionId = AdministratorPositionId,
-            PermissionId = LoginAuditViewPermissionId,
-            PermissionName = LoginAuditPermissions.View,
-            SystemId = IdentitySystemId,
+            PositionId = BuiltInPermissionSeedCatalog.AdministratorPositionId,
+            PermissionId = permission.Id,
+            PermissionName = permission.Name,
+            SystemId = BuiltInPermissionSeedCatalog.IdentitySystemId,
             SystemName = "身份管理系统"
-        });
+        }));
     }
 }
 

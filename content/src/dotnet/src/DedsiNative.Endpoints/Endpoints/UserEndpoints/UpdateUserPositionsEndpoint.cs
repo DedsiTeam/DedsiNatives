@@ -26,6 +26,7 @@ public sealed class UpdateUserPositionsEndpoint(
     public override void Configure()
     {
         Post("/api/user/positions/{id}");
+        Policies(ManagementPermissions.Users.AssignPosition);
         Description(x => x.WithTags("用户管理"));
         Summary(s =>
         {
