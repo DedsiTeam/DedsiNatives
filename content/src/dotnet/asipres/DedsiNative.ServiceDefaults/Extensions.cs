@@ -17,12 +17,16 @@ public static class Extensions
 {
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
+    private const string RedisConnectionName = "DedsiCohenRedis";
 
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.ConfigureOpenTelemetry();
 
         builder.AddDefaultHealthChecks();
+
+        // 使用 Aspire 注入的 Redis 连接注册分布式缓存，供各宿主共享缓存状态。
+        builder.AddRedisDistributedCache(RedisConnectionName);
 
         builder.Services.AddServiceDiscovery();
 

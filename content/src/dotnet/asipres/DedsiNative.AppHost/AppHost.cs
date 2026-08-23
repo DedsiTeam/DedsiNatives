@@ -11,6 +11,8 @@ var rabbitMqPassword = builder.AddParameter("DedsiCohenRabbitMqPassword", secret
 
 var minioUserName = builder.AddParameter("DedsiCohenMinioUserName", secret: false);
 var minioPassword = builder.AddParameter("DedsiCohenMinioPassword", secret: true);
+
+var redisPassword = builder.AddParameter("DedsiCohenRedisPassword", secret: true);
 #endregion
 
 #region 基础设施
@@ -29,6 +31,11 @@ var rabbitMq = builder.AddRabbitMQ("DedsiCohenRabbitMQ", userName: rabbitMqUserN
 var minio = builder.AddMinioContainer("DedsiCohenMinio", rootUser: minioUserName, rootPassword: minioPassword, port: 11629)
     .WithDataBindMount(source: macPath + "/Minio/Data")
     .WithLifetime(ContainerLifetime.Persistent);
+
+// Redis 为业务服务和认证服务提供共享的分布式缓存。
+var redis = builder.AddRedis("DedsiCohenRedis", password: redisPassword, port: 16379)
+    .WithDataBindMount(source: macPath + "/Redis/Data")
+    .WithLifetime(ContainerLifetime.Persistent);
 #endregion
 
 builder
@@ -36,17 +43,21 @@ builder
     .WithReference(dedsiNativeDB)
     .WithReference(rabbitMq)
     .WithReference(minio)
+    .WithReference(redis)
     .WaitFor(dedsiNativeDB)
     .WaitFor(rabbitMq)
-    .WaitFor(minio);
+    .WaitFor(minio)
+    .WaitFor(redis);
 
 builder
     .AddProject<Projects.DedsiNative_Host>("dedsinative-host")
     .WithReference(dedsiNativeDB)
     .WithReference(rabbitMq)
     .WithReference(minio)
+    .WithReference(redis)
     .WaitFor(dedsiNativeDB)
     .WaitFor(rabbitMq)
-    .WaitFor(minio);
+    .WaitFor(minio)
+    .WaitFor(redis);
 
 builder.Build().Run();
