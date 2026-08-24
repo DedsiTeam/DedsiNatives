@@ -1,53 +1,32 @@
 ---
 name: create-domain-work-item
-description: 根据 DedsiNative 指定的 docs/domains 中文领域模型文档创建或整理 docs/workItems 工作项。用户要求为一个领域创建、拆分、合并、整理或更新工作项时使用；必须提供存在的领域模型文档，并按可独立验收的业务能力划分全栈工作项。
+description: 根据 DedsiNative 指定的 docs/domains 中文领域文档，通过 Azure DevOps MCP 创建或整理可独立验收的远程全栈工作项。
 ---
 
 # 创建领域工作项
 
-依据指定且已确认的领域模型文档生成可执行、可验收的 DedsiNative 工作项。一个领域可以形成一个或多个工作项；每项必须是可独立验证的业务能力，并在同一项内完成所需的领域、后端、前端和验证闭环。
+Azure DevOps 是工作项唯一事实来源；不得创建 `docs/workItems` 或其他本地需求副本。
 
-## 强制前置条件
+## 前置条件
 
-- 调用方必须明确指定一个领域模型文档路径，例如 `docs/domains/用户.md`。
-- 该文件必须存在并可完整读取；它是本次工作项的领域事实来源。
-- 未提供路径、文件不存在、无法读取，或指定文件不属于 `docs/domains/` 时，立即停止并要求用户指定有效的领域模型文档。不得基于用户口述、代码猜测或其他领域文档创建工作项。
+- 调用方必须明确指定存在于 `docs/domains/` 的领域文档，并完整读取。
+- 必须取得 Azure DevOps Project；通过 MCP 检查团队使用的需求工作项类型。类型不唯一且无法从现有 backlog 判断时停止询问，不得猜测。
+- 完整读取根 `AGENTS.md` 与 `work-item-loop/references/work-item-protocol.md`，确认 ado MCP 具有查询、创建、更新和评论权限。
 
-## 准备
+## 形成工作项
 
-1. 将包含 `docs/`、`src/` 和 `AGENTS.md` 的目录作为项目根，完整读取根 `AGENTS.md` 与所有会影响目标路径的更具体 `AGENTS.md`。
-2. 完整读取 `docs/workItems/_template.md` 和 `.agents/skills/work-item-loop/references/work-item-protocol.md`。
-3. 验证调用方明确指定的目标文件位于 `docs/domains/`，并完整读取该领域模型文档；用户提供的字段、边界或范围只能补充该文档中的已确认事实，不能替代指定文档。
-4. 检查 `docs/workItems/` 中现有工作项的 ID、状态和同领域内容，避免重复创建或覆盖用户已有事实。
+- 按可独立验收的业务能力拆分，不按技术层、页面局部或同一聚合内部实体拆分。
+- 聚合根及内部子实体保持同一项；CRUD 只有具备独立业务价值时才拆分。
+- 领域文档中的确认事实进入 Description/Acceptance Criteria；建议和待确认内容保持显式待决，不擅自固化。
+- 至少覆盖适用的领域不变量、持久化、Endpoint 契约、前端类型安全体验、构建与测试证据。
 
-## 聚合与拆分规则
+## MCP 创建流程
 
-- 以“可独立验收的业务能力”为粒度。一个领域既可以只有一个整体工作项，也可以有多个有清晰结果和边界的全栈工作项。
-- 将聚合根与其内部子实体作为同一工作项。例如 `Dictionary` 与 `DictionaryItem` 是一个字典领域整体，必须在同一个工作项中管理；不得因为“分组”和“字典项”分别创建两个工作项。
-- 不按技术层（领域/后端/前端）、页面局部区域或单个子实体拆分工作项。
-- 创建、查询、修改、删除等操作只有在各自具备独立业务价值和验收证据时才可分别成项；拆分后必须记录先后依赖和公共契约，避免纯技术性 CRUD 碎片。
-- 功能属于不同聚合边界或可独立交付的业务能力时，可以创建多个工作项，并记录拆分原因和依赖。
-- 用户要求合并已有同领域草稿时，保留一个 ID 最小或用户指定的工作项，合并有效事实，删除其余重复的 `draft` 文件；不得删除非 `draft` 工作项，除非用户明确授权。
+1. 使用保存查询、全文搜索或 backlog 工具检查重复项和依赖。
+2. 使用 `wit_work_item_write` 的 `create` 创建团队实际使用的需求工作项类型。
+3. 填写 `System.Title`、`System.Description`、Acceptance Criteria、Area/Iteration（调用方提供时）和优先级。
+4. 添加 `codex-loop; codex-draft; codex-stage-backlog; codex-attempt-0`，保留 Azure DevOps 业务标签约定。
+5. 添加 Markdown 评论，记录领域来源、拆分理由、未决事项和进入 `codex-ready` 前的评审条件；不得记录秘密。
+6. 重新读取工作项，验证字段、标签、链接和唯一性，返回 ID 与 URL。
 
-## 编写工作项
-
-1. 在 `docs/workItems/{领域英文复数或现有模块名}/` 创建 `WI-{DOMAIN}-001-{中文标题}.md`。扫描同前缀 ID，使用下一个未占用序号。
-2. 使用模板完整填写 YAML Front Matter。新工作项默认使用：
-
-   ```yaml
-   work-item-status: draft
-   work-item-stage: backlog
-   work-item-scope: full-stack
-   work-item-attempt: 0
-   ```
-
-3. 写清目标、用户故事、业务规则、包含范围、不包含范围、验收标准和实现提示。以领域语言描述行为，禁止把 Endpoint 或 `DbContext` 直接操作写成领域规则。
-4. 将领域文档已确认的字段、标识策略、聚合边界和不变量写为既定事实。把文档中标为“建议”或“待确认”的唯一性、长度、状态、删除、权限、层级和缓存规则原样标注为待人工确认，不得擅自固化。
-5. 至少定义以下可验证验收面：聚合边界与不变量、持久化与仓储、Endpoint 不直接操作 `DbContext`、前端类型安全与管理体验、后端/前端构建和相关测试。
-6. 保留 `LOOP_LOG_START` 与 `LOOP_LOG_END` 标记；创建记录只说明该工作项尚未实施以及进入 `ready` 前的未决业务规则，不记录秘密。
-
-## 状态与校验
-
-- 除非用户明确要求准备执行，否则只创建或更新 `draft` 工作项，不将其转为 `ready`，也不启动 Loop。
-- 创建后验证工作项 ID 唯一、YAML 元数据完整、验收标准符合协议、日志标记存在，且 `git diff --check` 通过。
-- 只修改 `docs/workItems/`；若为澄清领域事实需要修改 `docs/domains/`，必须改用并遵循 `create-domain-doc` Skill。
+除非用户明确批准实施，禁止自动把 `codex-draft` 改成 `codex-ready`，也不启动 Loop。只通过 MCP 修改 Azure DevOps；领域事实本身需要修改时改用 `create-domain-doc`。
