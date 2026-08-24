@@ -21,13 +21,20 @@
 - 会改变领域语义、公开契约、数据结构、权限或安全边界的歧义属于阻塞项；低风险且易回退的实现细节采用与现有代码一致的保守方案。
 - 不手工编辑 EF Core Migration、Designer 或 ModelSnapshot；模型变化时使用项目约定工具生成并检查迁移，未经明确要求不执行 `database update`。
 
+## Azure DevOps 项目边界
+
+- 本地项目只对应 Azure DevOps Project `{{ADO_PROJECT}}`；`.codex/config.toml` 通过 `ado_mcp_project` 将它设为 MCP 默认项目。
+- 使用 Azure DevOps MCP 时，优先采用该默认项目，并在工具支持 Project 参数时显式传入 `{{ADO_PROJECT}}`；不得为了选择项目而枚举或猜测其他 Project。
+- 除非用户明确要求跨项目操作，否则查询、创建、更新、评论、分支、PR 和 Pipeline 操作都必须限制在 `{{ADO_PROJECT}}`。MCP 返回其他 Project 的资源时立即停止，不得继续写入。
+- Project 占位符未替换、默认项目不存在或当前身份无权访问时属于阻塞项；不得回退到组织中的其他 Project。
+
 ## 按范围加载规则与 Skill
 
 - 修改 `src/dotnet/`：完整读取 `.agents/rules/dotnet.md`，再按任务选择 `dedsi-add-dotnet-feature`、`dedsi-build-fastendpoint`、`dedsi-efcore-persistence`；只读取所选 Skill 要求的 references。
 - 修改 `src/react-admin/`：完整读取 `.agents/rules/react-admin.md`；涉及页面、布局或样式时使用 `dedsi-style-react-admin-ui`，完整业务功能使用 `dedsi-add-react-admin-feature`，API 契约使用 `dedsi-build-react-admin-api`。
 - 创建或更新 `docs/domains/*.md`：使用 `create-domain-doc`。
-- 根据领域文档创建工作项：使用 `create-domain-work-item`；根据直接需求创建工作项：使用 `create-requirement-work-item`。
-- 执行、继续、恢复、预览或验证 `docs/workItems` 队列：使用 `work-item-loop`。该 Skill 及其 protocol 是状态、阶段、日志和停止条件的唯一流程来源。
+- 根据领域文档在 Azure DevOps 创建工作项：使用 `create-domain-work-item`；根据直接需求创建远程工作项：使用 `create-requirement-work-item`。
+- 领取、执行、继续、恢复、预览或验证 Azure DevOps 工作项队列：使用 `work-item-loop`。该 Skill 及其 protocol 是状态、阶段、评论日志和停止条件的唯一流程来源；不得在本地创建需求或工作项副本。
 
 同一规则只保留一个事实来源。Skill 入口负责路由与关键约束，完整示例、模板和条件性细节放在其 `references/`；不要为了“更保险”读取未被当前任务选中的全部 Skill。
 

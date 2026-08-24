@@ -20,13 +20,25 @@
   "preferNameDirectory": true,
   "symbols": {
     "HttpPort": {
-      "type": "generated",
-      "generator": "port",
-      "parameters": {
-        "low": 10010,
-        "high": 65535
-      },
+      "type": "parameter",
+      "datatype": "integer",
+      "description": "后端 HTTP 服务端口。",
+      "defaultValue": "12256",
       "replaces": "12256"
+    },
+    "AdoOrg": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "Azure DevOps 组织名，用于 .codex/config.toml 中的 Local MCP PAT 连接。",
+      "defaultValue": "CohenTeam",
+      "replaces": "{{ADO_ORG}}"
+    },
+    "AdoProject": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "Azure DevOps Project 名称，用于工作项 Loop。",
+      "defaultValue": "DedsiNative",
+      "replaces": "{{ADO_PROJECT}}"
     }
   },
   "sources": [

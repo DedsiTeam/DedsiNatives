@@ -24,7 +24,7 @@
 │   │   │   └── DedsiNative.ServiceDefaults/ # Aspire 服务默认配置
 │   │   └── DedsiNative.slnx
 │   └── react-admin/                          # React 前端管理后台
-└── docs/                                     # 工作项与领域 Markdown 文档
+└── docs/                                     # 领域 Markdown 文档；工作项存放于 Azure DevOps
 ```
 
 ## 快速开始
@@ -67,26 +67,53 @@ bun dev       # 或 npm run dev
 
 ## 文档存放规范
 
-`docs/` 目录使用 Markdown（`.md`）维护工作项和领域文档。
+`docs/` 目录只维护领域文档。需求、工作项、验收标准、状态和执行日志统一存放于 Azure DevOps，不在本地创建副本。
 
 前端 UI 规范请参考：[dedsi-style-react-admin-ui](.agents/skills/dedsi-style-react-admin-ui/SKILL.md)。
 
-## 工作项 Agent Loop
+## Azure DevOps MCP 与并发 Agent Loop
 
-项目支持以 `docs/workItems` Markdown 文件作为持久化队列，依次完成领域模型、.NET 后端、React 前端和验证闭环。
+项目通过 [`.codex/config.toml`](.codex/config.toml) 为 Codex CLI、桌面端和 IDE 配置 Azure DevOps Local MCP。Local MCP 由 `npx @azure-devops/mcp` 启动并使用 PAT 认证；Azure DevOps 是工作项、验收标准、状态、评论日志、分支、PR 和 Pipeline 状态的唯一远程事实来源。
 
-- 使用说明：[LOOP.md](LOOP.md)
-- 工作项模板：[docs/workItems/_template.md](docs/workItems/_template.md)
-- 单项执行 Skill：[.agents/skills/work-item-loop/SKILL.md](.agents/skills/work-item-loop/SKILL.md)
+每个生成项目只绑定一个 Azure DevOps Project。模板参数 `--AdoProject` 会同时写入 Loop 配置、Codex 项目规则和 MCP 的 `ado_mcp_project` 默认值；除非用户明确要求，Codex 不枚举或操作其他 Project。
 
-预览下一项但不启动 Agent：
+创建模板时提供组织和 Project：
+
+```bash
+dotnet new dedsi-native -n YourProject \
+  --HttpPort 12256 \
+  --AdoOrg YourOrg \
+  --AdoProject YourProject
+```
+
+首次运行前在 Codex 中信任生成项目。Azure DevOps MCP 的 PAT 认证要求 `PERSONAL_ACCESS_TOKEN` 是 `<任意非空邮箱>:<PAT>` 的 Base64。将它保存在被 Git 忽略的 `.env.local`：
+
+```dotenv
+PERSONAL_ACCESS_TOKEN=<Base64 后的邮箱:PAT>
+```
+
+macOS、Windows PowerShell 和 CMD 均从 `content` 目录使用相同命令启动：
+
+```bash
+node --env-file=.env.local agent-loop.mjs
+```
+
+Node 将 `PERSONAL_ACCESS_TOKEN` 注入 Loop；Codex 子进程再把它转发给本地 MCP Server。不需要运行 `codex mcp login ado`，也不要提交或分享 `.env.local`。
+
+Loop 通过 WIQL 直接查询整个 Azure DevOps Project，不需要创建保存查询。需要进入队列的工作项添加 `codex-loop`，并设置 `codex-ready`、`codex-in-progress` 或 `codex-failed` 状态标签。
+
+[`agent-loop.mjs`](agent-loop.mjs) 使用单一 Dispatcher 领取工作项，并从当前 Git `origin` 自动识别 Azure Repos 仓库；它为每项创建独立 Git worktree 和 `codex/wi-<id>-<slug>` 分支，并发运行短生命周期 Codex Worker。Worker 自测通过后，外层执行器 commit、push，通过 MCP 创建关联 PR、启用 autocomplete，并在分支策略与 Pipeline 成功后回写 `codex-completed`。
+
+并发槽位固定为 2，直接定义在 `agent-loop.mjs` 中，不接受配置文件、环境变量或 CLI 覆盖：
 
 ```bash
 node agent-loop.mjs --dry-run
+node agent-loop.mjs --max-items 10
 ```
 
-连续处理最多三个已就绪工作项：
+完整运行前必须满足：主工作区干净、`origin/main` 可访问、Git 已配置提交身份与 Azure Repos push 权限、当前环境已设置 `PERSONAL_ACCESS_TOKEN`，并且 PAT 具有工作项/评论/代码/PR 所需权限。Loop 不绕过 reviewer、build validation 或其他分支策略；失败或阻塞的 worktree 默认保留以便恢复。
 
-```bash
-node agent-loop.mjs --max-items 3 --max-retries 3
-```
+- Loop Skill：[.agents/skills/work-item-loop/SKILL.md](.agents/skills/work-item-loop/SKILL.md)
+- 状态协议：[.agents/skills/work-item-loop/references/work-item-protocol.md](.agents/skills/work-item-loop/references/work-item-protocol.md)
+- Loop、Codex 与 MCP 使用说明：[LOOP-CODEX-MCP.md](LOOP-CODEX-MCP.md)
+- Azure DevOps MCP 文档：[Microsoft Azure DevOps MCP](https://github.com/microsoft/azure-devops-mcp/blob/main/docs/GETTINGSTARTED.md#codex)

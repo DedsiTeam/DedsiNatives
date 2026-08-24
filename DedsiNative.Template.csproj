@@ -39,6 +39,7 @@
     <!-- 模板内容文件 (content 目录下所有内容) -->
     <Content Include="content/**/*"
              Exclude="content/**/.DS_Store;
+                      content/.env.local;
                       content/**/bin/**;
                       content/**/obj/**;
                       content/**/Logs/**;
@@ -50,4 +51,3 @@
   </ItemGroup>
 
 </Project>
-

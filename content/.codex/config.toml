@@ -2,6 +2,30 @@
 model = "gpt-5.6-sol"
 model_reasoning_effort = "medium"
 
+# Azure DevOps 是工作项、分支、PR 与流水线状态的唯一远程事实来源。
+# 通过本地 stdio MCP Server 使用 PAT；PAT 只从 PERSONAL_ACCESS_TOKEN 环境变量读取。
+[mcp_servers.ado]
+command = "npx"
+args = [
+  "-y",
+  "@azure-devops/mcp",
+  "{{ADO_ORG}}",
+  "--authentication",
+  "pat",
+  "-d",
+  "core",
+  "work-items",
+  "repositories",
+  "pipelines",
+]
+env_vars = ["PERSONAL_ACCESS_TOKEN"]
+required = true
+startup_timeout_sec = 60
+tool_timeout_sec = 120
+
+[mcp_servers.ado.env]
+ado_mcp_project = "{{ADO_PROJECT}}"
+
 [agents]
 enabled = true
 max_concurrent_threads_per_session = 3

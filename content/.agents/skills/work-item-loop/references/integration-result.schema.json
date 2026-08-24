@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "workItemId": { "type": "integer", "minimum": 1 },
+    "status": { "type": "string", "enum": ["merged", "failed", "blocked"] },
+    "pullRequestId": { "type": ["integer", "null"] },
+    "pullRequestUrl": { "type": ["string", "null"] },
+    "message": { "type": "string" }
+  },
+  "required": ["workItemId", "status", "pullRequestId", "pullRequestUrl", "message"]
+}

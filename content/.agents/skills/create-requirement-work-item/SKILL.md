@@ -1,46 +1,30 @@
 ---
 name: create-requirement-work-item
-description: 根据 DedsiNative 的用户业务需求、现有代码和工作项队列创建或整理 docs/workItems 工作项，无需预先存在 docs/domains 领域文档。按可独立验收的业务能力形成一个或多个全栈工作项。
+description: 根据用户直接需求、现有代码与 Azure DevOps 队列，通过 MCP 创建或整理可独立验收的远程全栈工作项。
 ---
 
 # 创建需求工作项
 
-不依赖领域文档，根据用户直接给出的需求创建可评审的 DedsiNative 工作项。工作项记录已确认事实、范围和待决事项；领域模型设计由后续 `work-item-loop` 的领域阶段完成。
+Azure DevOps 是工作项唯一事实来源；不得创建 `docs/workItems`、需求 Markdown 或本地工作项副本。
 
 ## 准备
 
-1. 将包含 `docs/`、`src/` 和 `AGENTS.md` 的目录作为项目根，完整读取根 `AGENTS.md` 与所有会影响目标路径的更具体 `AGENTS.md`。
-2. 完整读取 `docs/workItems/_template.md` 和 `.agents/skills/work-item-loop/references/work-item-protocol.md`。
-3. 检查 `docs/workItems/` 中的现有工作项、相关代码和已有 API/页面契约，识别重复、依赖和用户已有改动。
-4. 将用户明确表达的领域名称、字段、流程、范围和排除项视为事实来源；不要求、也不创建或修改 `docs/domains/`。
+1. 完整读取根 `AGENTS.md` 与 `work-item-loop/references/work-item-protocol.md`。
+2. 取得 Azure DevOps Project，通过 MCP 确认需求工作项类型、现有 backlog、重复项与依赖。类型或 Project 不明确时停止，不得猜测。
+3. 检查相关代码与已有接口/页面契约；用户明确表达的领域、字段、流程、范围和排除项是事实，推断内容必须标记待领域阶段确认。
 
-## 形成边界
+## 边界
 
-- 从需求中归纳业务领域与可独立验收的能力。一个领域可以生成一个或多个工作项，每项覆盖该能力所需的领域设计、后端、前端和验证。
-- 不按技术层、页面局部或同一聚合的内部子实体拆分。例如用户要求“字典管理”时，字典分组和字典项仍作为同一聚合能力处理。
-- CRUD 操作只有在各自具备独立业务价值和验收证据时才可拆分；必须写明公共契约、依赖和拆分原因，禁止生成纯技术层碎片。
-- 不同领域、不同聚合边界或可独立交付的业务能力可以创建多个工作项。
-- 不把从需求中推断的聚合、实体、唯一性、字段长度、删除策略、权限关系或状态流转写成既定事实。将它们标记为“待领域阶段确认”。
+- 按可独立验收的业务能力拆分，每项覆盖所需领域、后端、前端和验证。
+- 不按技术层、页面局部或聚合内部实体拆分；不同聚合或独立交付能力可以拆分。
+- 不把推断的唯一性、长度、删除策略、权限、状态流转或聚合结构写成已确认事实。
 
-## 编写工作项
+## MCP 创建流程
 
-1. 在 `docs/workItems/{领域英文复数或现有模块名}/` 创建 `WI-{DOMAIN}-001-{中文标题}.md`。扫描同前缀 ID，使用下一个未占用序号。
-2. 使用模板完整填写 YAML Front Matter。新工作项默认：
+1. 使用 `wit_work_item_write` 的 `create` 创建团队实际采用的需求工作项类型。
+2. 填写标题、Description、Acceptance Criteria、用户已确认规则、范围、排除项和待决事项。
+3. 添加 `codex-loop; codex-draft; codex-stage-backlog; codex-attempt-0`。
+4. 添加 Markdown 评论，记录来源、拆分原因、依赖和待确认事项；不得记录秘密。
+5. 重新读取确认字段与标签，返回工作项 ID 和 URL。
 
-   ```yaml
-   work-item-status: draft
-   work-item-stage: backlog
-   work-item-scope: full-stack
-   work-item-attempt: 0
-   ```
-
-3. 写明目标与业务价值、用户故事、用户已确认的业务规则、包含范围、不包含范围、可验证验收标准和实现提示。
-4. 验收标准至少覆盖：用户可见行为、领域阶段输出、Endpoint 不直接操作 `DbContext`、前端类型安全与状态、后端/前端构建及相关测试。仅为实际适用的层定义验收；不适用层需说明原因。
-5. 在“实现提示”或首次 Loop 日志中列出待领域阶段确认的决策，避免把缺少的信息伪装成可立即实现的规则。
-6. 保留 `LOOP_LOG_START` 与 `LOOP_LOG_END` 标记。创建日志只记录该项尚未实施及待确认项，禁止记录秘密。
-
-## 状态与校验
-
-- 除非用户明确要求准备执行，否则新项保持 `draft`，不转为 `ready`，不启动 Loop。
-- 创建后验证工作项 ID 唯一、YAML 元数据完整、验收标准符合协议、日志标记存在，并执行 `git diff --check`。
-- 只修改 `docs/workItems/`。用户后续要求补充或确认领域模型时，改用 `create-domain-doc` Skill；用户要求执行时，改用 `work-item-loop` Skill。
+除非用户明确批准实施，新项保持 `codex-draft`，不得自动改为 `codex-ready` 或启动 Loop。只通过 MCP 修改 Azure DevOps。
