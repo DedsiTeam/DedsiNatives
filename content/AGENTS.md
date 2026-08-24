@@ -40,7 +40,7 @@
 
 ## 自定义代理
 
-`.codex/agents/` 提供 `backend`、`frontend`、`documentation`、`logic` 和 `work-item-loop` 专职代理；具体模型、权限和职责以对应 TOML 为准。
+`.codex/agents/` 提供 `backend`、`frontend`、`documentation` 和 `logic` 专职代理；具体模型、权限和职责以对应 TOML 为准。工作项 Loop 由 Codex 主任务编排用户可见的独立新任务，不使用隐藏子代理或 CLI 子进程代替。
 
 - 仅当用户明确要求、适用 Skill 明确要求，或存在两个以上真正独立且能明显提升速度或质量的子任务时委派。
 - 一步可完成的小改动、需要连续修改同一文件的任务、Skill/规则解释和权限决策由主代理直接处理。

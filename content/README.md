@@ -71,11 +71,11 @@ bun dev       # 或 npm run dev
 
 前端 UI 规范请参考：[dedsi-style-react-admin-ui](.agents/skills/dedsi-style-react-admin-ui/SKILL.md)。
 
-## Azure DevOps MCP 与并发 Agent Loop
+## Azure DevOps MCP 与 Codex 原生 Work Item Loop
 
-项目通过 [`.codex/config.toml`](.codex/config.toml) 为 Codex CLI、桌面端和 IDE 配置 Azure DevOps Local MCP。Local MCP 由 `npx @azure-devops/mcp` 启动并使用 PAT 认证；Azure DevOps 是工作项、验收标准、状态、评论日志、分支、PR 和 Pipeline 状态的唯一远程事实来源。
+项目通过 [`.codex/config.toml`](.codex/config.toml) 为 Codex 桌面端、CLI 和 IDE 配置 Azure DevOps Local MCP。Codex 桌面端直接启动该 MCP；Azure DevOps 是工作项、验收标准、状态、评论日志、分支、PR 和 Pipeline 状态的唯一远程事实来源。
 
-每个生成项目只绑定一个 Azure DevOps Project。模板参数 `--AdoProject` 会同时写入 Loop 配置、Codex 项目规则和 MCP 的 `ado_mcp_project` 默认值；除非用户明确要求，Codex 不枚举或操作其他 Project。
+每个生成项目只绑定一个 Azure DevOps Project。模板参数 `--AdoProject` 会同时写入 Codex 项目规则和 MCP 的 `ado_mcp_project` 默认值；除非用户明确要求，Codex 不枚举或操作其他 Project。
 
 创建模板时提供组织和 Project：
 
@@ -86,32 +86,29 @@ dotnet new dedsi-native -n YourProject \
   --AdoProject YourProject
 ```
 
-首次运行前在 Codex 中信任生成项目。Azure DevOps MCP 的 PAT 认证要求 `PERSONAL_ACCESS_TOKEN` 是 `<任意非空邮箱>:<PAT>` 的 Base64。将它保存在被 Git 忽略的 `.env.local`：
+首次运行前，直接在生成项目根目录创建 `.env.local`。在本模板仓库中，对应路径是 `content/.env.local`：
 
 ```dotenv
-PERSONAL_ACCESS_TOKEN=<Base64 后的邮箱:PAT>
+ADO_PAT=<原始 Azure DevOps PAT>
 ```
 
-macOS、Windows PowerShell 和 CMD 均从 `content` 目录使用相同命令启动：
+`.env.local` 已被 Git 忽略且不会进入 NuGet 模板包。Codex 启动 MCP 时才在内存中把 `ADO_PAT` 转换为 `<任意非空值>:<PAT>` 的 Base64；用户不需要执行配置命令、手工编码或设置系统环境变量。主任务创建的 Codex worktree 会自动复用主项目的 `.env.local`，不会复制 PAT。
 
-```bash
-node --env-file=.env.local agent-loop.mjs
-```
-
-Node 将 `PERSONAL_ACCESS_TOKEN` 注入 Loop；Codex 子进程再把它转发给本地 MCP Server。不需要运行 `codex mcp login ado`，也不要提交或分享 `.env.local`。
+保存文件后重启 Codex，信任项目，并在对话中使用 `/mcp` 确认 `ado` 已连接。不要把 `.env.local` 的内容复制到配置、评论、日志或 Git。
 
 Loop 通过 WIQL 直接查询整个 Azure DevOps Project，不需要创建保存查询。需要进入队列的工作项添加 `codex-loop`，并设置 `codex-ready`、`codex-in-progress` 或 `codex-failed` 状态标签。
 
-[`agent-loop.mjs`](agent-loop.mjs) 使用单一 Dispatcher 领取工作项，并从当前 Git `origin` 自动识别 Azure Repos 仓库；它为每项创建独立 Git worktree 和 `codex/wi-<id>-<slug>` 分支，并发运行短生命周期 Codex Worker。Worker 自测通过后，外层执行器 commit、push，通过 MCP 创建关联 PR、启用 autocomplete，并在分支策略与 Pipeline 成功后回写 `codex-completed`。
+在 Codex 项目的主任务中说明要运行 `$work-item-loop`。主任务直接通过 `ado` MCP 领取工作项，并为每个工作项创建一个用户可见的独立 Codex 新任务。每个新任务在独立 Git worktree 中实现、验证、commit 和 push，并直接通过同一 `ado` MCP 创建 PR、检查 Pipeline/合并和回写工作项终态。主任务持续等待、核对并补充新任务，因此整个 loop 始终留在 Codex UI 内。
 
-并发槽位固定为 2，直接定义在 `agent-loop.mjs` 中，不接受配置文件、环境变量或 CLI 覆盖：
+例如：
 
-```bash
-node agent-loop.mjs --dry-run
-node agent-loop.mjs --max-items 10
+```text
+使用 $work-item-loop 预览当前 Azure DevOps Project 的可领取工作项，只读，不创建新任务。
+
+使用 $work-item-loop 处理队列，最多完成 10 项，并发 2 个独立 Codex 任务。
 ```
 
-完整运行前必须满足：主工作区干净、`origin/main` 可访问、Git 已配置提交身份与 Azure Repos push 权限、当前环境已设置 `PERSONAL_ACCESS_TOKEN`，并且 PAT 具有工作项/评论/代码/PR 所需权限。Loop 不绕过 reviewer、build validation 或其他分支策略；失败或阻塞的 worktree 默认保留以便恢复。
+完整运行前必须满足：Codex 已信任项目且 `ado` MCP 可用、项目根目录已生成 `.env.local`、`origin/main` 可访问、Git 已配置提交身份与 Azure Repos push 权限，并且 PAT 具有工作项/评论/代码/PR/Pipeline 所需权限。Loop 不绕过 reviewer、build validation 或其他分支策略。
 
 - Loop Skill：[.agents/skills/work-item-loop/SKILL.md](.agents/skills/work-item-loop/SKILL.md)
 - 状态协议：[.agents/skills/work-item-loop/references/work-item-protocol.md](.agents/skills/work-item-loop/references/work-item-protocol.md)
