@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "ado": {
+      "type": "http",
+      "url": "https://mcp.dev.azure.com/{{ADO_ORG}}"
+    }
+  },
+  "inputs": []
+}

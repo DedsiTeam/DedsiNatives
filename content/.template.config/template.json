@@ -29,7 +29,7 @@
     "AdoOrg": {
       "type": "parameter",
       "datatype": "string",
-      "description": "Azure DevOps 组织名，用于 .codex/config.toml 中的 Local MCP PAT 连接。",
+      "description": "Azure DevOps 组织名，用于 VS Code GitHub Copilot 的 Azure DevOps MCP 连接。",
       "defaultValue": "CohenTeam",
       "replaces": "{{ADO_ORG}}"
     },

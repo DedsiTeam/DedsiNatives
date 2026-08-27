@@ -11,6 +11,8 @@
 ## 目录结构
 
 ```text
+├── .github/                                # GitHub Copilot 指令、代理、Skills 与 MCP 配置
+├── .vscode/mcp.json                        # VS Code GitHub Copilot MCP 配置
 ├── src/
 │   ├── dotnet/
 │   │   ├── src/
@@ -59,9 +61,9 @@ bun dev       # 或 npm run dev
 
 ## 研发约束与 Agent 规范
 
-本项目已配置通用开发规范，详见 [AGENTS.md](AGENTS.md)。
+本项目已配置通用开发规范，详见 [.github/copilot-instructions.md](.github/copilot-instructions.md)。
 
-项目 Skills、后端/前端规则与专项参考资料统一存放在 [`.agents/`](.agents/)；`src/` 目录只包含产品源代码。
+项目 Skills、后端/前端规则与专项参考资料统一存放在 [`.github/`](.github/)；`src/` 目录只包含产品源代码。
 
 模板配置只包含 `CHANGE_ME` 占位符。运行宿主前请通过环境变量提供实际敏感配置：`ConnectionStrings__DedsiNativeDB`、`ConnectionStrings__DedsiNativeRabbitMQ` 和 `Jwt__Secret`；通过 Aspire 启动时还需配置 `Parameters__PostgresPassword`、`Parameters__RabbitMqUserName` 和 `Parameters__RabbitMqPassword`。不要把真实值提交到仓库。
 
@@ -69,13 +71,13 @@ bun dev       # 或 npm run dev
 
 `docs/` 目录只维护领域文档。需求、工作项、验收标准、状态和执行日志统一存放于 Azure DevOps，不在本地创建副本。
 
-前端 UI 规范请参考：[dedsi-style-react-admin-ui](.agents/skills/dedsi-style-react-admin-ui/SKILL.md)。
+前端 UI 规范请参考：[dedsi-style-react-admin-ui](.github/skills/dedsi-style-react-admin-ui/SKILL.md)。
 
-## Azure DevOps MCP 与 Codex 原生 Work Item Loop
+## GitHub Copilot 与 Azure DevOps Work Item Loop
 
-项目通过 [`.codex/config.toml`](.codex/config.toml) 为 Codex 桌面端、CLI 和 IDE 配置 Azure DevOps Local MCP。Codex 桌面端直接启动该 MCP；Azure DevOps 是工作项、验收标准、状态、评论日志、分支、PR 和 Pipeline 状态的唯一远程事实来源。
+项目以 VS Code GitHub Copilot 为主要 AI 开发入口：仓库指令、路径指令、自定义代理与 Skills 均位于 [`.github/`](.github/)，并通过 [`.vscode/mcp.json`](.vscode/mcp.json) 连接 Azure DevOps Remote MCP。Azure DevOps 是工作项、验收标准、状态、评论、分支、PR 和 Pipeline 状态的唯一远程事实来源。
 
-每个生成项目只绑定一个 Azure DevOps Project。模板参数 `--AdoProject` 会同时写入 Codex 项目规则和 MCP 的 `ado_mcp_project` 默认值；除非用户明确要求，Codex 不枚举或操作其他 Project。
+每个生成项目只绑定一个 Azure DevOps Organization 和一个 Project。模板参数 `--AdoOrg` 写入远程 MCP URL，`--AdoProject` 写入 Copilot 仓库指令；除非用户明确要求，Copilot 不枚举或操作其他 Project。
 
 创建模板时提供组织和 Project：
 
@@ -86,31 +88,23 @@ dotnet new dedsi-native -n YourProject \
   --AdoProject YourProject
 ```
 
-首次运行前，直接在生成项目根目录创建 `.env.local`。在本模板仓库中，对应路径是 `content/.env.local`：
+生成项目后，在 VS Code 中通过 “MCP: List Servers” 启动 `ado`。首次连接 `https://mcp.dev.azure.com/{{ADO_ORG}}` 时，VS Code 会提示使用有权访问 `{{ADO_ORG}}` 与 `{{ADO_PROJECT}}` 的 Microsoft Entra 账号登录。然后在 GitHub Copilot Chat 中切换到 Agent mode，并从工具列表选择需要的 `ado` 工具。项目不保存本地认证秘密。
 
-```dotenv
-ADO_PAT=<原始 Azure DevOps PAT>
-```
+Loop 通过 WIQL 直接查询整个 Azure DevOps Project，不需要创建保存查询。需要进入队列的工作项添加 `copilot-loop`，并设置 `copilot-ready`、`copilot-in-progress` 或 `copilot-failed` 状态标签。
 
-`.env.local` 已被 Git 忽略且不会进入 NuGet 模板包。Codex 启动 MCP 时才在内存中把 `ADO_PAT` 转换为 `<任意非空值>:<PAT>` 的 Base64；用户不需要执行配置命令、手工编码或设置系统环境变量。主任务创建的 Codex worktree 会自动复用主项目的 `.env.local`，不会复制 PAT。
-
-保存文件后重启 Codex，信任项目，并在对话中使用 `/mcp` 确认 `ado` 已连接。不要把 `.env.local` 的内容复制到配置、评论、日志或 Git。
-
-Loop 通过 WIQL 直接查询整个 Azure DevOps Project，不需要创建保存查询。需要进入队列的工作项添加 `codex-loop`，并设置 `codex-ready`、`codex-in-progress` 或 `codex-failed` 状态标签。
-
-在 Codex 项目的主任务中说明要运行 `$work-item-loop`。主任务直接通过 `ado` MCP 领取工作项，并为每个工作项创建一个用户可见的独立 Codex 新任务。每个新任务在独立 Git worktree 中实现、验证、commit 和 push，并直接通过同一 `ado` MCP 创建 PR、检查 Pipeline/合并和回写工作项终态。主任务持续等待、核对并补充新任务，因此整个 loop 始终留在 Codex UI 内。
+在 VS Code Copilot Agent mode 中调用 `/work-item-loop`。当前会话通过 `ado` MCP 串行领取工作项，每项使用独立的 `copilot/wi-<id>-<slug>` 分支完成实现、验证、commit、push、PR 和状态回写。只有当前项回写完成且工作区干净后才领取下一项，避免多个可写代理在同一 checkout 中产生冲突。
 
 例如：
 
 ```text
-使用 $work-item-loop 预览当前 Azure DevOps Project 的可领取工作项，只读，不创建新任务。
+使用 /work-item-loop 预览当前 Azure DevOps Project 的可领取工作项，只读。
 
-使用 $work-item-loop 处理队列，最多完成 10 项，并发 2 个独立 Codex 任务。
+使用 /work-item-loop 串行处理队列，最多完成 10 项，每项最多尝试 3 次。
 ```
 
-完整运行前必须满足：Codex 已信任项目且 `ado` MCP 可用、项目根目录已生成 `.env.local`、`origin/main` 可访问、Git 已配置提交身份与 Azure Repos push 权限，并且 PAT 具有工作项/评论/代码/PR/Pipeline 所需权限。Loop 不绕过 reviewer、build validation 或其他分支策略。
+完整运行前必须满足：VS Code Copilot Agent mode 可用、`ado` MCP 已通过 Microsoft 账号完成登录、工作区干净、目标分支可访问、Git 已配置提交身份与 Azure Repos push 权限，并且登录账号具有工作项、评论、代码、PR 和 Pipeline 所需权限。Loop 不绕过 reviewer、build validation 或其他分支策略。
 
-- Loop Skill：[.agents/skills/work-item-loop/SKILL.md](.agents/skills/work-item-loop/SKILL.md)
-- 状态协议：[.agents/skills/work-item-loop/references/work-item-protocol.md](.agents/skills/work-item-loop/references/work-item-protocol.md)
-- Loop、Codex 与 MCP 使用说明：[LOOP-CODEX-MCP.md](LOOP-CODEX-MCP.md)
-- Azure DevOps MCP 文档：[Microsoft Azure DevOps MCP](https://github.com/microsoft/azure-devops-mcp/blob/main/docs/GETTINGSTARTED.md#codex)
+- Loop Skill：[.github/skills/work-item-loop/SKILL.md](.github/skills/work-item-loop/SKILL.md)
+- 状态协议：[.github/skills/work-item-loop/references/work-item-protocol.md](.github/skills/work-item-loop/references/work-item-protocol.md)
+- Copilot 与 MCP 使用说明：[LOOP-COPILOT-MCP.md](LOOP-COPILOT-MCP.md)
+- Azure DevOps Remote MCP 文档：[Microsoft Azure DevOps Remote MCP](https://github.com/MicrosoftDocs/azure-devops-docs/blob/main/docs/mcp-server/remote-mcp-server.md)
