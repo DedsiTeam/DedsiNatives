@@ -70,7 +70,7 @@ public sealed class UpdateOrganizationEndpoint(
     /// <inheritdoc />
     public override async Task HandleAsync(UpdateOrganizationRequest req, CancellationToken ct)
     {
-        var id = Route<string>("id");
+        var id = Route<string>("id")!;
         var org = await organizationRepository.GetAsync(id, true, ct);
 
         // 如果调整了父级组织

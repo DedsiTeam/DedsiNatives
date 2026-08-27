@@ -47,7 +47,7 @@ public class DedsiNativeInfrastructureModule : AbpModule
     {
         var hostEnvironment = context.Services.GetAbpHostEnvironment();
         var configuration = context.Services.GetConfiguration();
-        
+
         // EntityFrameworkCore
         context.Services.AddAbpDbContext<DedsiNativeDbContext>(options =>
         {
@@ -61,7 +61,7 @@ public class DedsiNativeInfrastructureModule : AbpModule
                 options.UseEntityFrameworkCore()
                     .UseDbContext<DedsiNativeDbContext>();
             });
-        
+
         // 审计与实体时间字段使用本地时间（北京时间）。
         Configure<AbpClockOptions>(options =>
         {

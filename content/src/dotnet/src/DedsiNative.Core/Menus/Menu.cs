@@ -9,7 +9,7 @@ public class Menu : DedsiAggregateRoot<string>
     /// <summary>供 ORM 使用。</summary>
     protected Menu() { }
     /// <summary>创建菜单。</summary>
-    public Menu(string id, string systemId, string systemName, string code, string name, string? parentId, MenuType type, string? routePath, string? component, string? redirect, string? icon, string? permissionId, string? permissionName, int sort, int level, bool isVisible, bool isDisabled, bool isExternal, string? externalUrl, bool keepAlive, bool isAffix, string? description) : base(ValidateUlid(id, nameof(id)) )
+    public Menu(string id, string systemId, string systemName, string code, string name, string? parentId, MenuType type, string? routePath, string? component, string? redirect, string? icon, string? permissionId, string? permissionName, int sort, int level, bool isVisible, bool isDisabled, bool isExternal, string? externalUrl, bool keepAlive, bool isAffix, string? description) : base(ValidateUlid(id, nameof(id)))
     { Update(systemId, systemName, code, name, parentId, type, routePath, component, redirect, icon, permissionId, permissionName, sort, level, isVisible, isDisabled, isExternal, externalUrl, keepAlive, isAffix, description); }
     public string SystemId { get; private set; } = string.Empty;
     public string SystemName { get; private set; } = string.Empty;

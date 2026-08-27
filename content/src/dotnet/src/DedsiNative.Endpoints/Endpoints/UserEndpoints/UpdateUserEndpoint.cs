@@ -69,7 +69,7 @@ public class UpdateUserEndpoint(
             .ChangeIdCardNumber(req.IdCardNumber);
 
         ApplyLoginInfo(user, req.LoginInfo);
-        
+
         if (req.PositionIds is not null)
         {
             await ReplacePositionsAsync(user, req.PositionIds, ct);

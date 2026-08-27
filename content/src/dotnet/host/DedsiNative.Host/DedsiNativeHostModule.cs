@@ -102,11 +102,11 @@ public class DedsiNativeHostModule : AbpModule
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer           = true,
-                    ValidIssuer              = localIssuer,
-                    ValidateAudience         = true,
-                    ValidAudience            = localAudience,
-                    ValidateLifetime         = true,
+                    ValidateIssuer = true,
+                    ValidIssuer = localIssuer,
+                    ValidateAudience = true,
+                    ValidAudience = localAudience,
+                    ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(localSecret))

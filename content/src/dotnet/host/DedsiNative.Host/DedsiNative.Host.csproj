@@ -42,6 +42,11 @@
     </ItemGroup>
 
     <ItemGroup>
+        <None Update="Dockerfile" CopyToPublishDirectory="PreserveNewest" />
+        <None Update="docker-build.sh" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <ItemGroup>
         <EmbeddedResource Remove="Logs\**" />
     </ItemGroup>
 

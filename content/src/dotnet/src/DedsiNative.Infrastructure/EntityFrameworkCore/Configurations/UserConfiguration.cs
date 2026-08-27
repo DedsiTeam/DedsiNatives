@@ -91,7 +91,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             orgBuilder.Property(org => org.OrganizationId).HasMaxLength(26).IsRequired();
             orgBuilder.Property(org => org.OrganizationName).HasMaxLength(256).IsRequired();
         });
-        
+
         builder.Navigation(user => user.LoginInfo).AutoInclude();
         builder.Navigation(user => user.Positions).AutoInclude();
         builder.Navigation(user => user.Organizations).AutoInclude();

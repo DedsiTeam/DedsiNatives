@@ -33,7 +33,7 @@ public sealed class DeleteStorageFileEndpoint(
     /// <inheritdoc />
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var id = Route<string>("id");
+        var id = Route<string>("id")!;
         var fileRecord = await storageFileRepository.GetAsync(id, true, ct);
 
         // 尝试从物理存储中删除文件

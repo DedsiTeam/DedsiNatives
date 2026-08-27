@@ -20,7 +20,7 @@ public class OpenIddictDataSeeder(
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<DedsiNativeDbContext>();
-        
+
         // 确保数据库表已迁移（在开发环境下自动迁移）
         await context.Database.MigrateAsync(cancellationToken);
 

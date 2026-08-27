@@ -37,7 +37,7 @@ public sealed class SetOrganizationStatusEndpoint(IOrganizationRepository organi
     /// <inheritdoc />
     public override async Task HandleAsync(SetOrganizationStatusRequest req, CancellationToken ct)
     {
-        var id = Route<string>("id");
+        var id = Route<string>("id")!;
         var org = await organizationRepository.GetAsync(id, true, ct);
 
         org.SetStatus(req.IsEnabled);

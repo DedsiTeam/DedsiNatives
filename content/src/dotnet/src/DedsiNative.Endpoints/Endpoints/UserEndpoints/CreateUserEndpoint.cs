@@ -60,16 +60,16 @@ public sealed class CreateUserEndpoint(
     public override async Task HandleAsync(CreateUserRequest req, CancellationToken ct)
     {
         var domainId = Guid.NewGuid();
-        
+
         var user = new User(domainId, req.Name, req.Email)
             .ChangePhone(req.Phone)
             .ChangeIdCardNumber(req.IdCardNumber);
 
         ApplyLoginInfo(user, req.LoginInfo);
-        
+
         await AssignPositionsAsync(user, req.PositionIds, ct);
         await AssignOrganizationsAsync(user, req.OrganizationIds, ct);
-        
+
         ThrowIfAnyErrors();
 
         await userRepository.InsertAsync(user, true, ct);

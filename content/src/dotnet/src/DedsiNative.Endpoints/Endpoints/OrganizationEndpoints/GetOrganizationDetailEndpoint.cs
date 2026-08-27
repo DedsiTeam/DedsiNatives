@@ -58,7 +58,7 @@ public sealed class GetOrganizationDetailEndpoint(IOrganizationRepository organi
     /// <inheritdoc />
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var id = Route<string>("id");
+        var id = Route<string>("id")!;
         var org = await organizationRepository.GetAsync(id, true, ct);
 
         await Send.OkAsync(new OrganizationDetailResponse(

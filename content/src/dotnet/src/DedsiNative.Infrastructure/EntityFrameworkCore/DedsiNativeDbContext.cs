@@ -70,7 +70,7 @@ public interface IDedsiNativeDbContext : IDedsiEfCoreDbContext
 /// </summary>
 /// <param name="options">EF Core 数据库上下文配置选项。</param>
 [ConnectionStringName(DedsiNativeCoreConsts.ConnectionStringName)]
-public class DedsiNativeDbContext(DbContextOptions<DedsiNativeDbContext> options) 
+public class DedsiNativeDbContext(DbContextOptions<DedsiNativeDbContext> options)
     : DedsiEfCoreDbContext<DedsiNativeDbContext>(options), IDedsiNativeDbContext
 {
     /// <summary>

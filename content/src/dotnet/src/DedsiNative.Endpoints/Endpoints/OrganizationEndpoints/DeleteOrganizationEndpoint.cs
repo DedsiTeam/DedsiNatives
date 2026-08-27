@@ -34,7 +34,7 @@ public sealed class DeleteOrganizationEndpoint(
     /// <inheritdoc />
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var id = Route<string>("id");
+        var id = Route<string>("id")!;
         var hasChildren = await organizationQuery.HasChildrenAsync(id, ct);
         if (hasChildren)
         {

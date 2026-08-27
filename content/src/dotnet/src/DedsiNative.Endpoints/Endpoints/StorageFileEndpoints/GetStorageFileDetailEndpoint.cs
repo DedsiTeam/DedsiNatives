@@ -58,7 +58,7 @@ public sealed class GetStorageFileDetailEndpoint(IStorageFileRepository storageF
     /// <inheritdoc />
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var id = Route<string>("id");
+        var id = Route<string>("id")!;
         var f = await storageFileRepository.GetAsync(id, true, ct);
 
         await Send.OkAsync(new StorageFileDetailResponse(

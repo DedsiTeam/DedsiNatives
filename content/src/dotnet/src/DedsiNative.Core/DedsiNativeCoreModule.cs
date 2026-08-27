@@ -7,6 +7,6 @@ namespace DedsiNative;
 /// DedsiNative 核心层模块，负责注册领域层所需的基础依赖。
 /// </summary>
 [DependsOn(
-    typeof(DedsiCleanArchitectureDomainModule)    
+    typeof(DedsiCleanArchitectureDomainModule)
 )]
 public class DedsiNativeCoreModule : AbpModule;
