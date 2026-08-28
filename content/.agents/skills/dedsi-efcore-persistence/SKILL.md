@@ -7,7 +7,7 @@ description: 按 DedsiNative 项目规范实现和修改 EF Core PostgreSQL 持�
 
 ## 强制规则
 
-- 将包含 `DedsiNative.slnx` 的目录作为 .NET 根；先读取内容根的 `AGENTS.md`、`.agents/rules/dotnet.md`、Core 聚合和相邻 EF Core 实现。
+- 将包含 `DedsiNative.slnx` 的目录作为 .NET 根；先读取内容根的 `AGENTS.md`、`.github/instructions/dotnet.instructions.md`、Core 聚合和相邻 EF Core 实现。
 - 把实体映射放入 `DedsiNative.Infrastructure/EntityFrameworkCore/Configurations/`。
 - 在 `IDedsiNativeDbContext` 与 `DedsiNativeDbContext` 中同步维护 DbSet。
 - 在 Core 定义仓储；列表、分页、统计、导出或 DTO 投影需要专用查询时，在 Core 定义 Query 契约并在 Infrastructure 实现。

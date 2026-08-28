@@ -7,7 +7,7 @@ description: 按 DedsiNative 项目约定创建、修改和审查 FastEndpoints 
 
 ## 强制规则
 
-- 将包含 `DedsiNative.slnx` 的目录作为 .NET 根；先读取内容根的 `AGENTS.md`、`.agents/rules/dotnet.md`、Endpoints 模块、Host 模块和同功能相邻 Endpoint。
+- 将包含 `DedsiNative.slnx` 的目录作为 .NET 根；先读取内容根的 `AGENTS.md`、`.github/instructions/dotnet.instructions.md`、Endpoints 模块、Host 模块和同功能相邻 Endpoint。
 - 将端点放入 `DedsiNative.Endpoints/{Feature}Endpoints/`。
 - 每个 Endpoint 使用独立 `.cs` 文件。
 - 将该 Endpoint 的 Request、Response 和 Endpoint 默认定义在同一个 `.cs` 文件；需要独立 Validator 时，也必须放在同一个功能目录。

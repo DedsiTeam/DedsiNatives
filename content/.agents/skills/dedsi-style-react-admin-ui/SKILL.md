@@ -9,7 +9,7 @@ description: 按 DedsiNative 的 Ant Design、CRUD 组件和主题 Token 创建�
 
 ## 准备
 
-1. 将包含 `package.json` 的目录作为 React 根，读取内容根 `AGENTS.md`、`.agents/rules/react-admin.md`、React 根 `src/index.css` 和相邻页面。
+1. 将包含 `package.json` 的目录作为 React 根，读取内容根 `AGENTS.md`、`.github/instructions/react-admin.instructions.md`、React 根 `src/index.css` 和相邻页面。
 2. 完整读取 [UI / UX 规范](references/ui-guidelines.md)。创建或重构完整页面时再读取 [页面与样式示例](references/ui-example.md)；局部样式调整无需加载完整示例。
 3. 列出本次允许修改的组件、文案和样式边界；UI-only 任务不得改变 API 路径、请求参数、权限、路由语义或数据刷新流程。
 

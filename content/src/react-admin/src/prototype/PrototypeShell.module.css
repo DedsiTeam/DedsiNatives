@@ -1,0 +1,30 @@
+.shell {
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.header {
+  padding: var(--space-16) var(--space-24);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-subtle);
+}
+
+.title {
+  margin: 0 !important;
+  color: var(--color-title) !important;
+}
+
+.content {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--space-24);
+}
+
+@media (max-width: 768px) {
+  .header,
+  .content {
+    padding: var(--space-16);
+  }
+}

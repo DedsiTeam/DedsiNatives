@@ -7,7 +7,7 @@ description: 按 DedsiNative 的 React 19、TypeScript、Vite、Ant Design、Axi
 
 ## 强制规则
 
-- 将包含 `package.json` 的目录作为 React 根；先读取内容根 `AGENTS.md`、`.agents/rules/react-admin.md`、相邻业务模块和后端 API 契约。
+- 将包含 `package.json` 的目录作为 React 根；先读取内容根 `AGENTS.md`、`.github/instructions/react-admin.instructions.md`、相邻业务模块和后端 API 契约。
 - 新建模块或从零创建完整 CRUD 页面时完整读取 [完整功能示例](references/complete-feature-example.md)；修改现有页面时优先读取相邻实现和实际涉及的专项 Skill，无需加载整份示例。
 - 新增 DTO 和 API Service 时同时遵循 `$dedsi-build-react-admin-api`。
 - 新增或调整页面视觉时同时遵循 `$dedsi-style-react-admin-ui`，并读取项目要求的 UI 规范文件。

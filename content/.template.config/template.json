@@ -29,14 +29,14 @@
     "AdoOrg": {
       "type": "parameter",
       "datatype": "string",
-      "description": "Azure DevOps 组织名，用于 .codex/config.toml 中的 Local MCP PAT 连接。",
+      "description": "Azure DevOps 组织名，用于 Work Item Listener REST API 连接。",
       "defaultValue": "CohenTeam",
       "replaces": "{{ADO_ORG}}"
     },
     "AdoProject": {
       "type": "parameter",
       "datatype": "string",
-      "description": "Azure DevOps Project 名称，用于工作项 Loop。",
+      "description": "Azure DevOps Project 名称，用于无人值守 Work Item Listener。",
       "defaultValue": "DedsiNative",
       "replaces": "{{ADO_PROJECT}}"
     }

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import AdminLayout from '../layouts/AdminLayout';
 import AuthGuard from '../components/AuthGuard';
@@ -24,7 +25,27 @@ import NotFoundPage from '../pages/exception/404';
 import ServerErrorPage from '../pages/exception/500';
 import { PERMISSIONS } from '../auth/permissions';
 
+function createPrototypeRoutes() {
+  if (import.meta.env.VITE_PROTOTYPE_MODE !== 'true') {
+    return [];
+  }
+
+  const PrototypeHost = lazy(() => import('../prototype/PrototypeHost'));
+
+  return [
+    {
+      path: '/__prototype/:workItemId',
+      element: (
+        <Suspense fallback={null}>
+          <PrototypeHost />
+        </Suspense>
+      ),
+    },
+  ];
+}
+
 export const router = createBrowserRouter([
+  ...createPrototypeRoutes(),
   {
     path: '/login',
     element: <LoginPage />,

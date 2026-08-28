@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite --mode development",
+    "dev:prototype": "vite --mode prototype",
     "dev:test": "vite --mode test",
     "dev:prod": "vite --mode production",
     "build": "tsc -b && vite build --mode production",
     "build:dev": "tsc -b && vite build --mode development",
+    "build:prototype": "tsc -b && vite build --mode prototype",
     "build:test": "tsc -b && vite build --mode test",
     "build:prod": "tsc -b && vite build --mode production",
     "lint": "eslint .",

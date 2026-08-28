@@ -9,7 +9,7 @@ description: 按 DedsiNative 的 .NET、ABP、Clean Architecture 和 DDD 约定�
 
 ## 准备
 
-1. 将包含 `DedsiNative.slnx` 的目录作为 .NET 根，读取内容根 `AGENTS.md`、`.agents/rules/dotnet.md`、[架构约定](references/architecture.md)、目标领域文档和相邻业务模块。
+1. 将包含 `DedsiNative.slnx` 的目录作为 .NET 根，读取内容根 `AGENTS.md`、`.github/instructions/dotnet.instructions.md`、[架构约定](references/architecture.md)、目标领域文档和相邻业务模块。
 2. 新建聚合或从零创建跨层模块时完整读取 [完整功能示例](references/complete-feature-example.md)；修改现有功能时优先以相邻实现为结构基准，无需加载整份示例。
 3. HTTP 契约变化时使用 `dedsi-build-fastendpoint`；映射、DbContext、Repository/Query 实现或迁移变化时使用 `dedsi-efcore-persistence`。只读取实际选中 Skill 要求的 references。
 
@@ -20,7 +20,7 @@ description: 按 DedsiNative 的 .NET、ABP、Clean Architecture 和 DDD 约定�
 - 创建、修改、删除和完整聚合加载使用 Repository；列表、分页、统计、导出和 DTO 投影使用 Query。
 - Query 契约位于 Core、实现在 Infrastructure，不返回实体、聚合或 `IQueryable`；Endpoint 和处理器不得直接操作 DbContext。
 - 可复用字段约束位于聚合同目录 `{Aggregate}Consts`；一对多集合直接使用 `ICollection<T>` 属性，不建立第二套私有集合视图。
-- 公共类型与成员遵循 `.agents/rules/dotnet.md` 的中文 XML 文档规则，异步调用贯穿 `CancellationToken`。
+- 公共类型与成员遵循 `.github/instructions/dotnet.instructions.md` 的中文 XML 文档规则，异步调用贯穿 `CancellationToken`。
 - 不手工编辑迁移和 ModelSnapshot；只有持久化形状变化时才生成迁移，未经明确要求不更新数据库。
 
 ## 工作流程

@@ -1,0 +1,16 @@
+{
+  "servers": {
+    "ado": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp",
+        "{{ADO_ORG}}",
+        "-d",
+        "core",
+        "work-items"
+      ]
+    }
+  }
+}

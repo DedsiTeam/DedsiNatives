@@ -7,7 +7,7 @@ description: 按 DedsiNative React Admin 项目约定创建、修改和审查类
 
 ## 强制规则
 
-- 将包含 `package.json` 的目录作为 React 根；先读取内容根 `AGENTS.md`、`.agents/rules/react-admin.md`、React 根的 `src/apiServices/core/`、目标后端 Endpoint 和相邻前端 API 模块。
+- 将包含 `package.json` 的目录作为 React 根；先读取内容根 `AGENTS.md`、`.github/instructions/react-admin.instructions.md`、React 根的 `src/apiServices/core/`、目标后端 Endpoint 和相邻前端 API 模块。
 - 新建 API 模块、DTO 目录或请求客户端时完整读取 [API 示例代码](references/api-example.md)；修改现有 Service 或 DTO 时优先读取相邻模块与真实 Endpoint，无需加载整份示例。
 - 禁止使用显式或隐式 `any`。请求体默认使用 `unknown` 泛型约束或准确 DTO；错误对象使用 `unknown` 并通过 `axios.isAxiosError()` 收窄。
 - 以后端实际 JSON 为唯一响应依据。后端返回原始 DTO 时直接声明该 DTO；只有明确返回统一包装时才使用 `ApiResult<T>`。
