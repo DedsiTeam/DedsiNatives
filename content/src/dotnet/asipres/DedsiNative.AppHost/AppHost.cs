@@ -13,10 +13,13 @@ var minioUserName = builder.AddParameter("DedsiCohenMinioUserName", secret: fals
 var minioPassword = builder.AddParameter("DedsiCohenMinioPassword", secret: true);
 
 var redisPassword = builder.AddParameter("DedsiCohenRedisPassword", secret: true);
+var seqAdminPassword = builder.AddParameter("SeqAdminPassword", secret: true);
 #endregion
 
 #region 基础设施
 var postgres = builder.AddPostgres("DedsiCohenPostgres", userName: postgresUserName, password: postgresPassword, port: 10812)
+    .WithEnvironment("TZ", "Asia/Shanghai")
+    .WithArgs("-c", "timezone=Asia/Shanghai")
     .WithDataBindMount(source: macPath + "/PostgreSql/DedsiNativeDB")
     .WithLifetime(ContainerLifetime.Persistent);
 
@@ -36,28 +39,41 @@ var minio = builder.AddMinioContainer("DedsiCohenMinio", rootUser: minioUserName
 var redis = builder.AddRedis("DedsiCohenRedis", password: redisPassword, port: 16379)
     .WithDataBindMount(source: macPath + "/Redis/Data")
     .WithLifetime(ContainerLifetime.Persistent);
+
+// Seq 持久化结构化日志；生产环境使用独立部署的日志服务。
+var seq = builder.AddSeq("seq", seqAdminPassword, port: 15341)
+    .WithDataVolume()
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WithEnvironment("ACCEPT_EULA", "Y")
+    .ExcludeFromManifest();
 #endregion
 
 builder
     .AddProject<Projects.DedsiNative_AuthServer>("dedsinative-authserver")
+    .WithEnvironment("TZ", "Asia/Shanghai")
     .WithReference(dedsiNativeDB)
     .WithReference(rabbitMq)
     .WithReference(minio)
     .WithReference(redis)
+    .WithReference(seq)
     .WaitFor(dedsiNativeDB)
     .WaitFor(rabbitMq)
     .WaitFor(minio)
-    .WaitFor(redis);
+    .WaitFor(redis)
+    .WaitFor(seq);
 
 builder
     .AddProject<Projects.DedsiNative_Host>("dedsinative-host")
+    .WithEnvironment("TZ", "Asia/Shanghai")
     .WithReference(dedsiNativeDB)
     .WithReference(rabbitMq)
     .WithReference(minio)
     .WithReference(redis)
+    .WithReference(seq)
     .WaitFor(dedsiNativeDB)
     .WaitFor(rabbitMq)
     .WaitFor(minio)
-    .WaitFor(redis);
+    .WaitFor(redis)
+    .WaitFor(seq);
 
 builder.Build().Run();

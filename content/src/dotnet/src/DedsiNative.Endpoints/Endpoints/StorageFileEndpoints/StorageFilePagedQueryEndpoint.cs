@@ -11,8 +11,8 @@ namespace DedsiNative.Endpoints.StorageFileEndpoints;
 /// <param name="Extension">扩展名筛选（可选）。</param>
 /// <param name="StorageType">存储类型筛选（可选）。</param>
 /// <param name="IsPublic">是否公开筛选（可选）。</param>
-/// <param name="StartTimeUtc">上传起始时间（可选）。</param>
-/// <param name="EndTimeUtc">上传截止时间（可选）。</param>
+/// <param name="StartTime">上传起始时间（可选）。</param>
+/// <param name="EndTime">上传截止时间（可选）。</param>
 /// <param name="PageIndex">当前页码（默认 1）。</param>
 /// <param name="PageSize">每页条数（默认 10）。</param>
 public sealed record StorageFilePagedRequest(
@@ -21,8 +21,8 @@ public sealed record StorageFilePagedRequest(
     string? Extension,
     StorageType? StorageType,
     bool? IsPublic,
-    DateTime? StartTimeUtc,
-    DateTime? EndTimeUtc,
+    DateTime? StartTime,
+    DateTime? EndTime,
     int PageIndex = 1,
     int PageSize = 10);
 
@@ -68,8 +68,8 @@ public sealed class StorageFilePagedQueryEndpoint(IStorageFileQuery storageFileQ
                 req.Extension,
                 req.StorageType,
                 req.IsPublic,
-                req.StartTimeUtc,
-                req.EndTimeUtc,
+                req.StartTime,
+                req.EndTime,
                 skipCount,
                 pageSize,
                 false),

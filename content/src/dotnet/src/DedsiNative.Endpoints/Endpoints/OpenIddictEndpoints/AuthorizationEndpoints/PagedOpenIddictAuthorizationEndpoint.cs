@@ -3,6 +3,7 @@ using DedsiNative.EntityFrameworkCore;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.EntityFrameworkCore.Models;
+using DedsiNative.Time;
 
 namespace DedsiNative.Endpoints.OpenIddictEndpoints.AuthorizationEndpoints;
 
@@ -102,7 +103,7 @@ public class PagedOpenIddictAuthorizationEndpoint(DedsiNativeDbContext dbContext
             item.Status,
             item.Type,
             string.IsNullOrEmpty(item.Scopes) ? [] : System.Text.Json.JsonSerializer.Deserialize<string[]>(item.Scopes) ?? [],
-            item.CreationDate
+            BeijingTimeZoneGuard.FromProtocolUtc(item.CreationDate)
         )).ToList();
 
         await Send.OkAsync(new PagedOpenIddictAuthorizationResponse

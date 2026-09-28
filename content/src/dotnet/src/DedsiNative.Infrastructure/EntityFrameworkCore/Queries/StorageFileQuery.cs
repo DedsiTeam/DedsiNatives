@@ -50,14 +50,14 @@ public sealed class StorageFileQuery(IDedsiNativeDbContext dbContext) : IStorage
             dbQuery = dbQuery.Where(f => f.IsPublic == query.IsPublic.Value);
         }
 
-        if (query.StartTimeUtc.HasValue)
+        if (query.StartTime.HasValue)
         {
-            dbQuery = dbQuery.Where(f => f.CreationTime >= query.StartTimeUtc.Value);
+            dbQuery = dbQuery.Where(f => f.CreationTime >= query.StartTime.Value);
         }
 
-        if (query.EndTimeUtc.HasValue)
+        if (query.EndTime.HasValue)
         {
-            dbQuery = dbQuery.Where(f => f.CreationTime <= query.EndTimeUtc.Value);
+            dbQuery = dbQuery.Where(f => f.CreationTime <= query.EndTime.Value);
         }
 
         var totalCount = await dbQuery.LongCountAsync(cancellationToken);

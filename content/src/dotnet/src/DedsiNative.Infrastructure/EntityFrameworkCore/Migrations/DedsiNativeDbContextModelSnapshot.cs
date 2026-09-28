@@ -19,7 +19,7 @@ namespace DedsiNative.EntityFrameworkCore.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("_Abp_DatabaseProvider", EfCoreDatabaseProvider.PostgreSql)
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -143,7 +143,7 @@ namespace DedsiNative.EntityFrameworkCore.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<DateTime>("LoginTimeUtc")
+                    b.Property<DateTime>("LoginTime")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Reason")
@@ -169,11 +169,11 @@ namespace DedsiNative.EntityFrameworkCore.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LoginTimeUtc");
+                    b.HasIndex("LoginTime");
 
-                    b.HasIndex("Account", "LoginTimeUtc");
+                    b.HasIndex("Account", "LoginTime");
 
-                    b.HasIndex("UserId", "LoginTimeUtc");
+                    b.HasIndex("UserId", "LoginTime");
 
                     b.ToTable("LoginAudits", "DedsiNative");
                 });

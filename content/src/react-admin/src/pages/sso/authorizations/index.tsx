@@ -115,7 +115,7 @@ export default function SsoAuthorizations() {
       dataIndex: 'creationDate',
       key: 'creationDate',
       width: 180,
-      render: (val) => val ? new Date(val).toLocaleString() : '-',
+      render: (val) => val || '-',
     },
     {
       title: '操作',

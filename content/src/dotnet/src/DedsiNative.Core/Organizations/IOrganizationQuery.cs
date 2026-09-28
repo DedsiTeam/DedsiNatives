@@ -65,7 +65,7 @@ public sealed record OrganizationPagedQuery(
 /// <param name="Level">组织层级深度。</param>
 /// <param name="IsEnabled">是否启用。</param>
 /// <param name="Description">组织说明。</param>
-/// <param name="CreatedAtUtc">创建时间（UTC）。</param>
+/// <param name="CreatedAt">创建时间（北京时间）。</param>
 public sealed record OrganizationQueryItem(
     string Id,
     string SystemId,
@@ -81,7 +81,7 @@ public sealed record OrganizationQueryItem(
     int Level,
     bool IsEnabled,
     string? Description,
-    DateTime CreatedAtUtc);
+    DateTime CreatedAt);
 
 /// <summary>
 /// 组织机构分页查询结果集。

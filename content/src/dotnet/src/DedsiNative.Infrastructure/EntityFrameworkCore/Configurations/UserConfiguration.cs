@@ -97,7 +97,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Navigation(user => user.Organizations).AutoInclude();
 
         // ── 继承自 DedsiAggregateRoot 的审计字段 ──────────────────
-        // CreationTime：记录创建时间，统一存储为 UTC
+        // CreationTime：记录创建时间，统一存储为北京时间
         builder.Property(x => x.CreationTime)
             .IsRequired();
 

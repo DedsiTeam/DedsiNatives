@@ -37,7 +37,7 @@ export interface LoginUserResultDto {
 export interface LoginResultDto {
   /** 签发的 JWT Bearer Token 字符串 */
   token: string;
-  /** Token UTC 过期时间字符串 */
+  /** Token 北京时间过期时间字符串 */
   expiresAt: string;
   /** 当前登录用户的安全基本资料。 */
   user: LoginUserResultDto;

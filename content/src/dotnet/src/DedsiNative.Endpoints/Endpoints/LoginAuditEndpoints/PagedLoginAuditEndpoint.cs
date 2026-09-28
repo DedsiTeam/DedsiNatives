@@ -10,14 +10,14 @@ namespace DedsiNative.Endpoints.LoginAuditEndpoints;
 public sealed class PagedLoginAuditRequest : DedsiPagedRequestDto
 {
     /// <summary>
-    /// 登录时间下限（UTC），为空时不限制。
+    /// 登录时间下限（北京时间），为空时不限制。
     /// </summary>
-    public DateTime? StartTimeUtc { get; set; }
+    public DateTime? StartTime { get; set; }
 
     /// <summary>
-    /// 登录时间上限（UTC），为空时不限制。
+    /// 登录时间上限（北京时间），为空时不限制。
     /// </summary>
-    public DateTime? EndTimeUtc { get; set; }
+    public DateTime? EndTime { get; set; }
 
     /// <summary>
     /// 认证结果筛选条件。
@@ -54,7 +54,7 @@ public sealed class PagedLoginAuditRequest : DedsiPagedRequestDto
 /// 登录审计分页结果中的单行数据。
 /// </summary>
 /// <param name="Id">审计记录标识。</param>
-/// <param name="LoginTimeUtc">登录尝试发生时间（UTC）。</param>
+/// <param name="LoginTime">登录尝试发生时间（北京时间）。</param>
 /// <param name="Result">认证结果。</param>
 /// <param name="Reason">认证原因。</param>
 /// <param name="Account">提交的登录账号。</param>
@@ -64,7 +64,7 @@ public sealed class PagedLoginAuditRequest : DedsiPagedRequestDto
 /// <param name="FailureDescription">脱敏后的失败说明。</param>
 public sealed record PagedLoginAuditRowResponse(
     string Id,
-    DateTime LoginTimeUtc,
+    DateTime LoginTime,
     LoginResult Result,
     LoginReason Reason,
     string Account,
@@ -110,8 +110,8 @@ public sealed class PagedLoginAuditEndpoint(ILoginAuditQuery loginAuditQuery)
     {
         var result = await loginAuditQuery.GetPagedAsync(
             new LoginAuditPagedQuery(
-                req.StartTimeUtc,
-                req.EndTimeUtc,
+                req.StartTime,
+                req.EndTime,
                 req.Result,
                 req.Reason,
                 req.Account,
@@ -128,7 +128,7 @@ public sealed class PagedLoginAuditEndpoint(ILoginAuditQuery loginAuditQuery)
             Items = result.Items
                 .Select(item => new PagedLoginAuditRowResponse(
                     item.Id,
-                    item.LoginTimeUtc,
+                    item.LoginTime,
                     item.Result,
                     item.Reason,
                     item.Account,

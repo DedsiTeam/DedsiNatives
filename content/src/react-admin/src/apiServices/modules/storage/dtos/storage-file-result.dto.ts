@@ -33,7 +33,7 @@ export interface StorageFileResultDto {
   /** 文件说明 */
   description?: string;
   /** 上传时间 */
-  createdAtUtc: string;
+  createdAt: string;
 }
 
 /**

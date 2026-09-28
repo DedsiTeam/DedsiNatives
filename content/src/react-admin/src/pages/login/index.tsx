@@ -180,7 +180,7 @@ export const LoginPage: React.FC = () => {
 
         {/* 页脚版权信息 */}
         <footer className={styles.footer}>
-          © {new Date().getFullYear()} Dedsi Team. All Rights Reserved.
+          © {new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Shanghai', year: 'numeric' }).format(new Date())} Dedsi Team. All Rights Reserved.
         </footer>
       </div>
     </div>

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using DedsiNative.Serialization;
 using FastEndpoints;
 using Microsoft.AspNetCore.Builder;
@@ -14,28 +15,39 @@ namespace DedsiNative.Host.Tests.Serialization;
 public sealed class ApiDateTimeConfigurationTests
 {
     /// <summary>
-    /// 固定格式应被解析为 UTC，且不接受其他格式。
+    /// 固定格式按北京时间墙钟解析，拒绝 ISO、UTC 和偏移格式。
     /// </summary>
     [Fact]
-    public void TryParseUtc_Should_Only_Accept_Fixed_Format()
+    public void TryParseBeijing_Should_Only_Accept_WallClock_Format()
     {
-        var success = ApiDateTimeConfiguration.TryParseUtc(
-            "2026-08-06 06:17:49",
+        var success = ApiDateTimeConfiguration.TryParseBeijing(
+            "2026-08-06 14:17:49.1234567",
             out var value);
 
         Assert.True(success);
-        Assert.Equal(DateTimeKind.Utc, value.Kind);
-        Assert.Equal(new DateTime(2026, 8, 6, 6, 17, 49, DateTimeKind.Utc), value);
-        Assert.False(ApiDateTimeConfiguration.TryParseUtc(
+        Assert.Equal(DateTimeKind.Unspecified, value.Kind);
+        Assert.Equal(new DateTime(2026, 8, 6, 14, 17, 49).AddTicks(1234567), value);
+        Assert.True(ApiDateTimeConfiguration.TryParseBeijing("2026-08-06 14:17:49", out _));
+        Assert.False(ApiDateTimeConfiguration.TryParseBeijing(
             "2026-08-06T06:17:49Z",
             out _));
-        Assert.False(ApiDateTimeConfiguration.TryParseUtc(
-            "2026-08-06 06:17:49.617575",
+        Assert.False(ApiDateTimeConfiguration.TryParseBeijing(
+            "2026-08-06 14:17:49+08:00",
             out _));
     }
 
     /// <summary>
-    /// JSON Body 和 Query 中的时间都应使用统一格式，并以 UTC 写入响应。
+    /// UTC 值不得被隐式写成北京时间。
+    /// </summary>
+    [Fact]
+    public void JsonConverter_Should_Reject_Utc_Value()
+    {
+        var options = new JsonSerializerOptions { Converters = { new ApiDateTimeJsonConverter() } };
+        Assert.Throws<JsonException>(() => JsonSerializer.Serialize(DateTime.UtcNow, options));
+    }
+
+    /// <summary>
+    /// JSON Body 和 Query 中的时间都应按北京时间墙钟原样输出。
     /// </summary>
     [Fact]
     public async Task FastEndpoints_Should_Use_Fixed_Format_For_Json_And_Query_DateTimes()
@@ -55,18 +67,18 @@ public sealed class ApiDateTimeConfigurationTests
         using var client = app.GetTestClient();
         using var bodyResponse = await client.PostAsJsonAsync(
             "/test/date-time/body",
-            new { occurredAt = "2026-08-06 06:17:49" });
+            new { occurredAt = "2026-08-06 14:17:49" });
         var bodyJson = await bodyResponse.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, bodyResponse.StatusCode);
-        Assert.Contains("\"occurredAt\":\"2026-08-06 06:17:49\"", bodyJson, StringComparison.Ordinal);
+        Assert.Contains("\"occurredAt\":\"2026-08-06 14:17:49\"", bodyJson, StringComparison.Ordinal);
 
         using var queryResponse = await client.GetAsync(
-            "/test/date-time/query?occurredAt=2026-08-06%2006%3A17%3A49");
+            "/test/date-time/query?occurredAt=2026-08-06%2014%3A17%3A49");
         var queryJson = await queryResponse.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, queryResponse.StatusCode);
-        Assert.Contains("\"occurredAt\":\"2026-08-06 06:17:49\"", queryJson, StringComparison.Ordinal);
+        Assert.Contains("\"occurredAt\":\"2026-08-06 14:17:49\"", queryJson, StringComparison.Ordinal);
 
         using var invalidResponse = await client.PostAsJsonAsync(
             "/test/date-time/body",

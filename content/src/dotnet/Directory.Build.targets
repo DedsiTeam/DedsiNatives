@@ -1,7 +1,7 @@
 <Project>
     <PropertyGroup>
-		<DedsiFrameworkVersion>10.6.0</DedsiFrameworkVersion>
-        <AbpFrameworkVersion>10.6.0</AbpFrameworkVersion>
-		<AspireVersion>13.5.2</AspireVersion>
+		<DedsiFrameworkVersion>10.6.1</DedsiFrameworkVersion>
+        <AbpFrameworkVersion>10.6.1</AbpFrameworkVersion>
+		<AspireVersion>13.5.4</AspireVersion>
     </PropertyGroup>
 </Project>

@@ -17,7 +17,7 @@ public sealed record SsoLoginRequest(string Token);
 /// 登录响应模型，包含系统 JWT Bearer Token、过期时间及完整用户安全资料。
 /// </summary>
 /// <param name="Token">JWT Bearer Token。</param>
-/// <param name="ExpiresAt">Token 过期时间（UTC）。</param>
+/// <param name="ExpiresAt">Token 过期时间（北京时间）。</param>
 /// <param name="User">当前登录用户的安全基本资料。</param>
 public sealed record LoginResponse(string Token, DateTime ExpiresAt, LoginUserResponse User);
 

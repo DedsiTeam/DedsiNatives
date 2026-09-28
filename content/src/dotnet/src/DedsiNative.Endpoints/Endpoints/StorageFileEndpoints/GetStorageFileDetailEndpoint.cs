@@ -19,7 +19,7 @@ namespace DedsiNative.Endpoints.StorageFileEndpoints;
 /// <param name="Category">业务分类。</param>
 /// <param name="IsPublic">是否公开。</param>
 /// <param name="Description">文件说明。</param>
-/// <param name="CreatedAtUtc">创建时间（UTC）。</param>
+/// <param name="CreatedAt">创建时间（北京时间）。</param>
 public sealed record StorageFileDetailResponse(
     string Id,
     string FileName,
@@ -34,7 +34,7 @@ public sealed record StorageFileDetailResponse(
     string Category,
     bool IsPublic,
     string? Description,
-    DateTime CreatedAtUtc);
+    DateTime CreatedAt);
 
 /// <summary>
 /// 获取文件详情端点。

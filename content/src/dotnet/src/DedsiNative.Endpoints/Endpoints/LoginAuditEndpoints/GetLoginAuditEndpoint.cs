@@ -7,7 +7,7 @@ namespace DedsiNative.Endpoints.LoginAuditEndpoints;
 /// 登录审计详情响应。
 /// </summary>
 /// <param name="Id">审计记录标识。</param>
-/// <param name="LoginTimeUtc">登录尝试发生时间（UTC）。</param>
+/// <param name="LoginTime">登录尝试发生时间（北京时间）。</param>
 /// <param name="Result">认证结果。</param>
 /// <param name="Reason">认证原因。</param>
 /// <param name="Account">提交的登录账号。</param>
@@ -18,7 +18,7 @@ namespace DedsiNative.Endpoints.LoginAuditEndpoints;
 /// <param name="UserAgent">请求提供的 User-Agent。</param>
 public sealed record GetLoginAuditResponse(
     string Id,
-    DateTime LoginTimeUtc,
+    DateTime LoginTime,
     LoginResult Result,
     LoginReason Reason,
     string Account,
@@ -61,7 +61,7 @@ public sealed class GetLoginAuditEndpoint(ILoginAuditRepository loginAuditReposi
 
         await Send.OkAsync(new GetLoginAuditResponse(
             audit.Id,
-            audit.LoginTimeUtc,
+            audit.LoginTime,
             audit.Result,
             audit.Reason,
             audit.Account,

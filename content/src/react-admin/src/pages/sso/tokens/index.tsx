@@ -110,14 +110,14 @@ export default function SsoTokens() {
       dataIndex: 'creationDate',
       key: 'creationDate',
       width: 170,
-      render: (val) => (val ? new Date(val).toLocaleString() : '-'),
+      render: (val) => val || '-',
     },
     {
       title: '过期时间',
       dataIndex: 'expirationDate',
       key: 'expirationDate',
       width: 170,
-      render: (val) => (val ? new Date(val).toLocaleString() : '-'),
+      render: (val) => val || '-',
     },
     {
       title: '操作',

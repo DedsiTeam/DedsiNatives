@@ -49,7 +49,7 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasPrecision(18, 2)
             .IsRequired();
 
-        // 审计时间统一使用 UTC，具体时钟策略由基础设施模块配置。
+        // 审计时间统一使用北京时间，具体时钟策略由基础设施模块配置。
         builder.Property(product => product.CreationTime)
             .IsRequired();
 

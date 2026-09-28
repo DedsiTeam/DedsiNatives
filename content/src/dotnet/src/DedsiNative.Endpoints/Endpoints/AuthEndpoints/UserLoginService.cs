@@ -178,7 +178,8 @@ public sealed class UserLoginService(
             expires: expiresAt,
             signingCredentials: credentials);
 
-        return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
+        // JWT 数值时间保持协议 UTC，接口返回的业务展示时间使用北京时间。
+        return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt.ToLocalTime());
     }
 
     private JwtSettings GetJwtSettings()

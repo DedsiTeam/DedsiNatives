@@ -3,6 +3,7 @@ using DedsiNative.EntityFrameworkCore;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.EntityFrameworkCore.Models;
+using DedsiNative.Time;
 
 namespace DedsiNative.Endpoints.OpenIddictEndpoints.TokenEndpoints;
 
@@ -110,9 +111,9 @@ public class PagedOpenIddictTokenEndpoint(DedsiNativeDbContext dbContext)
             item.Subject,
             item.Status,
             item.Type,
-            item.CreationDate,
-            item.ExpirationDate,
-            item.RedemptionDate
+            BeijingTimeZoneGuard.FromProtocolUtc(item.CreationDate),
+            BeijingTimeZoneGuard.FromProtocolUtc(item.ExpirationDate),
+            BeijingTimeZoneGuard.FromProtocolUtc(item.RedemptionDate)
         )).ToList();
 
         await Send.OkAsync(new PagedOpenIddictTokenResponse

@@ -278,10 +278,10 @@ export default function StorageManagement() {
     },
     {
       title: '上传时间',
-      dataIndex: 'createdAtUtc',
-      key: 'createdAtUtc',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       width: 170,
-      render: (time: string) => time?.replace('T', ' ').slice(0, 19) || '-',
+      render: (time: string) => time || '-',
     },
     {
       title: '操作',
@@ -505,7 +505,7 @@ export default function StorageManagement() {
               <Text code>{detailFile.md5Hash || '-'}</Text>
             </Descriptions.Item>
             <Descriptions.Item label="上传时间" span={2}>
-              {detailFile.createdAtUtc?.replace('T', ' ').slice(0, 19)}
+              {detailFile.createdAt || '-'}
             </Descriptions.Item>
             <Descriptions.Item label="说明备注" span={2}>
               {detailFile.description || '-'}

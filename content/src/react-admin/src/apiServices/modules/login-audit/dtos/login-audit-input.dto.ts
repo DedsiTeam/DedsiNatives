@@ -36,10 +36,10 @@ export type LoginReason = (typeof LoginReason)[keyof typeof LoginReason];
 
 /** 登录审计分页查询参数，对应 POST /api/login-audit/pagedQuery。 */
 export interface LoginAuditQueryInputDto extends PageInputDto {
-  /** 起始登录时间（UTC ISO 8601），为空时不限制下界。 */
-  startTimeUtc?: string;
-  /** 结束登录时间（UTC ISO 8601），为空时不限制上界。 */
-  endTimeUtc?: string;
+  /** 起始登录时间（北京时间 yyyy-MM-dd HH:mm:ss），为空时不限制下界。 */
+  startTime?: string;
+  /** 结束登录时间（北京时间 yyyy-MM-dd HH:mm:ss），为空时不限制上界。 */
+  endTime?: string;
   /** 登录结果筛选。 */
   result?: LoginResult;
   /** 登录原因筛选。 */

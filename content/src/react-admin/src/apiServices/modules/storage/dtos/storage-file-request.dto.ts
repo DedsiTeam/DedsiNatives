@@ -16,10 +16,10 @@ export interface StorageFilePagedRequestDto {
   storageType?: number;
   /** 是否公开筛选 */
   isPublic?: boolean;
-  /** 上传起始时间（ISO 字符串） */
-  startTimeUtc?: string;
-  /** 上传截止时间（ISO 字符串） */
-  endTimeUtc?: string;
+  /** 上传起始时间（北京时间 yyyy-MM-dd HH:mm:ss.FFFFFFF 字符串） */
+  startTime?: string;
+  /** 上传截止时间（北京时间 yyyy-MM-dd HH:mm:ss.FFFFFFF 字符串） */
+  endTime?: string;
   /** 当前页码，默认 1 */
   pageIndex?: number;
   /** 每页条数，默认 10 */

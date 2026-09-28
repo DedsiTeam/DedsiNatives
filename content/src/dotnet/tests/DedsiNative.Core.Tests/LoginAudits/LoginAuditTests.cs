@@ -40,7 +40,7 @@ public sealed class LoginAuditTests
             "test-agent");
 
         Assert.Equal(26, audit.Id.Length);
-        Assert.Equal(now, audit.LoginTimeUtc);
+        Assert.Equal(now, audit.LoginTime);
         Assert.Equal(LoginResult.Success, audit.Result);
         Assert.Equal(LoginReason.SuccessfulAuthentication, audit.Reason);
         Assert.Equal("zhangsan", audit.Account);

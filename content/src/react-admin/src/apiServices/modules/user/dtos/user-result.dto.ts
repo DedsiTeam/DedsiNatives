@@ -17,9 +17,9 @@ export interface UserResultDto {
   phone: string | null;
   /** 用户身份证号码。 */
   idCardNumber: string | null;
-  /** 用户资料最后更新时间（UTC）。 */
+  /** 用户资料最后更新时间（北京时间）。 */
   lastUpdatedAt: string;
-  /** 最后成功登录时间（UTC）。 */
+  /** 最后成功登录时间（北京时间）。 */
   lastLoginTime: string | null;
   /** 最后成功登录 IP 地址。 */
   lastLoginIp: string | null;
@@ -69,7 +69,7 @@ export interface PagedUserRowDto {
   email: string;
   /** 用户联系电话。 */
   phone: string | null;
-  /** 用户资料最后更新时间（UTC）。 */
+  /** 用户资料最后更新时间（北京时间）。 */
   lastUpdatedAt: string;
 }
 

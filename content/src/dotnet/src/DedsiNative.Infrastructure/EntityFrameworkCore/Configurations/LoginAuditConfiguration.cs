@@ -21,8 +21,8 @@ public sealed class LoginAuditConfiguration : IEntityTypeConfiguration<LoginAudi
             .HasMaxLength(26)
             .IsRequired();
 
-        // 认证时间按 UTC 保存，并作为审计列表默认倒序字段。
-        builder.Property(audit => audit.LoginTimeUtc)
+        // 审计时间直接按北京时间保存，列名体现实际业务语义。
+        builder.Property(audit => audit.LoginTime)
             .IsRequired();
         builder.Property(audit => audit.Result)
             .HasConversion<string>()
@@ -51,9 +51,9 @@ public sealed class LoginAuditConfiguration : IEntityTypeConfiguration<LoginAudi
             .IsRequired(false);
 
         // 审计调查的主要访问路径按时间、账号和用户标识建立索引。
-        builder.HasIndex(audit => audit.LoginTimeUtc);
-        builder.HasIndex(audit => new { audit.Account, audit.LoginTimeUtc });
-        builder.HasIndex(audit => new { audit.UserId, audit.LoginTimeUtc });
+        builder.HasIndex(audit => audit.LoginTime);
+        builder.HasIndex(audit => new { audit.Account, audit.LoginTime });
+        builder.HasIndex(audit => new { audit.UserId, audit.LoginTime });
 
     }
 }

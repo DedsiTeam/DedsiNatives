@@ -28,7 +28,7 @@ public sealed class LoginResponseTests
 
         var loginResponse = new LoginResponse(
             "mock-jwt-token",
-            DateTime.UtcNow.AddHours(2),
+            DateTime.Now.AddHours(2),
             userResponse);
 
         Assert.Equal("mock-jwt-token", loginResponse.Token);

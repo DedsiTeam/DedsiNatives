@@ -20,11 +20,11 @@ namespace DedsiNative.StorageFiles;
 /// <param name="IsPublic">
 /// 是否公开筛选（为空时不筛选）。
 /// </param>
-/// <param name="StartTimeUtc">
-/// 上传起始时间（UTC）。
+/// <param name="StartTime">
+/// 上传起始时间（北京时间）。
 /// </param>
-/// <param name="EndTimeUtc">
-/// 上传截止时间（UTC）。
+/// <param name="EndTime">
+/// 上传截止时间（北京时间）。
 /// </param>
 /// <param name="SkipCount">
 /// 需要跳过的记录数。
@@ -41,8 +41,8 @@ public sealed record StorageFilePagedQuery(
     string? Extension,
     StorageType? StorageType,
     bool? IsPublic,
-    DateTime? StartTimeUtc,
-    DateTime? EndTimeUtc,
+    DateTime? StartTime,
+    DateTime? EndTime,
     int SkipCount,
     int MaxResultCount,
     bool IsExport);
@@ -63,7 +63,7 @@ public sealed record StorageFilePagedQuery(
 /// <param name="Category">业务分类。</param>
 /// <param name="IsPublic">是否公开。</param>
 /// <param name="Description">文件说明。</param>
-/// <param name="CreatedAtUtc">上传时间（UTC）。</param>
+/// <param name="CreatedAt">上传时间（北京时间）。</param>
 public sealed record StorageFileQueryItem(
     string Id,
     string FileName,
@@ -78,7 +78,7 @@ public sealed record StorageFileQueryItem(
     string Category,
     bool IsPublic,
     string? Description,
-    DateTime CreatedAtUtc);
+    DateTime CreatedAt);
 
 /// <summary>
 /// 文件分页查询结果集。

@@ -1,13 +1,13 @@
 ---
 name: dedsi-efcore-persistence
-description: 按 DedsiNative 项目规范实现和修改 EF Core PostgreSQL 持久化，包括实体映射、DbContext/DbSet、Dedsi 仓储、查询服务、UTC 审计字段、并发控制和数据库迁移。用于新增实体、修改字段、实现 Repository/Query 或生成检查迁移。
+description: 按 DedsiNative 项目规范实现和修改 EF Core PostgreSQL 持久化，包括实体映射、DbContext/DbSet、Dedsi 仓储、查询服务、北京时间审计字段、并发控制和数据库迁移。用于新增实体、修改字段、实现 Repository/Query 或生成检查迁移。
 ---
 
 # 实现 Dedsi EF Core 持久化
 
 ## 强制规则
 
-- 将包含 `DedsiNative.slnx` 的目录作为 .NET 根；先读取内容根的 `AGENTS.md`、`.github/instructions/dotnet.instructions.md`、Core 聚合和相邻 EF Core 实现。
+- 将包含 `DedsiNative.slnx` 的目录作为 .NET 根；先读取内容根的 `AGENTS.md`、`src/dotnet/AGENTS.md`、Core 聚合和相邻 EF Core 实现。
 - 把实体映射放入 `DedsiNative.Infrastructure/EntityFrameworkCore/Configurations/`。
 - 在 `IDedsiNativeDbContext` 与 `DedsiNativeDbContext` 中同步维护 DbSet。
 - 在 Core 定义仓储；列表、分页、统计、导出或 DTO 投影需要专用查询时，在 Core 定义 Query 契约并在 Infrastructure 实现。
@@ -16,7 +16,7 @@ description: 按 DedsiNative 项目规范实现和修改 EF Core PostgreSQL 持�
 - 禁止 Endpoint、应用服务和事件处理器直接依赖或操作 DbContext。
 - 为新增公共类、接口、属性、构造参数和方法编写中文 XML 文档注释。
 - `<summary>` 必须使用多行格式，禁止将标签与正文写在同一行。
-- 为 UTC、审计字段、并发令牌、索引选择和数据库特有限制补充中文说明。
+- 为北京时间、审计字段、并发令牌、索引选择和数据库特有限制补充中文说明。
 - EF Core 映射中的字符串长度必须引用领域同目录的 `{Aggregate}Consts`，不得引用聚合实体上的 `MaxNameLength` 等常量，也不得在映射中重复硬编码约束值。
 - 使用 EF CLI 生成迁移，不手写迁移或 ModelSnapshot。
 - 一对多导航集合应直接映射聚合根上的 `ICollection<T>` 属性；不要为同一导航集合创建额外私有字段，也不要配置字段访问模式来绕过该属性。集合变更必须由聚合领域方法调用属性上的 `Add`、`Remove`、`Clear` 完成。
@@ -48,7 +48,7 @@ description: 按 DedsiNative 项目规范实现和修改 EF Core PostgreSQL 持�
 - 字符串字段均明确最大长度和必填性。
 - ULID 字符串主键长度为 26。
 - `ConcurrencyStamp` 明确配置并发令牌。
-- PostgreSQL 时间字段使用 UTC 约定。
+- PostgreSQL 业务及审计时间字段使用北京时间与 timestamp without time zone。
 - Query 默认使用 `AsNoTracking()`，并在数据库端完成筛选、排序、分页、统计和 DTO 投影。
 - 分页查询使用 `WhereIf` 逐项组合可选筛选条件。
 - 仓储和查询实现具有中文 XML 文档。

@@ -4,8 +4,8 @@ import type { LoginReason, LoginResult } from './login-audit-input.dto';
 export interface LoginAuditRowResultDto {
   /** 审计记录唯一标识。 */
   id: string;
-  /** 登录尝试发生的 UTC 时间，使用后端返回的 ISO 8601 字符串。 */
-  loginTimeUtc: string;
+  /** 登录尝试发生的 北京时间，使用后端返回的 yyyy-MM-dd HH:mm:ss.FFFFFFF 字符串。 */
+  loginTime: string;
   /** 本次登录成功或失败。 */
   result: LoginResult;
   /** 本次登录的具体结果原因。 */

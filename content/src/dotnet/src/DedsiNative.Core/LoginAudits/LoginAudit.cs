@@ -41,7 +41,7 @@ public class LoginAudit : Entity<string>
         string? userAgent = null)
         : base(ValidateUlid(id))
     {
-        LoginTimeUtc = loginTime;
+        LoginTime = loginTime;
         ValidateResultAndReason(result, reason, failureDescription);
 
         Result = result;
@@ -59,7 +59,7 @@ public class LoginAudit : Entity<string>
     /// <summary>
     /// 登录尝试发生时间。
     /// </summary>
-    public DateTime LoginTimeUtc { get; private set; }
+    public DateTime LoginTime { get; private set; }
 
     /// <summary>
     /// 本次尝试的认证结果。

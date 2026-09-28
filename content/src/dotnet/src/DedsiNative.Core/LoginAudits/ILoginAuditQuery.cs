@@ -5,8 +5,8 @@ namespace DedsiNative.LoginAudits;
 /// <summary>
 /// 登录审计分页查询条件。
 /// </summary>
-/// <param name="StartTimeUtc">登录时间下限（含）。</param>
-/// <param name="EndTimeUtc">登录时间上限（含）。</param>
+/// <param name="StartTime">登录时间下限（含）。</param>
+/// <param name="EndTime">登录时间上限（含）。</param>
 /// <param name="Result">认证结果筛选条件。</param>
 /// <param name="Reason">认证原因筛选条件。</param>
 /// <param name="Account">登录账号模糊筛选条件。</param>
@@ -16,8 +16,8 @@ namespace DedsiNative.LoginAudits;
 /// <param name="SkipCount">要跳过的记录数。</param>
 /// <param name="MaxResultCount">单页最多返回的记录数。</param>
 public sealed record LoginAuditPagedQuery(
-    DateTime? StartTimeUtc,
-    DateTime? EndTimeUtc,
+    DateTime? StartTime,
+    DateTime? EndTime,
     LoginResult? Result,
     LoginReason? Reason,
     string? Account,
@@ -31,7 +31,7 @@ public sealed record LoginAuditPagedQuery(
 /// 登录审计分页结果的一行投影。
 /// </summary>
 /// <param name="Id">审计记录标识。</param>
-/// <param name="LoginTimeUtc">登录尝试发生时间（UTC）。</param>
+/// <param name="LoginTime">登录尝试发生时间（北京时间）。</param>
 /// <param name="Result">认证结果。</param>
 /// <param name="Reason">认证原因。</param>
 /// <param name="Account">提交的登录账号。</param>
@@ -41,7 +41,7 @@ public sealed record LoginAuditPagedQuery(
 /// <param name="FailureDescription">脱敏后的失败说明。</param>
 public sealed record LoginAuditQueryItem(
     string Id,
-    DateTime LoginTimeUtc,
+    DateTime LoginTime,
     LoginResult Result,
     LoginReason Reason,
     string Account,

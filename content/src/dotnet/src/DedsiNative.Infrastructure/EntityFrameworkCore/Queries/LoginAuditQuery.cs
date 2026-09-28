@@ -22,13 +22,10 @@ public sealed class LoginAuditQuery(IDedsiNativeDbContext dbContext) : ILoginAud
         var account = query.Account?.Trim();
         var userName = query.UserName?.Trim();
         var clientIp = query.ClientIp?.Trim();
-        var startTimeUtc = query.StartTimeUtc?.ToUniversalTime();
-        var endTimeUtc = query.EndTimeUtc?.ToUniversalTime();
-
         var audits = dbContext.LoginAudits
             .AsNoTracking()
-            .WhereIf(startTimeUtc.HasValue, audit => audit.LoginTimeUtc >= startTimeUtc!.Value)
-            .WhereIf(endTimeUtc.HasValue, audit => audit.LoginTimeUtc <= endTimeUtc!.Value)
+            .WhereIf(query.StartTime.HasValue, audit => audit.LoginTime >= query.StartTime!.Value)
+            .WhereIf(query.EndTime.HasValue, audit => audit.LoginTime <= query.EndTime!.Value)
             .WhereIf(query.Result.HasValue, audit => audit.Result == query.Result!.Value)
             .WhereIf(query.Reason.HasValue, audit => audit.Reason == query.Reason!.Value)
             .WhereIf(!string.IsNullOrEmpty(account), audit => audit.Account.Contains(account!))
@@ -38,7 +35,7 @@ public sealed class LoginAuditQuery(IDedsiNativeDbContext dbContext) : ILoginAud
 
         var totalCount = await audits.LongCountAsync(cancellationToken);
         audits = audits
-            .OrderByDescending(audit => audit.LoginTimeUtc)
+            .OrderByDescending(audit => audit.LoginTime)
             .ThenByDescending(audit => audit.Id);
 
         audits = audits
@@ -48,7 +45,7 @@ public sealed class LoginAuditQuery(IDedsiNativeDbContext dbContext) : ILoginAud
         var items = await audits
             .Select(audit => new LoginAuditQueryItem(
                 audit.Id,
-                audit.LoginTimeUtc,
+                audit.LoginTime,
                 audit.Result,
                 audit.Reason,
                 audit.Account,

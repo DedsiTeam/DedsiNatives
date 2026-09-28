@@ -2,7 +2,9 @@ using DedsiNative;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
+using DedsiNative.Time;
 
+BeijingTimeZoneGuard.EnsureConfigured();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 Log.Logger = new LoggerConfiguration()
@@ -29,6 +31,13 @@ try
                 .WriteTo.Async(c => c.File(path:"Logs/logs.txt", rollingInterval:RollingInterval.Hour, retainedFileCountLimit: 168))
                 .WriteTo.Async(c => c.Console())
                 .WriteTo.Async(c => c.OpenTelemetry());
+
+            // Aspire 只在引用 Seq 资源时注入地址；独立运行仍保留现有日志输出。
+            var seqUri = context.Configuration["SEQ_URI"];
+            if (!string.IsNullOrWhiteSpace(seqUri))
+            {
+                loggerConfiguration.WriteTo.Seq(seqUri);
+            }
         });
 
     await builder.AddApplicationAsync<DedsiNativeHostModule>();

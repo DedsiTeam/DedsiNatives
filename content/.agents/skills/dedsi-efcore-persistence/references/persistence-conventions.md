@@ -6,7 +6,7 @@
 - 使用 `DedsiNativeCoreConsts.DbSchemaName` 指定 Schema。
 - 显式配置主键、最大长度、必填性、索引、关系、删除行为和并发令牌。
 - ULID 字符串主键配置最大长度 26。
-- 配置继承自 Dedsi 聚合根的审计字段，保持 PostgreSQL UTC 时间要求。
+- 配置继承自 Dedsi 聚合根的审计字段，保持 PostgreSQL 北京时间墙钟要求。
 - 对 `ConcurrencyStamp` 调用 `IsConcurrencyToken()`。
 - 为配置类、`Configure()` 和非显然映射规则写中文注释。
 

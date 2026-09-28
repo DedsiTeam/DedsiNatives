@@ -98,8 +98,8 @@ export default function LoginAuditManagement() {
   /** 提交草稿筛选条件 */
   const handleSearch = () => {
     setQuery({
-      startTimeUtc: draftTimeRange?.[0]?.format('YYYY-MM-DD HH:mm:ss'),
-      endTimeUtc: draftTimeRange?.[1]?.format('YYYY-MM-DD HH:mm:ss'),
+      startTime: draftTimeRange?.[0]?.format('YYYY-MM-DD HH:mm:ss'),
+      endTime: draftTimeRange?.[1]?.format('YYYY-MM-DD HH:mm:ss'),
       result: draftResult,
       reason: draftReason,
       account: draftAccount.trim() || undefined,
@@ -136,8 +136,8 @@ export default function LoginAuditManagement() {
   const columns: TableProps<LoginAuditRowResultDto>['columns'] = [
     {
       title: '登录时间',
-      dataIndex: 'loginTimeUtc',
-      key: 'loginTimeUtc',
+      dataIndex: 'loginTime',
+      key: 'loginTime',
       width: 190,
     },
     {
@@ -302,7 +302,7 @@ export default function LoginAuditManagement() {
             <div className={styles.detailSummary}>
               <div>
                 <Text strong>{detail.account}</Text>
-                <Text type="secondary">{detail.loginTimeUtc}</Text>
+                <Text type="secondary">{detail.loginTime}</Text>
               </div>
               <Tag
                 color={detail.result === LoginResult.Success ? 'success' : 'error'}
@@ -320,7 +320,7 @@ export default function LoginAuditManagement() {
               <Descriptions.Item label="审计标识">
                 <CopyableIdTag id={detail.id} label="审计 ID" />
               </Descriptions.Item>
-              <Descriptions.Item label="登录时间">{detail.loginTimeUtc}</Descriptions.Item>
+              <Descriptions.Item label="登录时间">{detail.loginTime}</Descriptions.Item>
               <Descriptions.Item label="登录结果">{loginResultLabels[detail.result] ?? '未知'}</Descriptions.Item>
               <Descriptions.Item label="登录原因">{loginReasonLabels[detail.reason] ?? '未知原因'}</Descriptions.Item>
               <Descriptions.Item label="登录账号">

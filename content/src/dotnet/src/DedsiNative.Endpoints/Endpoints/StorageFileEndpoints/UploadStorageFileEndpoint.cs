@@ -98,7 +98,7 @@ public sealed class UploadStorageFileEndpoint(
         }
 
         var storageName = $"{id}{extension}";
-        var yearMonth = DateTime.UtcNow.ToString("yyyy/MM");
+        var yearMonth = DateTime.Now.ToString("yyyy/MM");
         var relativePath = $"uploads/{yearMonth}/{storageName}";
         var contentType = string.IsNullOrWhiteSpace(req.File.ContentType)
             ? "application/octet-stream"

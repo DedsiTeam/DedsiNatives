@@ -138,8 +138,8 @@ export const Dashboard: React.FC = () => {
     },
     {
       title: '登录时间 (北京时间)',
-      dataIndex: 'loginTimeUtc',
-      key: 'loginTimeUtc',
+      dataIndex: 'loginTime',
+      key: 'loginTime',
       render: (time: string) => time || '-',
     },
   ];

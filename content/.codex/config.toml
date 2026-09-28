@@ -1,0 +1,10 @@
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 3
+
+[mcp_servers.ado]
+command = "npx"
+args = ["-y", "@azure-devops/mcp", "{{ADO_ORG}}", "-d", "core", "work-items"]
+enabled = false
+required = false
+default_tools_approval_mode = "writes"
