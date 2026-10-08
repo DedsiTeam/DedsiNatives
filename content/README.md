@@ -24,7 +24,7 @@
 │   │   │   └── DedsiNative.ServiceDefaults/ # Aspire 服务默认配置
 │   │   └── DedsiNative.slnx
 │   └── react-admin/                          # React 前端管理后台
-└── docs/                                     # 产品需求草稿、发布快照与可复用流程模板
+└── docs/                                     # 本地产品需求与可复用流程模板
 ```
 
 ## 快速开始
@@ -79,7 +79,7 @@ bun run dev:prototype
 
 ## Codex 开发规范
 
-通用规则见 [AGENTS.md](AGENTS.md)，后端、前端和产品文档分别使用各目录的 `AGENTS.md`。专用 Agent 位于 [`.codex/agents/`](.codex/agents/)，技能位于 [`.agents/skills/`](.agents/skills/)。Azure DevOps MCP 配置位于 [`.codex/config.toml`](.codex/config.toml)，产品工作由 `product_manager` Agent 按需启用。
+通用规则见 [AGENTS.md](AGENTS.md)，后端、前端和产品文档分别使用各目录的 `AGENTS.md`。专用 Agent 位于 [`.codex/agents/`](.codex/agents/)，技能位于 [`.agents/skills/`](.agents/skills/)。Codex 配置位于 [`.codex/config.toml`](.codex/config.toml)，本地产品需求由 `product_manager` Agent 按需维护。
 
 业务时间从写入、存储到显示统一为北京时间，API 使用 `yyyy-MM-dd HH:mm:ss.FFFFFFF`。前端可运行 `bun run build` 和 `bun run test:e2e` 验证。
 
@@ -87,21 +87,8 @@ bun run dev:prototype
 
 ## 文档存放规范
 
-`docs/product/` 保存产品经理与 Codex 讨论形成的本地需求草稿和发布快照；`docs/work-item-templates/` 保存可复用流程模板。需求发布后，Azure DevOps 是工作项、验收标准、状态和执行记录的远程事实来源。
+`docs/product/` 保存产品经理与 Codex 讨论形成的本地需求、验收标准、评审结论和实施记录；`docs/work-item-templates/` 保存可复用流程模板。
 
 产研一体流程请参考：[产研一体需求流程](docs/product/README.md)。
 
 前端 UI 规范请参考：[dedsi-style-react-admin-ui](.agents/skills/dedsi-style-react-admin-ui/SKILL.md)。
-
-## Azure DevOps 产品工作
-
-创建模板时可指定 Azure DevOps 组织和 Project：
-
-```bash
-dotnet new dedsi-native -n YourProject \
-  --HttpPort 12256 \
-  --AdoOrg YourOrg \
-  --AdoProject YourProject
-```
-
-产品经理在 Codex 中使用 `product_manager` Agent 讨论和整理需求，发布前预览，获得人工确认后通过 Azure DevOps MCP 写入，再回读核对。参见[产研一体需求流程](docs/product/README.md)。

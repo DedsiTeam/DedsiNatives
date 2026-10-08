@@ -6,18 +6,9 @@ title: "{{需求标题}}"
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 owner: "{{产品负责人}}"
-ado:
-  organization: "{{ADO_ORG}}"
-  project: "{{ADO_PROJECT}}"
-  parent_id: null
-  parent_url: null
-  parent_revision: null
-  child_ids: []
-  published_at: null
 prototype:
   required: undecided
   status: undecided
-  work_item_id: null
   pull_request_id: null
   approved_commit: null
 ---
@@ -90,23 +81,15 @@ prototype:
 
 - [ ] {{尚未确认的业务、权限、契约或交互决策。}}
 
-## Azure DevOps 发布计划
+## 编码任务
 
-### 父需求
+### 编码任务 1
 
-- 工作项类型：{{Epic/Feature/User Story/项目实际类型}}
-- 标题：{{}}
-- 初始标签：`product-requirement; product-draft`
-
-### 编码子工作项 1
-
-- 工作项类型：{{Product Backlog Item/User Story/Bug/Task/项目实际类型}}
 - 标题：{{一个可独立验收的业务能力}}
-- 初始标签：`product-work-item; product-draft`
 - 原型：{{Required/NotRequired}}
 - 依赖：{{无时写“无”。}}
 
-#### Description
+#### 任务说明
 
 ```markdown
 ## 业务目标
@@ -140,7 +123,7 @@ prototype:
 - {{}}
 ```
 
-#### Acceptance Criteria
+#### 验收标准
 
 ```markdown
 - [ ] {{业务可观察结果。}}
@@ -154,9 +137,8 @@ prototype:
 - [ ] 前置依赖已合并。
 - [ ] 原型为 `NotRequired` 或已 `Approved`。
 - [ ] 可以通过一个 PR 独立交付。
-- [ ] 工作项正文自包含，不依赖本地文件或父工作项正文。
-- [ ] `Assigned To` 保持为空。
+- [ ] 任务说明包含完整业务上下文、契约和验收标准。
 
-## 发布记录
+## 评审与实施记录
 
-{{Agent 在 MCP 发布和回读核对后写入；草稿阶段保留为空。}}
+{{记录评审日期、结论、需求状态变化、实施任务和验证结果；草稿阶段保留为空。}}

@@ -25,20 +25,6 @@
       "description": "后端 HTTP 服务端口。",
       "defaultValue": "12256",
       "replaces": "12256"
-    },
-    "AdoOrg": {
-      "type": "parameter",
-      "datatype": "string",
-      "description": "Azure DevOps 组织名，用于 Codex 产品工作项发布。",
-      "defaultValue": "CohenTeam",
-      "replaces": "{{ADO_ORG}}"
-    },
-    "AdoProject": {
-      "type": "parameter",
-      "datatype": "string",
-      "description": "Azure DevOps Project 名称，用于 Codex 产品工作项发布。",
-      "defaultValue": "DedsiNative",
-      "replaces": "{{ADO_PROJECT}}"
     }
   },
   "sources": [
