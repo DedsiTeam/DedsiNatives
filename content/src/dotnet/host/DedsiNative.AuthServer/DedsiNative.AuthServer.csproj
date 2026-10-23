@@ -13,20 +13,20 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="OpenIddict.AspNetCore" Version="7.7.1" />
-        <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="7.7.1" />
-        <PackageReference Include="OpenIddict.Quartz" Version="7.7.1" />
-        <PackageReference Include="Quartz.Extensions.Hosting" Version="4.2.1" />
+        <PackageReference Include="OpenIddict.AspNetCore" />
+        <PackageReference Include="OpenIddict.EntityFrameworkCore" />
+        <PackageReference Include="OpenIddict.Quartz" />
+        <PackageReference Include="Quartz.Extensions.Hosting" />
 
-        <PackageReference Include="Volo.Abp.Autofac" Version="$(AbpFrameworkVersion)" />
-        <PackageReference Include="Volo.Abp.AspNetCore.Serilog" Version="$(AbpFrameworkVersion)" />
+        <PackageReference Include="Volo.Abp.Autofac" />
+        <PackageReference Include="Volo.Abp.AspNetCore.Serilog" />
 
-        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
-        <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
-        <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
-        <PackageReference Include="Serilog.Sinks.Seq" Version="9.1.0" />
+        <PackageReference Include="Serilog.AspNetCore" />
+        <PackageReference Include="Serilog.Sinks.Async" />
+        <PackageReference Include="Serilog.Sinks.OpenTelemetry" />
+        <PackageReference Include="Serilog.Sinks.Seq" />
 
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>

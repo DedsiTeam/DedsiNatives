@@ -35,8 +35,6 @@
             "**/bin/**",
             "**/obj/**",
             "**/nupkg/**",
-            "**/playwright-report/**",
-            "**/test-results/**",
             "**/.idea/**",
             "**/.DS_Store",
             "**/Logs/**",

@@ -27,6 +27,6 @@
 ## 验证与交付
 
 - 后端变更至少运行 `dotnet build src/dotnet/DedsiNative.slnx`，有相关测试时运行聚焦测试。
-- 前端变更从 `src/react-admin` 运行 `bun run build`；涉及关键页面流程时运行适用的 Playwright E2E，存在适用命令时运行聚焦 lint。
+- 前端变更从 `src/react-admin` 运行 `bun run build`；存在适用命令时运行聚焦 lint。
 - 全栈契约变更同时验证前后端及关键接口行为；文档或配置变更运行静态检查与 `git diff --check`。
 - 交付时说明改动、验证结果和剩余问题。正式功能的自动化验证不代替用户人工验收；收到当前任务反馈后继续修正和复测。

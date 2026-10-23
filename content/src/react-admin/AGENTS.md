@@ -38,4 +38,4 @@
 
 - 新增业务代码使用 TypeScript；不用 `any` 逃逸类型。DTO 与 API Service 位于 `src/apiServices/`，按真实 Endpoint 定义请求和响应。
 - 业务时间直接使用后端的北京时间墙钟文本 `yyyy-MM-dd HH:mm:ss.FFFFFFF`；筛选条件按同一格式提交。不得用 `new Date()`、`toLocaleString()` 或浏览器本地时区转换业务时间，也不兼容 ISO/offset 输入。
-- 正式前端变更运行 `bun run build`；适用时运行聚焦 lint。新增或改变关键页面流程时运行对应 Playwright E2E；静态原型只运行 `bun run build:prototype`。
+- 正式前端变更运行 `bun run build`；适用时运行聚焦 lint；静态原型只运行 `bun run build:prototype`。

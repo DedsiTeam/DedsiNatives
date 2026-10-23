@@ -1,4 +1,4 @@
-<Project Sdk="Aspire.AppHost.Sdk/13.6.1">
+<Project Sdk="Aspire.AppHost.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -14,11 +14,11 @@
     </ItemGroup>
     
     <ItemGroup>
-        <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="$(AspireVersion)" />
-        <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="$(AspireVersion)" />
-        <PackageReference Include="Aspire.Hosting.Redis" Version="$(AspireVersion)" />
-        <PackageReference Include="Aspire.Hosting.Seq" Version="$(AspireVersion)" />
-        <PackageReference Include="CommunityToolkit.Aspire.Hosting.Minio" Version="13.5.0" />
+        <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+        <PackageReference Include="Aspire.Hosting.RabbitMQ" />
+        <PackageReference Include="Aspire.Hosting.Redis" />
+        <PackageReference Include="Aspire.Hosting.Seq" />
+        <PackageReference Include="CommunityToolkit.Aspire.Hosting.Minio" />
     </ItemGroup>
 
 </Project>

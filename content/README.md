@@ -81,7 +81,7 @@ bun run dev:prototype
 
 通用规则见 [AGENTS.md](AGENTS.md)，后端、前端和产品文档分别使用各目录的 `AGENTS.md`。专用 Agent 位于 [`.codex/agents/`](.codex/agents/)，技能位于 [`.agents/skills/`](.agents/skills/)。Codex 配置位于 [`.codex/config.toml`](.codex/config.toml)，本地产品需求由 `product_manager` Agent 按需维护。
 
-业务时间从写入、存储到显示统一为北京时间，API 使用 `yyyy-MM-dd HH:mm:ss.FFFFFFF`。前端可运行 `bun run build` 和 `bun run test:e2e` 验证。
+业务时间从写入、存储到显示统一为北京时间，API 使用 `yyyy-MM-dd HH:mm:ss.FFFFFFF`。前端可运行 `bun run build` 和 `bun run lint` 验证。
 
 模板配置只包含 `CHANGE_ME` 占位符。运行宿主前请通过环境变量提供实际敏感配置：`ConnectionStrings__DedsiNativeDB`、`ConnectionStrings__DedsiNativeRabbitMQ` 和 `Jwt__Secret`；通过 Aspire 启动时还需配置 `Parameters__PostgresPassword`、`Parameters__RabbitMqUserName` 和 `Parameters__RabbitMqPassword`。不要把真实值提交到仓库。
 
