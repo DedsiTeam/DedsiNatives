@@ -23,7 +23,7 @@ public sealed class UpdateMenuEndpoint(
     /// </summary>
     public override void Configure()
     {
-        Post("/api/menu/update/{id}");
+        Post("menu/update/{id}");
         Policies(ManagementPermissions.Menus.Update);
     }
 

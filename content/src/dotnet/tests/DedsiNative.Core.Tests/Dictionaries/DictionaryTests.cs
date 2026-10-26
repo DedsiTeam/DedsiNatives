@@ -32,23 +32,23 @@ public sealed class DictionaryTests
     }
 
     /// <summary>
-    /// 字典和系统标识必须是合法的 26 位 ULID。
+    /// 字典直接保留传入标识，不在领域构造函数中校验 ULID 格式。
     /// </summary>
     [Fact]
-    public void Constructor_Should_Reject_Invalid_Identifiers()
+    public void Constructor_Should_Preserve_Identifiers_Without_Ulid_Validation()
     {
         var validId = Ulid.NewUlid().ToString();
 
-        Assert.Throws<ArgumentException>(() => new DictionaryAggregate(
+        Assert.Equal("invalid", new DictionaryAggregate(
             "invalid",
             validId,
             "系统",
-            "字典"));
-        Assert.Throws<ArgumentException>(() => new DictionaryAggregate(
+            "字典").Id);
+        Assert.Equal("invalid", new DictionaryAggregate(
             validId,
             "invalid",
             "系统",
-            "字典"));
+            "字典").SystemId);
     }
 
     /// <summary>

@@ -70,7 +70,7 @@ public sealed class UploadStorageFileEndpoint(
     /// <inheritdoc />
     public override void Configure()
     {
-        Post("/api/storage/upload");
+        Post("storage/upload");
         Policies(ManagementPermissions.Storage.Upload);
         AllowFileUploads();
         Description(d => d.WithTags("文件存储管理"));
@@ -119,7 +119,7 @@ public sealed class UploadStorageFileEndpoint(
 
         var isPublic = req.IsPublic ?? false;
         var category = string.IsNullOrWhiteSpace(req.Category) ? "general" : req.Category.Trim();
-        var previewUrl = $"/api/storage/preview/{id}";
+        var previewUrl = $"/{ApiEndpointConfiguration.RoutePrefix}/storage/preview/{id}";
 
         var storageFile = new StorageFile(
             id,

@@ -27,7 +27,7 @@ public sealed record OrganizationPagedRequest(
 /// <param name="Items">组织记录列表。</param>
 public sealed record OrganizationPagedResponse(
     long TotalCount,
-    OrganizationQueryItem[] Items);
+    OrganizationQueryItemDto[] Items);
 
 /// <summary>
 /// 分页查询组织机构列表端点。
@@ -38,7 +38,7 @@ public sealed class OrganizationPagedQueryEndpoint(IOrganizationQuery organizati
     /// <inheritdoc />
     public override void Configure()
     {
-        Post("/api/organization/pagedQuery");
+        Post("organization/pagedQuery");
         Policies(ManagementPermissions.Organizations.View);
         Description(d => d.WithTags("组织机构管理"));
         Summary(s =>
@@ -56,7 +56,7 @@ public sealed class OrganizationPagedQueryEndpoint(IOrganizationQuery organizati
         var skipCount = (pageIndex - 1) * pageSize;
 
         var result = await organizationQuery.GetPagedAsync(
-            new OrganizationPagedQuery(
+            new OrganizationPagedQueryInput(
                 req.SystemId,
                 req.Keyword,
                 req.ParentId,

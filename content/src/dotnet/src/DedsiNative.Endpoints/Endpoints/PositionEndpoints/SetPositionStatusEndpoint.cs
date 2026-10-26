@@ -14,7 +14,7 @@ public sealed class SetPositionStatusEndpoint(IPositionRepository positionReposi
     /// <summary>配置岗位状态接口。</summary>
     public override void Configure()
     {
-        Post("/api/position/status/{id}");
+        Post("position/status/{id}");
         Policies(ManagementPermissions.Positions.Update);
         Description(x => x.WithTags("岗位管理"));
         Summary(s =>

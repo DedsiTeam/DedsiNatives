@@ -19,7 +19,7 @@ public class UpdateOpenIddictScopeEndpoint(IOpenIddictScopeManager scopeManager)
 {
     public override void Configure()
     {
-        Put("/api/openiddict/scopes/{id}");
+        Put("openiddict/scopes/{id}");
         Policies(OpenIddict.OpenIddictPermissions.Manage);
         Description(x => x.WithTags("SSO 作用域管理"));
         Summary(s =>

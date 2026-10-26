@@ -6,59 +6,33 @@ namespace DedsiNative.EntityFrameworkCore.Queries;
 /// <summary>
 /// 文件与对象存储只读查询契约的 EF Core 实现。
 /// </summary>
-public sealed class StorageFileQuery(IDedsiNativeDbContext dbContext) : IStorageFileQuery
+public sealed class StorageFileQuery(DedsiNativeDbContext dbContext) : IStorageFileQuery
 {
     /// <inheritdoc />
-    public async Task<StorageFilePagedQueryResult> GetPagedAsync(
-        StorageFilePagedQuery query,
+    public async Task<StorageFilePagedQueryOutput> GetPagedAsync(
+        StorageFilePagedQueryInput query,
         CancellationToken cancellationToken)
     {
-        var dbQuery = dbContext.StorageFiles.AsNoTracking();
-
-        if (!string.IsNullOrWhiteSpace(query.Keyword))
+        var keyword = query.Keyword?.Trim();
+        var category = query.Category?.Trim();
+        var extension = query.Extension?.Trim();
+        // 扩展名统一补齐前导点，空筛选条件仍保持为空。
+        if (!string.IsNullOrEmpty(extension) && !extension.StartsWith('.'))
         {
-            var trimmedKeyword = query.Keyword.Trim();
-            dbQuery = dbQuery.Where(f =>
-                f.FileName.Contains(trimmedKeyword) ||
-                f.StorageName.Contains(trimmedKeyword) ||
-                (f.Description != null && f.Description.Contains(trimmedKeyword)));
+            extension = "." + extension;
         }
 
-        if (!string.IsNullOrWhiteSpace(query.Category))
-        {
-            var trimmedCategory = query.Category.Trim();
-            dbQuery = dbQuery.Where(f => f.Category == trimmedCategory);
-        }
-
-        if (!string.IsNullOrWhiteSpace(query.Extension))
-        {
-            var trimmedExtension = query.Extension.Trim();
-            if (!trimmedExtension.StartsWith('.'))
-            {
-                trimmedExtension = "." + trimmedExtension;
-            }
-            dbQuery = dbQuery.Where(f => f.Extension == trimmedExtension);
-        }
-
-        if (query.StorageType.HasValue)
-        {
-            dbQuery = dbQuery.Where(f => f.StorageType == query.StorageType.Value);
-        }
-
-        if (query.IsPublic.HasValue)
-        {
-            dbQuery = dbQuery.Where(f => f.IsPublic == query.IsPublic.Value);
-        }
-
-        if (query.StartTime.HasValue)
-        {
-            dbQuery = dbQuery.Where(f => f.CreationTime >= query.StartTime.Value);
-        }
-
-        if (query.EndTime.HasValue)
-        {
-            dbQuery = dbQuery.Where(f => f.CreationTime <= query.EndTime.Value);
-        }
+        var dbQuery = dbContext.StorageFiles.AsNoTracking()
+            .WhereIf(!string.IsNullOrEmpty(keyword), f =>
+                f.FileName.Contains(keyword!) ||
+                f.StorageName.Contains(keyword!) ||
+                (f.Description != null && f.Description.Contains(keyword!)))
+            .WhereIf(!string.IsNullOrEmpty(category), f => f.Category == category)
+            .WhereIf(!string.IsNullOrEmpty(extension), f => f.Extension == extension)
+            .WhereIf(query.StorageType.HasValue, f => f.StorageType == query.StorageType!.Value)
+            .WhereIf(query.IsPublic.HasValue, f => f.IsPublic == query.IsPublic!.Value)
+            .WhereIf(query.StartTime.HasValue, f => f.CreationTime >= query.StartTime!.Value)
+            .WhereIf(query.EndTime.HasValue, f => f.CreationTime <= query.EndTime!.Value);
 
         var totalCount = await dbQuery.LongCountAsync(cancellationToken);
 
@@ -70,7 +44,7 @@ public sealed class StorageFileQuery(IDedsiNativeDbContext dbContext) : IStorage
         }
 
         var items = await dbQuery
-            .Select(f => new StorageFileQueryItem(
+            .Select(f => new StorageFileQueryItemDto(
                 f.Id,
                 f.FileName,
                 f.StorageName,
@@ -87,7 +61,7 @@ public sealed class StorageFileQuery(IDedsiNativeDbContext dbContext) : IStorage
                 f.CreationTime))
             .ToArrayAsync(cancellationToken);
 
-        return new StorageFilePagedQueryResult(totalCount, items);
+        return new StorageFilePagedQueryOutput(totalCount, items);
     }
 
     /// <inheritdoc />

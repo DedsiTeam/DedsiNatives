@@ -6,7 +6,7 @@ public sealed class PagedMenuEndpoint(IMenuQuery query):Endpoint<PagedMenuReques
 {
     public override void Configure()
     {
-        Post("/api/menu/pagedQuery");
+        Post("menu/pagedQuery");
         Policies(ManagementPermissions.Menus.View);
     }
 

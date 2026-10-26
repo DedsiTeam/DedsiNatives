@@ -40,7 +40,7 @@ public sealed class GetLoginAuditEndpoint(ILoginAuditRepository loginAuditReposi
     /// </summary>
     public override void Configure()
     {
-        Get("/api/login-audit/{id}");
+        Get("login-audit/{id}");
         Policies(LoginAuditPermissions.View);
         Description(description => description.WithTags("登录审计"));
         Summary(summary =>

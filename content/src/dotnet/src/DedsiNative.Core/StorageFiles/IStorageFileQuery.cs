@@ -35,7 +35,7 @@ namespace DedsiNative.StorageFiles;
 /// <param name="IsExport">
 /// 是否为导出查询；导出时不分页。
 /// </param>
-public sealed record StorageFilePagedQuery(
+public sealed record StorageFilePagedQueryInput(
     string? Keyword,
     string? Category,
     string? Extension,
@@ -50,21 +50,49 @@ public sealed record StorageFilePagedQuery(
 /// <summary>
 /// 文件分页查询投影项 DTO。
 /// </summary>
-/// <param name="Id">文件唯一标识，26 位 ULID。</param>
-/// <param name="FileName">原始文件名。</param>
-/// <param name="StorageName">物理存储文件名。</param>
-/// <param name="Extension">扩展名。</param>
-/// <param name="ContentType">MIME 类型。</param>
-/// <param name="SizeBytes">文件大小（字节）。</param>
-/// <param name="StorageType">存储介质类型。</param>
-/// <param name="RelativePath">相对存储路径。</param>
-/// <param name="Url">访问直链。</param>
-/// <param name="Md5Hash">MD5 摘要。</param>
-/// <param name="Category">业务分类。</param>
-/// <param name="IsPublic">是否公开。</param>
-/// <param name="Description">文件说明。</param>
-/// <param name="CreatedAt">上传时间（北京时间）。</param>
-public sealed record StorageFileQueryItem(
+/// <param name="Id">
+/// 文件唯一标识，26 位 ULID。
+/// </param>
+/// <param name="FileName">
+/// 原始文件名。
+/// </param>
+/// <param name="StorageName">
+/// 物理存储文件名。
+/// </param>
+/// <param name="Extension">
+/// 扩展名。
+/// </param>
+/// <param name="ContentType">
+/// MIME 类型。
+/// </param>
+/// <param name="SizeBytes">
+/// 文件大小（字节）。
+/// </param>
+/// <param name="StorageType">
+/// 存储介质类型。
+/// </param>
+/// <param name="RelativePath">
+/// 相对存储路径。
+/// </param>
+/// <param name="Url">
+/// 访问直链。
+/// </param>
+/// <param name="Md5Hash">
+/// MD5 摘要。
+/// </param>
+/// <param name="Category">
+/// 业务分类。
+/// </param>
+/// <param name="IsPublic">
+/// 是否公开。
+/// </param>
+/// <param name="Description">
+/// 文件说明。
+/// </param>
+/// <param name="CreatedAt">
+/// 上传时间（北京时间）。
+/// </param>
+public sealed record StorageFileQueryItemDto(
     string Id,
     string FileName,
     string StorageName,
@@ -83,11 +111,15 @@ public sealed record StorageFileQueryItem(
 /// <summary>
 /// 文件分页查询结果集。
 /// </summary>
-/// <param name="TotalCount">符合条件的总记录数。</param>
-/// <param name="Items">当前页文件记录列表。</param>
-public sealed record StorageFilePagedQueryResult(
+/// <param name="TotalCount">
+/// 符合条件的总记录数。
+/// </param>
+/// <param name="Items">
+/// 当前页文件记录列表。
+/// </param>
+public sealed record StorageFilePagedQueryOutput(
     long TotalCount,
-    StorageFileQueryItem[] Items);
+    StorageFileQueryItemDto[] Items);
 
 /// <summary>
 /// 文件与对象存储只读查询契约。
@@ -97,30 +129,20 @@ public interface IStorageFileQuery : IDedsiQuery
     /// <summary>
     /// 分页检索文件记录列表。
     /// </summary>
-    /// <param name="query">
-    /// 分页筛选条件。
-    /// </param>
-    /// <param name="cancellationToken">
-    /// 异步操作取消令牌。
-    /// </param>
-    /// <returns>
-    /// 分页查询结果集。
-    /// </returns>
-    Task<StorageFilePagedQueryResult> GetPagedAsync(
-        StorageFilePagedQuery query,
+    /// <param name="query">分页筛选条件。</param>
+    /// <param name="cancellationToken">异步操作取消令牌。</param>
+    /// <returns>分页查询结果集。</returns>
+    Task<StorageFilePagedQueryOutput> GetPagedAsync(
+        StorageFilePagedQueryInput query,
         CancellationToken cancellationToken);
 
     /// <summary>
     /// 根据文件 MD5 哈希摘要查找已存在的有效文件记录（用于实现秒传及防重复存储）。
     /// </summary>
-    /// <param name="md5Hash">
-    /// 文件的 MD5 特征值。
-    /// </param>
-    /// <param name="cancellationToken">
-    /// 异步操作取消令牌。
-    /// </param>
-    /// <returns>
-    /// 匹配的文件聚合根，未找到返回 null。
-    /// </returns>
-    Task<StorageFile?> FindByMd5Async(string md5Hash, CancellationToken cancellationToken);
+    /// <param name="md5Hash">文件的 MD5 特征值。</param>
+    /// <param name="cancellationToken">异步操作取消令牌。</param>
+    /// <returns>匹配的文件聚合根，未找到返回 null。</returns>
+    Task<StorageFile?> FindByMd5Async(
+        string md5Hash,
+        CancellationToken cancellationToken);
 }

@@ -43,7 +43,7 @@ public sealed class PagedPermissionEndpoint(IPermissionQuery permissionQuery)
     /// <summary>配置权限分页查询接口的路由和 HTTP 方法。</summary>
     public override void Configure()
     {
-        Post("/api/permission/pagedQuery");
+        Post("permission/pagedQuery");
         Policies(ManagementPermissions.Permissions.View);
         Description(x => x.WithTags("权限管理"));
         Summary(s =>
@@ -58,7 +58,7 @@ public sealed class PagedPermissionEndpoint(IPermissionQuery permissionQuery)
     /// <param name="ct">取消令牌。</param>
     public override async Task HandleAsync(PagedPermissionRequest req, CancellationToken ct)
     {
-        var query = new PermissionPagedQuery(
+        var query = new PermissionPagedQueryInput(
             req.SystemId,
             req.Name,
             req.IsEnabled,

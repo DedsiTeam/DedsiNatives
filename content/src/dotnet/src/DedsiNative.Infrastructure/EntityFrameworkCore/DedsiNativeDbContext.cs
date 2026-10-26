@@ -15,63 +15,12 @@ using SystemEntity = DedsiNative.Systems.System;
 namespace DedsiNative.EntityFrameworkCore;
 
 /// <summary>
-/// DedsiNative 数据库上下文接口，定义当前模块所有聚合根对应的 DbSet。
-/// </summary>
-[ConnectionStringName(DedsiNativeCoreConsts.ConnectionStringName)]
-public interface IDedsiNativeDbContext : IDedsiEfCoreDbContext
-{
-    /// <summary>
-    /// 用户聚合根对应的数据集。
-    /// </summary>
-    DbSet<User> Users { get; }
-
-    /// <summary>系统聚合根对应的数据集。</summary>
-    DbSet<SystemEntity> Systems { get; }
-
-    /// <summary>权限聚合根对应的数据集。</summary>
-    DbSet<Permission> Permissions { get; }
-
-    /// <summary>岗位聚合根对应的数据集。</summary>
-    DbSet<Position> Positions { get; }
-
-    /// <summary>岗位权限子实体数据集。</summary>
-    DbSet<PositionPermission> PositionPermissions { get; }
-
-    /// <summary>岗位组织机构子实体数据集。</summary>
-    DbSet<PositionOrganization> PositionOrganizations { get; }
-
-    /// <summary>菜单聚合根数据集。</summary>
-    DbSet<Menu> Menus { get; }
-
-    /// <summary>字典聚合根数据集。</summary>
-    DbSet<Dictionary> Dictionaries { get; }
-
-    /// <summary>字典项子实体数据集。</summary>
-    DbSet<DictionaryItem> DictionaryItems { get; }
-
-    /// <summary>
-    /// 登录审计聚合根对应的数据集。
-    /// </summary>
-    DbSet<LoginAudit> LoginAudits { get; }
-
-    /// <summary>
-    /// 组织机构/部门聚合根对应的数据集。
-    /// </summary>
-    DbSet<Organization> Organizations { get; }
-
-    /// <summary>
-    /// 文件与对象存储聚合根对应的数据集。
-    /// </summary>
-    DbSet<StorageFile> StorageFiles { get; }
-}
-
-/// <summary>
 /// DedsiNative 数据库上下文，负责配置实体映射并管理与数据库的交互。
 /// </summary>
 /// <param name="options">EF Core 数据库上下文配置选项。</param>
 [ConnectionStringName(DedsiNativeCoreConsts.ConnectionStringName)]
 public class DedsiNativeDbContext(DbContextOptions<DedsiNativeDbContext> options) 
-    : DedsiEfCoreDbContext<DedsiNativeDbContext>(options), IDedsiNativeDbContext
+    : DedsiEfCoreDbContext<DedsiNativeDbContext>(options)
 {
     /// <summary>
     /// 用户聚合根对应的数据集。

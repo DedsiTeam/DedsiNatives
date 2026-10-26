@@ -1,6 +1,4 @@
-using DedsiNative.StorageFiles;
-
-namespace DedsiNative.Infrastructure.StorageFiles;
+namespace DedsiNative.StorageFiles;
 
 /// <summary>
 /// 空对象存储提供者实现（占位桩）。

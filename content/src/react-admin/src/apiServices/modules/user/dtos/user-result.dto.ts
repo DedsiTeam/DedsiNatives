@@ -4,7 +4,7 @@
  */
 
 /**
- * 获取单个用户详情响应 DTO (对接 GET /api/user/{id})
+ * 获取单个用户详情响应 DTO (对接 GET /user/{id})
  */
 export interface UserResultDto {
   /** 用户唯一标识 ID (Guid，JSON 中以字符串表示) */
@@ -74,7 +74,7 @@ export interface PagedUserRowDto {
 }
 
 /**
- * 用户分页数据响应 Result DTO (对接 POST /api/user/pagedQuery)
+ * 用户分页数据响应 Result DTO (对接 POST /user/pagedQuery)
  */
 export interface UserPageResultDto {
   /** 符合条件的记录总条数 */

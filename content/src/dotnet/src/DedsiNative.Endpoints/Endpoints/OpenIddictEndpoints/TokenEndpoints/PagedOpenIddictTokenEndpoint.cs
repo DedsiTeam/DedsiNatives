@@ -1,9 +1,7 @@
 using Dedsi.Ddd.Application.Contracts.Dtos;
-using DedsiNative.EntityFrameworkCore;
+using DedsiNative.EntityFrameworkCore.Queries;
+using DedsiNative.OpenIddict;
 using FastEndpoints;
-using Microsoft.EntityFrameworkCore;
-using OpenIddict.EntityFrameworkCore.Models;
-using DedsiNative.Time;
 
 namespace DedsiNative.Endpoints.OpenIddictEndpoints.TokenEndpoints;
 
@@ -55,12 +53,13 @@ public class PagedOpenIddictTokenResponse : DedsiPagedResultDto<PagedOpenIddictT
 /// <summary>
 /// 分页查询活跃与历史令牌端点。
 /// </summary>
-public class PagedOpenIddictTokenEndpoint(DedsiNativeDbContext dbContext)
+public class PagedOpenIddictTokenEndpoint(OpenIddictTokenQuery query)
     : Endpoint<PagedOpenIddictTokenRequest, PagedOpenIddictTokenResponse>
 {
+    /// <inheritdoc />
     public override void Configure()
     {
-        Post("/api/openiddict/tokens/pagedQuery");
+        Post("openiddict/tokens/pagedQuery");
         Policies(OpenIddict.OpenIddictPermissions.View);
         Description(x => x.WithTags("SSO 授权与令牌查看"));
         Summary(s =>
@@ -70,56 +69,30 @@ public class PagedOpenIddictTokenEndpoint(DedsiNativeDbContext dbContext)
         });
     }
 
+    /// <inheritdoc />
     public override async Task HandleAsync(PagedOpenIddictTokenRequest req, CancellationToken ct)
     {
-        var query = dbContext.Set<OpenIddictEntityFrameworkCoreToken>()
-            .Include(t => t.Application)
-            .AsNoTracking();
-
-        if (!string.IsNullOrWhiteSpace(req.Subject))
-        {
-            query = query.Where(t => t.Subject == req.Subject.Trim());
-        }
-
-        if (!string.IsNullOrWhiteSpace(req.ApplicationId))
-        {
-            query = query.Where(t => t.Application != null && t.Application.Id == req.ApplicationId.Trim());
-        }
-
-        if (!string.IsNullOrWhiteSpace(req.Type))
-        {
-            query = query.Where(t => t.Type == req.Type.Trim());
-        }
-
-        if (!string.IsNullOrWhiteSpace(req.Status))
-        {
-            query = query.Where(t => t.Status == req.Status.Trim());
-        }
-
-        var totalCount = await query.CountAsync(ct);
-
-        var items = await query
-            .OrderByDescending(t => t.CreationDate)
-            .Skip(req.GetSkipCount())
-            .Take(req.PageSize)
-            .ToListAsync(ct);
-
-        var rows = items.Select(item => new PagedOpenIddictTokenRowDto(
-            item.Id ?? string.Empty,
-            item.Application?.Id,
-            item.Application?.ClientId,
-            item.Subject,
-            item.Status,
-            item.Type,
-            BeijingTimeZoneGuard.FromProtocolUtc(item.CreationDate),
-            BeijingTimeZoneGuard.FromProtocolUtc(item.ExpirationDate),
-            BeijingTimeZoneGuard.FromProtocolUtc(item.RedemptionDate)
-        )).ToList();
+        var result = await query.GetPagedAsync(new OpenIddictTokenPagedQueryInput(
+            req.Subject,
+            req.ApplicationId,
+            req.Type,
+            req.Status,
+            req.GetSkipCount(),
+            req.PageSize), ct);
 
         await Send.OkAsync(new PagedOpenIddictTokenResponse
         {
-            TotalCount = totalCount,
-            Items = rows
+            TotalCount = result.TotalCount,
+            Items = result.Items.Select(item => new PagedOpenIddictTokenRowDto(
+                item.Id,
+                item.ApplicationId,
+                item.ClientId,
+                item.Subject,
+                item.Status,
+                item.Type,
+                item.CreationDate,
+                item.ExpirationDate,
+                item.RedemptionDate)).ToList()
         }, ct);
     }
 }

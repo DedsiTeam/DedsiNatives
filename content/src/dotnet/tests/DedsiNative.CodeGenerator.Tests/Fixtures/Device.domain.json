@@ -1,0 +1,38 @@
+{
+  "format": "dedsi-domain",
+  "formatVersion": "1.0",
+  "model": {
+    "id": "3e106cad-f6c0-4643-b660-ce4d901a3fd9",
+    "version": 1,
+    "name": "设备管理",
+    "description": "代码生成器示例",
+    "elements": [
+      {
+        "id": "838f5246-9464-4110-8a32-df63bc72d3b4",
+        "kind": "aggregate_root",
+        "name": "Device",
+        "description": "设备聚合根",
+        "fields": [
+          {
+            "id": "a1c1112c-24a5-4e21-9304-ecdd86097737",
+            "name": "Code",
+            "dataType": "string",
+            "description": "设备编号"
+          },
+          {
+            "id": "b61ad784-7c6f-48bb-a07f-c87d52cd4c77",
+            "name": "Description",
+            "dataType": "string?",
+            "description": "设备说明，可不填写"
+          },
+          {
+            "id": "548b8231-53ed-42f3-865f-658f83283b81",
+            "name": "PurchasedAt",
+            "dataType": "DateTime?",
+            "description": "购入时间，北京时间墙钟"
+          }
+        ]
+      }
+    ]
+  }
+}

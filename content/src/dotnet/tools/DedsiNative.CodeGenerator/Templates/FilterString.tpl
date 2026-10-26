@@ -1,0 +1,1 @@
+            .WhereIf(!string.IsNullOrEmpty({{Local}}), entity => entity.{{Name}} != null && entity.{{Name}}.Contains({{Local}}!))

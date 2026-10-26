@@ -33,7 +33,7 @@ public sealed record StorageFilePagedRequest(
 /// <param name="Items">文件记录列表。</param>
 public sealed record StorageFilePagedResponse(
     long TotalCount,
-    StorageFileQueryItem[] Items);
+    StorageFileQueryItemDto[] Items);
 
 /// <summary>
 /// 分页查询文件列表端点。
@@ -44,7 +44,7 @@ public sealed class StorageFilePagedQueryEndpoint(IStorageFileQuery storageFileQ
     /// <inheritdoc />
     public override void Configure()
     {
-        Post("/api/storage/pagedQuery");
+        Post("storage/pagedQuery");
         Policies(ManagementPermissions.Storage.View);
         Description(d => d.WithTags("文件存储管理"));
         Summary(s =>
@@ -62,7 +62,7 @@ public sealed class StorageFilePagedQueryEndpoint(IStorageFileQuery storageFileQ
         var skipCount = (pageIndex - 1) * pageSize;
 
         var result = await storageFileQuery.GetPagedAsync(
-            new StorageFilePagedQuery(
+            new StorageFilePagedQueryInput(
                 req.Keyword,
                 req.Category,
                 req.Extension,

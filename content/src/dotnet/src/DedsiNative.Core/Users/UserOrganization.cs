@@ -18,19 +18,31 @@ public sealed class UserOrganization
     /// <param name="userId">所属用户标识。</param>
     /// <param name="organizationId">组织机构标识（26 位 ULID）。</param>
     /// <param name="organizationName">组织机构名称快照。</param>
-    public UserOrganization(Guid userId, string organizationId, string organizationName)
+    public UserOrganization(
+        Guid userId,
+        string organizationId,
+        string organizationName)
     {
         UserId = userId;
         OrganizationId = organizationId;
-        OrganizationName = Volo.Abp.Check.NotNullOrWhiteSpace(organizationName, nameof(organizationName), 256);
+        OrganizationName = Volo.Abp.Check.NotNullOrWhiteSpace(
+            organizationName,
+            nameof(organizationName),
+            256);
     }
 
-    /// <summary>所属用户标识。</summary>
+    /// <summary>
+    /// 所属用户标识。
+    /// </summary>
     public Guid UserId { get; private set; }
 
-    /// <summary>组织机构标识，使用 26 位 ULID 字符串。</summary>
+    /// <summary>
+    /// 组织机构标识，使用 26 位 ULID 字符串。
+    /// </summary>
     public string OrganizationId { get; private set; } = string.Empty;
 
-    /// <summary>组织机构名称快照。</summary>
+    /// <summary>
+    /// 组织机构名称快照。
+    /// </summary>
     public string OrganizationName { get; private set; } = string.Empty;
 }

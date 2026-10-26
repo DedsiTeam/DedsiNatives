@@ -1,0 +1,1 @@
+        RuleForEach(request => request.{{Name}}).NotNull().SetValidator(new {{Type}}RequestValidator());

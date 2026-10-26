@@ -3,15 +3,15 @@ using Dedsi.Ddd.Domain.Queries;
 namespace DedsiNative.Users;
 
 /// <summary>
-/// 用户分页查询条件。
+/// 用户分页查询条件
 /// </summary>
-/// <param name="Name">用户名称筛选条件，为空时不按名称过滤。</param>
-/// <param name="Email">用户邮箱筛选条件，为空时不按邮箱过滤。</param>
-/// <param name="SkipCount">需要跳过的记录数。</param>
-/// <param name="MaxResultCount">单页最多返回的记录数。</param>
-/// <param name="IsExport">是否为导出模式；导出模式不应用分页。</param>
-/// <param name="OrganizationId">组织机构筛选条件，为空时不按组织过滤。</param>
-public sealed record UserPagedQuery(
+/// <param name="Name"></param>
+/// <param name="Email"></param>
+/// <param name="SkipCount"></param>
+/// <param name="MaxResultCount"></param>
+/// <param name="IsExport"></param>
+/// <param name="OrganizationId"></param>
+public sealed record UserPagedQueryInput(
     string? Name,
     string? Email,
     int SkipCount,
@@ -22,12 +22,22 @@ public sealed record UserPagedQuery(
 /// <summary>
 /// 用户分页查询中的单行结果。
 /// </summary>
-/// <param name="Id">用户唯一标识。</param>
-/// <param name="Name">用户名称。</param>
-/// <param name="Email">用户邮箱地址。</param>
-/// <param name="Phone">用户联系电话。</param>
-/// <param name="LastUpdatedAt">用户资料最后更新时间。</param>
-public sealed record UserQueryItem(
+/// <param name="Id">
+/// 用户唯一标识。
+/// </param>
+/// <param name="Name">
+/// 用户名称。
+/// </param>
+/// <param name="Email">
+/// 用户邮箱地址。
+/// </param>
+/// <param name="Phone">
+/// 用户联系电话。
+/// </param>
+/// <param name="LastUpdatedAt">
+/// 用户资料最后更新时间。
+/// </param>
+public sealed record UserQueryItemDto(
     Guid Id,
     string Name,
     string Email,
@@ -37,11 +47,15 @@ public sealed record UserQueryItem(
 /// <summary>
 /// 用户分页查询结果。
 /// </summary>
-/// <param name="TotalCount">符合筛选条件的总记录数。</param>
-/// <param name="Items">当前查询返回的用户列表。</param>
-public sealed record UserPagedQueryResult(
+/// <param name="TotalCount">
+/// 符合筛选条件的总记录数。
+/// </param>
+/// <param name="Items">
+/// 当前查询返回的用户列表。
+/// </param>
+public sealed record UserPagedQueryOutput(
     long TotalCount,
-    UserQueryItem[] Items);
+    UserQueryItemDto[] Items);
 
 /// <summary>
 /// 用户只读查询契约，隔离 Core 与具体持久化技术。
@@ -54,8 +68,8 @@ public interface IUserQuery : IDedsiQuery
     /// <param name="query">用户分页查询条件。</param>
     /// <param name="cancellationToken">用于取消异步查询的令牌。</param>
     /// <returns>用户分页查询结果。</returns>
-    Task<UserPagedQueryResult> GetPagedAsync(
-        UserPagedQuery query,
+    Task<UserPagedQueryOutput> GetPagedAsync(
+        UserPagedQueryInput query,
         CancellationToken cancellationToken);
 
     /// <summary>

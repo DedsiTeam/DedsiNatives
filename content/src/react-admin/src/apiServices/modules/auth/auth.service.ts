@@ -1,8 +1,8 @@
 /**
  * @file 认证 API 服务 (AuthApiService)
  * @description 封装与用户登录、Token 签发相关的 HTTP 接口服务:
- * - POST /api/auth/login (用户登录并获取 JWT Token)
- * - POST /api/auth/sso-login (SSO 单点登录换取系统凭据)
+ * - POST /auth/login (用户登录并获取 JWT Token)
+ * - POST /auth/sso-login (SSO 单点登录换取系统凭据)
  */
 
 import request from '../../core/request';
@@ -11,20 +11,20 @@ import type { LoginResultDto } from './dtos/auth-result.dto';
 
 export class AuthApiService {
   /**
-   * 用户登录接口 (POST /api/auth/login)
+   * 用户登录接口 (POST /auth/login)
    * @param data 登录参数 (username, password)
    * @returns 包含 JWT Token 与过期时间的响应数据对象
    */
   static async login(data: LoginInputDto): Promise<LoginResultDto> {
-    return request.post<LoginResultDto>('/api/auth/login', data);
+    return request.post<LoginResultDto>('/auth/login', data);
   }
 
   /**
-   * SSO 单点登录凭据换取接口 (POST /api/auth/sso-login)
+   * SSO 单点登录凭据换取接口 (POST /auth/sso-login)
    * @param data 包含 SSO ID Token 或 Access Token 的数据对象
    * @returns 包含系统标准 JWT Token 与完整用户资料的响应对象
    */
   static async ssoLogin(data: { token: string }): Promise<LoginResultDto> {
-    return request.post<LoginResultDto>('/api/auth/sso-login', data);
+    return request.post<LoginResultDto>('/auth/sso-login', data);
   }
 }

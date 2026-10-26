@@ -44,7 +44,7 @@ public sealed class PagedPositionEndpoint(IPositionQuery positionQuery)
     /// <summary>配置岗位分页查询接口。</summary>
     public override void Configure()
     {
-        Post("/api/position/pagedQuery");
+        Post("position/pagedQuery");
         Policies(ManagementPermissions.Positions.View);
         Description(x => x.WithTags("岗位管理"));
         Summary(s =>
@@ -57,7 +57,7 @@ public sealed class PagedPositionEndpoint(IPositionQuery positionQuery)
     /// <summary>按系统、名称和状态筛选岗位并返回关联数量。</summary>
     public override async Task HandleAsync(PagedPositionRequest req, CancellationToken ct)
     {
-        var query = new PositionPagedQuery(
+        var query = new PositionPagedQueryInput(
             req.SystemId,
             req.Name,
             req.IsEnabled,

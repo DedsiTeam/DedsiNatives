@@ -35,7 +35,7 @@ public class CreateOpenIddictScopeEndpoint(IOpenIddictScopeManager scopeManager)
 {
     public override void Configure()
     {
-        Post("/api/openiddict/scopes");
+        Post("openiddict/scopes");
         Policies(OpenIddict.OpenIddictPermissions.Manage);
         Description(x => x.WithTags("SSO 作用域管理"));
         Summary(s =>

@@ -7,8 +7,17 @@ namespace DedsiNative.Users;
 /// </summary>
 public static class UserPasswordHasher
 {
+    /// <summary>
+    /// 密码哈希随机盐的字节数。
+    /// </summary>
     private const int SaltSize = 16;
+    /// <summary>
+    /// 密码哈希输出的字节数。
+    /// </summary>
     private const int HashSize = 32;
+    /// <summary>
+    /// PBKDF2 派生密码哈希时的迭代次数。
+    /// </summary>
     private const int Iterations = 100_000;
 
     /// <summary>
@@ -20,7 +29,12 @@ public static class UserPasswordHasher
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(password);
         var salt = RandomNumberGenerator.GetBytes(SaltSize);
-        var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithmName.SHA512, HashSize);
+        var hash = Rfc2898DeriveBytes.Pbkdf2(
+            password,
+            salt,
+            Iterations,
+            HashAlgorithmName.SHA512,
+            HashSize);
         return (Convert.ToBase64String(hash), Convert.ToBase64String(salt));
     }
 
@@ -31,7 +45,10 @@ public static class UserPasswordHasher
     /// <param name="passwordHash">已保存的密码哈希。</param>
     /// <param name="passwordSalt">已保存的密码盐值。</param>
     /// <returns>匹配时返回 <see langword="true"/>。</returns>
-    public static bool Verify(string password, string passwordHash, string passwordSalt)
+    public static bool Verify(
+        string password,
+        string passwordHash,
+        string passwordSalt)
     {
         if (string.IsNullOrWhiteSpace(password)
             || string.IsNullOrWhiteSpace(passwordHash)
@@ -40,9 +57,16 @@ public static class UserPasswordHasher
         {
             var expectedHash = Convert.FromBase64String(passwordHash);
             var salt = Convert.FromBase64String(passwordSalt);
-            var actualHash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithmName.SHA512, HashSize);
+            var actualHash = Rfc2898DeriveBytes.Pbkdf2(
+                password,
+                salt,
+                Iterations,
+                HashAlgorithmName.SHA512,
+                HashSize);
             return CryptographicOperations.FixedTimeEquals(actualHash, expectedHash);
         }
-        catch (FormatException) { return false; }
+        catch (FormatException) {
+            return false;
+        }
     }
 }

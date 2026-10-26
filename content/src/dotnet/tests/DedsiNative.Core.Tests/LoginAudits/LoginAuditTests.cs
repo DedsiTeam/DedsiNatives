@@ -122,17 +122,17 @@ public sealed class LoginAuditTests
     }
 
     /// <summary>
-    /// 审计主键和登录账号必须有效。
+    /// 审计标识不校验 ULID 格式，登录账号仍不能为空白。
     /// </summary>
     [Fact]
-    public void Constructor_Should_Reject_Invalid_Id_Or_Blank_Account()
+    public void Constructor_Should_Preserve_Id_And_Reject_Blank_Account()
     {
-        Assert.Throws<ArgumentException>(() => new LoginAudit(
+        Assert.Equal("invalid", new LoginAudit(
             "invalid",
             DateTime.Now,
             LoginResult.Failure,
             LoginReason.AccountNotFound,
-            "zhangsan"));
+            "zhangsan").Id);
 
         Assert.Throws<ArgumentException>(() => new LoginAudit(
             Ulid.NewUlid().ToString(),

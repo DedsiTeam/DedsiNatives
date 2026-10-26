@@ -223,7 +223,7 @@ public class DedsiNativeHostModule : AbpModule
 
         app.UseConfiguredEndpoints(endpoints =>
         {
-            endpoints.MapFastEndpoints(ApiDateTimeConfiguration.Configure);
+            endpoints.MapFastEndpoints(ApiEndpointConfiguration.Configure);
         });
     }
 }

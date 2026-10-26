@@ -23,7 +23,7 @@ public sealed class GetUserOrganizationOptionsEndpoint(IOrganizationQuery organi
     /// <inheritdoc />
     public override void Configure()
     {
-        Get("/api/organization/user-options");
+        Get("organization/user-options");
         Policies(ManagementPermissions.Organizations.View);
         Description(d => d.WithTags("组织机构管理"));
         Summary(s =>
@@ -37,14 +37,14 @@ public sealed class GetUserOrganizationOptionsEndpoint(IOrganizationQuery organi
     public override async Task HandleAsync(CancellationToken ct)
     {
         // 仅查询已启用的组织机构
-        var list = await organizationQuery.GetTreeListAsync(new OrganizationTreeQuery(null, IsEnabled: true), ct);
+        var list = await organizationQuery.GetTreeListAsync(new OrganizationTreeQueryInput(null, IsEnabled: true), ct);
 
         var tree = BuildOptionTree(list, null);
         await Send.OkAsync(tree, ct);
     }
 
     private static UserOrganizationOptionNodeResponse[] BuildOptionTree(
-        OrganizationQueryItem[] items,
+        OrganizationQueryItemDto[] items,
         string? parentId)
     {
         var result = new List<UserOrganizationOptionNodeResponse>();

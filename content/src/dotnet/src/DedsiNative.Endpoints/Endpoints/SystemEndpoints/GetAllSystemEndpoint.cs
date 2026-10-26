@@ -8,14 +8,14 @@ namespace DedsiNative.Endpoints.SystemEndpoints;
 /// </summary>
 /// <param name="systemQuery">系统只读查询服务。</param>
 public sealed class GetAllSystemEndpoint(ISystemQuery systemQuery)
-    : EndpointWithoutRequest<SystemQueryItem[]>
+    : EndpointWithoutRequest<SystemQueryItemDto[]>
 {
     /// <summary>
     /// 配置获取全部系统选项接口。
     /// </summary>
     public override void Configure()
     {
-        Get("/api/system/getAll");
+        Get("system/getAll");
         Policies(ManagementPermissions.Systems.View);
     }
 
@@ -25,7 +25,7 @@ public sealed class GetAllSystemEndpoint(ISystemQuery systemQuery)
     /// <param name="ct">用于取消异步操作的令牌。</param>
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var result = await systemQuery.GetPagedAsync(new SystemPagedQuery(null, 0, 0, true), ct);
+        var result = await systemQuery.GetPagedAsync(new SystemPagedQueryInput(null, 0, 0, true), ct);
         await Send.OkAsync(result.Items, ct);
     }
 }

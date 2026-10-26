@@ -39,14 +39,19 @@ public class LoginAudit : Entity<string>
         string? clientIp = null,
         string? failureDescription = null,
         string? userAgent = null)
-        : base(ValidateUlid(id))
+        : base(id)
     {
         LoginTime = loginTime;
-        ValidateResultAndReason(result, reason, failureDescription);
-
+        ValidateResultAndReason(
+            result,
+            reason,
+            failureDescription);
         Result = result;
         Reason = reason;
-        Account = RequiredAndTruncate(account, LoginAuditConsts.MaxAccountLength, nameof(account));
+        Account = RequiredAndTruncate(
+            account,
+            LoginAuditConsts.MaxAccountLength,
+            nameof(account));
         UserName = OptionalAndTruncate(userName, LoginAuditConsts.MaxUserNameLength);
         UserId = userId;
         ClientIp = OptionalAndTruncate(clientIp, LoginAuditConsts.MaxClientIpLength);
@@ -101,16 +106,13 @@ public class LoginAudit : Entity<string>
     /// </summary>
     public string? UserAgent { get; private set; }
 
-    private static string ValidateUlid(string id)
-    {
-        if (string.IsNullOrWhiteSpace(id) || id.Length != 26 || !Ulid.TryParse(id, out _))
-        {
-            throw new ArgumentException("登录审计标识必须是合法的 26 位 ULID。", nameof(id));
-        }
 
-        return id;
-    }
-
+    /// <summary>
+    /// 校验登录结果、原因码及失败说明之间的一致性。
+    /// </summary>
+    /// <param name="result">登录结果，必须与原因码一致。</param>
+    /// <param name="reason">登录原因码。</param>
+    /// <param name="failureDescription">失败说明；成功登录不得携带失败说明。</param>
     private static void ValidateResultAndReason(
         LoginResult result,
         LoginReason reason,
@@ -120,40 +122,62 @@ public class LoginAudit : Entity<string>
         {
             throw new ArgumentOutOfRangeException(nameof(reason), "登录结果或原因码无效。");
         }
-
         if (result == LoginResult.Success && reason != LoginReason.SuccessfulAuthentication)
         {
             throw new BusinessException("LoginAudit:SuccessfulLoginMustUseSuccessfulAuthentication");
         }
-
         if (result == LoginResult.Failure && reason == LoginReason.SuccessfulAuthentication)
         {
             throw new BusinessException("LoginAudit:FailedLoginCannotUseSuccessfulAuthentication");
         }
-
         if (result == LoginResult.Success && !string.IsNullOrWhiteSpace(failureDescription))
         {
             throw new BusinessException("LoginAudit:SuccessfulLoginCannotContainFailureDescription");
         }
     }
 
-    private static string RequiredAndTruncate(string value, int maxLength, string parameterName)
+    /// <summary>
+    /// 校验必填文本，去除首尾空白后按最大长度截断。
+    /// </summary>
+    /// <param name="value">待处理的文本。</param>
+    /// <param name="maxLength">允许保留的最大字符数。</param>
+    /// <param name="parameterName">校验失败时报告的参数名。</param>
+    /// <returns>去除首尾空白且不超过最大长度的非空文本。</returns>
+    private static string RequiredAndTruncate(
+        string value,
+        int maxLength,
+        string parameterName)
     {
         var normalizedValue = Check.NotNullOrWhiteSpace(value, parameterName).Trim();
         return Truncate(normalizedValue, maxLength);
     }
 
-    private static string? OptionalAndTruncate(string? value, int maxLength)
+    /// <summary>
+    /// 将空白文本转换为 null，其他文本去除首尾空白后截断。
+    /// </summary>
+    /// <param name="value">待处理的文本。</param>
+    /// <param name="maxLength">允许保留的最大字符数。</param>
+    /// <returns>归一化并截断后的文本；空白输入返回 null。</returns>
+    private static string? OptionalAndTruncate(
+        string? value,
+        int maxLength)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
             return null;
         }
-
         return Truncate(value.Trim(), maxLength);
     }
 
-    private static string Truncate(string value, int maxLength)
+    /// <summary>
+    /// 超过最大长度时截断文本，未超长时保留原值。
+    /// </summary>
+    /// <param name="value">待处理的文本。</param>
+    /// <param name="maxLength">允许保留的最大字符数。</param>
+    /// <returns>不超过最大长度的文本。</returns>
+    private static string Truncate(
+        string value,
+        int maxLength)
     {
         return value.Length <= maxLength ? value : value[..maxLength];
     }

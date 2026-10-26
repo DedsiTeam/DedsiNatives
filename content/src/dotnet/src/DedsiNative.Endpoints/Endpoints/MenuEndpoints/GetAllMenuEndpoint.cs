@@ -8,14 +8,14 @@ namespace DedsiNative.Endpoints.MenuEndpoints;
 /// </summary>
 /// <param name="menuQuery">菜单只读查询服务。</param>
 public sealed class GetAllMenuEndpoint(IMenuQuery menuQuery)
-    : EndpointWithoutRequest<MenuQueryItem[]>
+    : EndpointWithoutRequest<MenuQueryItemDto[]>
 {
     /// <summary>
     /// 配置按系统获取菜单选项接口。
     /// </summary>
     public override void Configure()
     {
-        Get("/api/menu/getAll/{systemId}");
+        Get("menu/getAll/{systemId}");
         Policies(ManagementPermissions.Menus.View);
     }
 
@@ -27,7 +27,7 @@ public sealed class GetAllMenuEndpoint(IMenuQuery menuQuery)
     {
         var systemId = Route<string>("systemId")!;
         var result = await menuQuery.GetPagedAsync(
-            new MenuPagedQuery(systemId, null, null, null, null, null, null, null, 0, 0, true),
+            new MenuPagedQueryInput(systemId, null, null, null, null, null, null, null, 0, 0, true),
             ct);
         await Send.OkAsync(result.Items, ct);
     }

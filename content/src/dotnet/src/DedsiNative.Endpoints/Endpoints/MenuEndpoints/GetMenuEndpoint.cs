@@ -4,7 +4,7 @@ public sealed class GetMenuEndpoint(IMenuRepository menus):EndpointWithoutReques
 {
     public override void Configure()
     {
-        Get("/api/menu/{id}");
+        Get("menu/{id}");
         Policies(ManagementPermissions.Menus.View);
     }
 

@@ -21,7 +21,7 @@ public class ResetOpenIddictApplicationSecretEndpoint(IOpenIddictApplicationMana
 {
     public override void Configure()
     {
-        Post("/api/openiddict/applications/{id}/reset-secret");
+        Post("openiddict/applications/{id}/reset-secret");
         Policies(OpenIddict.OpenIddictPermissions.Manage);
         Description(x => x.WithTags("SSO 客户端管理"));
         Summary(s =>

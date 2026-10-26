@@ -22,7 +22,7 @@ public sealed class CreateSystemEndpoint(ISystemRepository systemRepository)
     /// <summary>配置创建系统接口的路由和 HTTP 方法。</summary>
     public override void Configure()
     {
-        Post("/api/system/create");
+        Post("system/create");
         Policies(ManagementPermissions.Systems.Create);
         Description(x => x.WithTags("系统管理"));
         Summary(s =>

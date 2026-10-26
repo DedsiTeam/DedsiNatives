@@ -11,7 +11,7 @@ public class DeleteOpenIddictScopeEndpoint(IOpenIddictScopeManager scopeManager)
 {
     public override void Configure()
     {
-        Delete("/api/openiddict/scopes/{id}");
+        Delete("openiddict/scopes/{id}");
         Policies(OpenIddict.OpenIddictPermissions.Manage);
         Description(x => x.WithTags("SSO 作用域管理"));
         Summary(s =>

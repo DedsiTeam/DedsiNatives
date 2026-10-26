@@ -61,12 +61,21 @@ public sealed class ApiDateTimeConfigurationTests
         });
 
         await using var app = builder.Build();
-        app.UseFastEndpoints(ApiDateTimeConfiguration.Configure);
+        app.UseFastEndpoints(ApiEndpointConfiguration.Configure);
         await app.StartAsync();
 
         using var client = app.GetTestClient();
+        // 全局前缀仅添加一次，旧路径不再暴露同一接口。
+        using var unprefixedResponse = await client.GetAsync("/test/date-time/query");
+        using var oldPrefixResponse = await client.GetAsync("/api/test/date-time/query");
+        using var doubledPrefixResponse = await client.GetAsync(
+            $"/{ApiEndpointConfiguration.RoutePrefix}/{ApiEndpointConfiguration.RoutePrefix}/test/date-time/query");
+        Assert.Equal(HttpStatusCode.NotFound, unprefixedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, oldPrefixResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, doubledPrefixResponse.StatusCode);
+
         using var bodyResponse = await client.PostAsJsonAsync(
-            "/test/date-time/body",
+            $"/{ApiEndpointConfiguration.RoutePrefix}/test/date-time/body",
             new { occurredAt = "2026-08-06 14:17:49" });
         var bodyJson = await bodyResponse.Content.ReadAsStringAsync();
 
@@ -74,14 +83,14 @@ public sealed class ApiDateTimeConfigurationTests
         Assert.Contains("\"occurredAt\":\"2026-08-06 14:17:49\"", bodyJson, StringComparison.Ordinal);
 
         using var queryResponse = await client.GetAsync(
-            "/test/date-time/query?occurredAt=2026-08-06%2014%3A17%3A49");
+            $"/{ApiEndpointConfiguration.RoutePrefix}/test/date-time/query?occurredAt=2026-08-06%2014%3A17%3A49");
         var queryJson = await queryResponse.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, queryResponse.StatusCode);
         Assert.Contains("\"occurredAt\":\"2026-08-06 14:17:49\"", queryJson, StringComparison.Ordinal);
 
         using var invalidResponse = await client.PostAsJsonAsync(
-            "/test/date-time/body",
+            $"/{ApiEndpointConfiguration.RoutePrefix}/test/date-time/body",
             new { occurredAt = "2026-08-06T06:17:49Z" });
 
         Assert.Equal(HttpStatusCode.BadRequest, invalidResponse.StatusCode);
@@ -111,7 +120,7 @@ public sealed class DateTimeEchoEndpoint
     /// </summary>
     public override void Configure()
     {
-        Post("/test/date-time/body");
+        Post("test/date-time/body");
         AllowAnonymous();
     }
 
@@ -148,7 +157,7 @@ public sealed class DateTimeQueryEndpoint
     /// </summary>
     public override void Configure()
     {
-        Get("/test/date-time/query");
+        Get("test/date-time/query");
         AllowAnonymous();
     }
 

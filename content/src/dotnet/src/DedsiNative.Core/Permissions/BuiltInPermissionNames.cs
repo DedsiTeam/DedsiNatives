@@ -22,12 +22,8 @@ public static class BuiltInPermissionNames
     /// <summary>
     /// 判断权限编码是否由平台内置。
     /// </summary>
-    /// <param name="permissionName">
-    /// 待检查的权限编码。
-    /// </param>
-    /// <returns>
-    /// 内置权限返回 <see langword="true"/>，否则返回 <see langword="false"/>。
-    /// </returns>
+    /// <param name="permissionName">待检查的权限编码。</param>
+    /// <returns>内置权限返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
     public static bool Contains(string permissionName) =>
         All.Contains(permissionName, StringComparer.Ordinal);
 }

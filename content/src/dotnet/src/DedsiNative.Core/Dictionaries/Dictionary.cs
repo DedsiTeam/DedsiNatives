@@ -16,14 +16,18 @@ public class Dictionary : DedsiAggregateRoot<string>
     }
 
     /// <summary>
-    /// 创建字典分组。
+    /// 创建字典分组
     /// </summary>
-    /// <param name="id">字典分组的 26 位 ULID。</param>
-    /// <param name="systemId">所属系统的 26 位 ULID。</param>
+    /// <param name="id">字典分组唯一标识。</param>
+    /// <param name="systemId">所属系统标识。</param>
     /// <param name="systemName">所属系统名称快照。</param>
-    /// <param name="name">字典分组名称。</param>
-    public Dictionary(string id, string systemId, string systemName, string name)
-        : base(ValidateUlid(id, nameof(id)))
+    /// <param name="name">字典名称。</param>
+    public Dictionary(
+        string id,
+        string systemId,
+        string systemName,
+        string name)
+        : base(id)
     {
         ChangeSystem(systemId, systemName);
         ChangeName(name);
@@ -56,7 +60,10 @@ public class Dictionary : DedsiAggregateRoot<string>
     /// <returns>当前字典聚合根。</returns>
     public Dictionary ChangeName(string name)
     {
-        Name = Check.NotNullOrWhiteSpace(name, nameof(name), DictionaryConsts.MaxNameLength).Trim();
+        Name = Check.NotNullOrWhiteSpace(
+            name,
+            nameof(name),
+            DictionaryConsts.MaxNameLength).Trim();
         return this;
     }
 
@@ -66,9 +73,11 @@ public class Dictionary : DedsiAggregateRoot<string>
     /// <param name="systemId">新的系统标识。</param>
     /// <param name="systemName">新的系统名称快照。</param>
     /// <returns>当前字典聚合根。</returns>
-    public Dictionary ChangeSystem(string systemId, string systemName)
+    public Dictionary ChangeSystem(
+        string systemId,
+        string systemName)
     {
-        SystemId = ValidateUlid(systemId, nameof(systemId));
+        SystemId = systemId;
         SystemName = Check.NotNullOrWhiteSpace(
             systemName,
             nameof(systemName),
@@ -98,15 +107,13 @@ public class Dictionary : DedsiAggregateRoot<string>
         bool isDefault,
         string? parentId)
     {
-        var normalizedItemId = ValidateUlid(itemId, nameof(itemId));
+        var normalizedItemId = itemId;
         EnsureCodeAvailable(code, null);
         ValidateParent(normalizedItemId, parentId);
-
         if (isEnabled && isDefault)
         {
             ClearDefaultItem();
         }
-
         Items.Add(new DictionaryItem(
             normalizedItemId,
             Id,
@@ -145,24 +152,41 @@ public class Dictionary : DedsiAggregateRoot<string>
         var item = GetItem(itemId);
         EnsureCodeAvailable(code, item.Id);
         ValidateParent(item.Id, parentId);
-
         if (isEnabled && isDefault)
         {
             ClearDefaultItem(item.Id);
         }
-
-        item.Change(code, name, description, sort, isEnabled, isDefault, parentId);
+        item.Change(
+            code,
+            name,
+            description,
+            sort,
+            isEnabled,
+            isDefault,
+            parentId);
         return this;
     }
 
+    /// <summary>
+    /// 取得当前字典分组中的指定字典项；不存在时拒绝操作。
+    /// </summary>
+    /// <param name="itemId">当前字典分组内的字典项标识。</param>
+    /// <returns>属于当前字典分组的字典项。</returns>
     private DictionaryItem GetItem(string itemId)
     {
-        var normalizedItemId = ValidateUlid(itemId, nameof(itemId));
+        var normalizedItemId = itemId;
         return Items.FirstOrDefault(item => item.Id == normalizedItemId)
             ?? throw new ArgumentException("字典项不属于当前字典分组。", nameof(itemId));
     }
 
-    private void EnsureCodeAvailable(string code, string? excludedItemId)
+    /// <summary>
+    /// 校验去除首尾空白后的编码在当前字典分组内唯一。
+    /// </summary>
+    /// <param name="code">字典项编码，同一分组内唯一。</param>
+    /// <param name="excludedItemId">需要排除的字典项标识；为空时不排除任何项。</param>
+    private void EnsureCodeAvailable(
+        string code,
+        string? excludedItemId)
     {
         var normalizedCode = Check.NotNullOrWhiteSpace(
             code,
@@ -174,22 +198,26 @@ public class Dictionary : DedsiAggregateRoot<string>
         }
     }
 
-    private void ValidateParent(string itemId, string? parentId)
+    /// <summary>
+    /// 校验父项属于当前字典分组，并阻止自引用和层级循环。
+    /// </summary>
+    /// <param name="itemId">当前字典分组内的字典项标识。</param>
+    /// <param name="parentId">父级标识；为空表示根节点。</param>
+    private void ValidateParent(
+        string itemId,
+        string? parentId)
     {
         if (parentId is null)
         {
             return;
         }
-
-        var normalizedParentId = ValidateUlid(parentId, nameof(parentId));
+        var normalizedParentId = parentId;
         if (normalizedParentId == itemId)
         {
             throw new ArgumentException("字典项不能将自身设为父项。", nameof(parentId));
         }
-
         var parent = Items.FirstOrDefault(item => item.Id == normalizedParentId)
             ?? throw new ArgumentException("父字典项必须属于当前字典分组。", nameof(parentId));
-
         var visited = new HashSet<string>(StringComparer.Ordinal) { itemId };
         while (parent is not null)
         {
@@ -197,13 +225,16 @@ public class Dictionary : DedsiAggregateRoot<string>
             {
                 throw new ArgumentException("字典项层级不能形成环。", nameof(parentId));
             }
-
             parent = parent.ParentId is null
                 ? null
                 : Items.FirstOrDefault(item => item.Id == parent.ParentId);
         }
     }
 
+    /// <summary>
+    /// 清除其他字典项的默认标记，可保留指定项。
+    /// </summary>
+    /// <param name="excludedItemId">需要排除的字典项标识；为空时不排除任何项。</param>
     private void ClearDefaultItem(string? excludedItemId = null)
     {
         foreach (var item in Items.Where(item => item.Id != excludedItemId && item.IsDefault))
@@ -212,15 +243,4 @@ public class Dictionary : DedsiAggregateRoot<string>
         }
     }
 
-    private static string ValidateUlid(string value, string parameterName)
-    {
-        if (string.IsNullOrWhiteSpace(value)
-            || value.Length != DictionaryConsts.UlidLength
-            || !Ulid.TryParse(value, out _))
-        {
-            throw new ArgumentException("标识必须是合法的 26 位 ULID。", parameterName);
-        }
-
-        return value;
-    }
 }

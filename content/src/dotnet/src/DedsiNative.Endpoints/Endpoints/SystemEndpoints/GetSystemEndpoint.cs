@@ -18,7 +18,7 @@ public sealed class GetSystemEndpoint(ISystemRepository systemRepository)
     /// <summary>配置系统详情接口的路由和 HTTP 方法。</summary>
     public override void Configure()
     {
-        Get("/api/system/{id}");
+        Get("system/{id}");
         Policies(ManagementPermissions.Systems.View);
         Description(x => x.WithTags("系统管理"));
         Summary(s =>

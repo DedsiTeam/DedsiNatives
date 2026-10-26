@@ -25,7 +25,7 @@ public class UpdateOpenIddictApplicationEndpoint(IOpenIddictApplicationManager a
 {
     public override void Configure()
     {
-        Put("/api/openiddict/applications/{id}");
+        Put("openiddict/applications/{id}");
         Policies(OpenIddict.OpenIddictPermissions.Manage);
         Description(x => x.WithTags("SSO 客户端管理"));
         Summary(s =>

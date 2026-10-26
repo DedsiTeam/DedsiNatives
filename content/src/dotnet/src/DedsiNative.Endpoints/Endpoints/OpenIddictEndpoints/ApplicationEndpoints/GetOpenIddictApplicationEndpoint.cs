@@ -25,7 +25,7 @@ public class GetOpenIddictApplicationEndpoint(IOpenIddictApplicationManager appl
 {
     public override void Configure()
     {
-        Get("/api/openiddict/applications/{id}");
+        Get("openiddict/applications/{id}");
         Policies(OpenIddict.OpenIddictPermissions.View);
         Description(x => x.WithTags("SSO 客户端管理"));
         Summary(s =>

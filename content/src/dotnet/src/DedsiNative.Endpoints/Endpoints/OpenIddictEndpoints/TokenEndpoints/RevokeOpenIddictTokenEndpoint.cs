@@ -11,7 +11,7 @@ public class RevokeOpenIddictTokenEndpoint(IOpenIddictTokenManager tokenManager)
 {
     public override void Configure()
     {
-        Post("/api/openiddict/tokens/{id}/revoke");
+        Post("openiddict/tokens/{id}/revoke");
         Policies(OpenIddict.OpenIddictPermissions.Manage);
         Description(x => x.WithTags("SSO 授权与令牌查看"));
         Summary(s =>

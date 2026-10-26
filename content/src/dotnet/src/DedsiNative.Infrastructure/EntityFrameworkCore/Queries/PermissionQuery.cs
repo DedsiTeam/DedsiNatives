@@ -5,11 +5,11 @@ namespace DedsiNative.EntityFrameworkCore.Queries;
 
 /// <summary>权限查询服务的 EF Core 实现。</summary>
 /// <param name="dbContext">DedsiNative 数据库上下文。</param>
-public sealed class PermissionQuery(IDedsiNativeDbContext dbContext) : IPermissionQuery
+public sealed class PermissionQuery(DedsiNativeDbContext dbContext) : IPermissionQuery
 {
     /// <inheritdoc />
-    public async Task<PermissionPagedQueryResult> GetPagedAsync(
-        PermissionPagedQuery query,
+    public async Task<PermissionPagedQueryOutput> GetPagedAsync(
+        PermissionPagedQueryInput query,
         CancellationToken cancellationToken)
     {
         var systemId = query.SystemId?.Trim();
@@ -32,7 +32,7 @@ public sealed class PermissionQuery(IDedsiNativeDbContext dbContext) : IPermissi
         }
 
         var items = await permissions
-            .Select(permission => new PermissionQueryItem(
+            .Select(permission => new PermissionQueryItemDto(
                 permission.Id,
                 permission.SystemId,
                 permission.SystemName,
@@ -41,6 +41,6 @@ public sealed class PermissionQuery(IDedsiNativeDbContext dbContext) : IPermissi
                 permission.IsEnabled))
             .ToArrayAsync(cancellationToken);
 
-        return new PermissionPagedQueryResult(totalCount, items);
+        return new PermissionPagedQueryOutput(totalCount, items);
     }
 }

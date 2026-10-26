@@ -29,7 +29,7 @@ public sealed class PagedSystemEndpoint(ISystemQuery systemQuery)
     /// <summary>配置系统分页查询接口的路由和 HTTP 方法。</summary>
     public override void Configure()
     {
-        Post("/api/system/pagedQuery");
+        Post("system/pagedQuery");
         Policies(ManagementPermissions.Systems.View);
         Description(x => x.WithTags("系统管理"));
         Summary(s =>
@@ -44,7 +44,7 @@ public sealed class PagedSystemEndpoint(ISystemQuery systemQuery)
     /// <param name="ct">取消令牌。</param>
     public override async Task HandleAsync(PagedSystemRequest req, CancellationToken ct)
     {
-        var query = new SystemPagedQuery(req.Name, req.GetSkipCount(), req.PageSize, req.IsExport);
+        var query = new SystemPagedQueryInput(req.Name, req.GetSkipCount(), req.PageSize, req.IsExport);
         var result = await systemQuery.GetPagedAsync(query, ct);
 
         await Send.OkAsync(new PagedSystemResponse

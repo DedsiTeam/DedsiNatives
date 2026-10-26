@@ -26,7 +26,7 @@ public sealed record UpdateUserRequest(
 );
 
 /// <summary>
-/// 更新用户端点，处理 POST /api/user/update/{id} 请求，根据路由中的用户 ID 查询用户并更新其资料、岗位及组织机构关联。
+/// 更新用户端点，处理 POST /dedsinative-api/user/update/{id} 请求，根据路由中的用户 ID 查询用户并更新其资料、岗位及组织机构关联。
 /// </summary>
 /// <param name="userRepository">用户仓储，用于查询和更新用户实体。</param>
 /// <param name="positionRepository">岗位仓储，用于校验关联岗位有效性。</param>
@@ -41,7 +41,7 @@ public class UpdateUserEndpoint(
     /// </summary>
     public override void Configure()
     {
-        Post("/api/user/update/{id}");
+        Post("user/update/{id}");
         Policies(ManagementPermissions.Users.Update);
         Description(x => x.WithTags("用户管理"));
         Summary(s =>

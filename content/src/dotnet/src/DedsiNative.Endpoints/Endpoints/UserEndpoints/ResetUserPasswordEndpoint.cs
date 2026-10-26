@@ -15,7 +15,7 @@ public sealed class ResetUserPasswordEndpoint(IUserRepository userRepository)
     /// </summary>
     public override void Configure()
     {
-        Post("/api/user/resetPassword/{id}");
+        Post("user/resetPassword/{id}");
         Policies(ManagementPermissions.Users.ResetPassword);
         Description(x => x.WithTags("用户管理"));
         Summary(s =>

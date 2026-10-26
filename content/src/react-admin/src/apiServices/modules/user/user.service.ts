@@ -1,11 +1,11 @@
 /**
  * @file 用户 API 服务 (UserApiService)
  * @description 封装后端 FastEndpoints 用户模块 HTTP 接口:
- * - POST /api/user/pagedQuery (分页获取用户列表)
- * - GET  /api/user/{id}        (获取指定用户详情)
- * - POST /api/user/create     (创建新用户)
- * - POST /api/user/update/{id} (更新用户信息)
- * - POST /api/user/delete/{id} (删除用户账号)
+ * - POST /user/pagedQuery (分页获取用户列表)
+ * - GET  /user/{id}        (获取指定用户详情)
+ * - POST /user/create     (创建新用户)
+ * - POST /user/update/{id} (更新用户信息)
+ * - POST /user/delete/{id} (删除用户账号)
  */
 
 import request from '../../core/request';
@@ -14,57 +14,57 @@ import type { UserResultDto, UserPageResultDto } from './dtos/user-result.dto';
 
 export class UserApiService {
   /**
-   * 分页获取用户列表 (POST /api/user/pagedQuery)
+   * 分页获取用户列表 (POST /user/pagedQuery)
    * @param params 检索与分页输入 DTO
    */
   static async getPageList(params: UserQueryInputDto): Promise<UserPageResultDto> {
     return request.post<UserPageResultDto, UserQueryInputDto>(
-      '/api/user/pagedQuery',
+      '/user/pagedQuery',
       params,
     );
   }
 
   /**
-   * 获取单个用户详细信息 (GET /api/user/{id})
+   * 获取单个用户详细信息 (GET /user/{id})
    * @param id 用户唯一 ID
    */
   static async getById(id: string): Promise<UserResultDto> {
     return request.get<UserResultDto>(
-      `/api/user/${encodeURIComponent(id)}`,
+      `/user/${encodeURIComponent(id)}`,
     );
   }
 
   /**
-   * 创建新用户 (POST /api/user/create)
+   * 创建新用户 (POST /user/create)
    * @param data 用户新建输入 DTO
    * @returns 新创建用户的唯一标识 ID (ULID)
    */
   static async createUser(data: CreateUserInputDto): Promise<string> {
     return request.post<string, CreateUserInputDto>(
-      '/api/user/create',
+      '/user/create',
       data,
     );
   }
 
   /**
-   * 更新用户信息 (POST /api/user/update/{id})
+   * 更新用户信息 (POST /user/update/{id})
    * @param id 用户唯一 ID
    * @param data 用户更新输入 DTO
    */
   static async updateUser(id: string, data: UpdateUserInputDto): Promise<boolean> {
     return request.post<boolean, UpdateUserInputDto>(
-      `/api/user/update/${encodeURIComponent(id)}`,
+      `/user/update/${encodeURIComponent(id)}`,
       data,
     );
   }
 
   /**
-   * 删除用户账号 (POST /api/user/delete/{id})
+   * 删除用户账号 (POST /user/delete/{id})
    * @param id 用户唯一 ID
    */
   static async deleteUser(id: string): Promise<boolean> {
     return request.post<boolean>(
-      `/api/user/delete/${encodeURIComponent(id)}`,
+      `/user/delete/${encodeURIComponent(id)}`,
     );
   }
 
@@ -74,14 +74,14 @@ export class UserApiService {
    */
   static async resetPassword(id: string): Promise<boolean> {
     return request.post<boolean>(
-      `/api/user/resetPassword/${encodeURIComponent(id)}`,
+      `/user/resetPassword/${encodeURIComponent(id)}`,
     );
   }
 
   /** 替换用户的岗位关联。 */
   static async updatePositions(id: string, data: UpdateUserPositionsInputDto): Promise<boolean> {
     return request.post<boolean, UpdateUserPositionsInputDto>(
-      `/api/user/positions/${encodeURIComponent(id)}`,
+      `/user/positions/${encodeURIComponent(id)}`,
       data,
     );
   }

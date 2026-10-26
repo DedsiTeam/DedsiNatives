@@ -25,7 +25,7 @@ public sealed class LoginEndpoint(
 {
     public override void Configure()
     {
-        Post("/api/auth/login");
+        Post("auth/login");
         AllowAnonymous();
         Description(description => description.WithTags("认证管理"));
         Summary(summary =>

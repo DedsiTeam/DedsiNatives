@@ -128,7 +128,7 @@ public sealed class UserLoginService(
                      .Distinct(StringComparer.Ordinal))
         {
             var queryResult = await permissionQuery.GetPagedAsync(
-                new PermissionPagedQuery(systemId, null, true, 0, 1, true),
+                new PermissionPagedQueryInput(systemId, null, true, 0, 1, true),
                 cancellationToken);
             foreach (var permission in queryResult.Items)
             {

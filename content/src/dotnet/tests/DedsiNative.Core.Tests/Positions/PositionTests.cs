@@ -24,12 +24,14 @@ public sealed class PositionTests
         Assert.Empty(position.Organizations);
     }
 
-    /// <summary>岗位不能接受非法标识或空白名称。</summary>
+    /// <summary>
+    /// 岗位标识不校验 ULID 格式，名称仍不能为空白。
+    /// </summary>
     [Fact]
     public void Constructor_Should_Reject_Invalid_Values()
     {
-        Assert.Throws<ArgumentException>(() => new Position(
-            "invalid", "岗位", Ulid.NewUlid().ToString(), "系统"));
+        Assert.Equal("invalid", new Position(
+            "invalid", "岗位", Ulid.NewUlid().ToString(), "系统").Id);
         Assert.Throws<ArgumentException>(() => new Position(
             Ulid.NewUlid().ToString(), " ", Ulid.NewUlid().ToString(), "系统"));
     }

@@ -4,7 +4,7 @@
  */
 
 /**
- * 登录请求输入 DTO (对接 POST /api/auth/login)
+ * 登录请求输入 DTO (对接 POST /auth/login)
  */
 export interface LoginInputDto {
   /** 系统用户名 */

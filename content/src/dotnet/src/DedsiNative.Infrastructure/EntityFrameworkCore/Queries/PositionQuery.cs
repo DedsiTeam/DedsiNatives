@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 namespace DedsiNative.EntityFrameworkCore.Queries;
 
 /// <summary>岗位查询服务的 EF Core 实现。</summary>
-public sealed class PositionQuery(IDedsiNativeDbContext dbContext) : IPositionQuery
+public sealed class PositionQuery(DedsiNativeDbContext dbContext) : IPositionQuery
 {
     /// <inheritdoc />
-    public async Task<PositionPagedQueryResult> GetPagedAsync(
-        PositionPagedQuery query,
+    public async Task<PositionPagedQueryOutput> GetPagedAsync(
+        PositionPagedQueryInput query,
         CancellationToken cancellationToken)
     {
         var systemId = query.SystemId?.Trim();
@@ -28,7 +28,7 @@ public sealed class PositionQuery(IDedsiNativeDbContext dbContext) : IPositionQu
         }
 
         var items = await positions
-            .Select(position => new PositionQueryItem(
+            .Select(position => new PositionQueryItemDto(
                 position.Id,
                 position.Name,
                 position.SystemId,
@@ -39,7 +39,7 @@ public sealed class PositionQuery(IDedsiNativeDbContext dbContext) : IPositionQu
                 position.Organizations.Count))
             .ToArrayAsync(cancellationToken);
 
-        return new PositionPagedQueryResult(totalCount, items);
+        return new PositionPagedQueryOutput(totalCount, items);
     }
 
     /// <inheritdoc />

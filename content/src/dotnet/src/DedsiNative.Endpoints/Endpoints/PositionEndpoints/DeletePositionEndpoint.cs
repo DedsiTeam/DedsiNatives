@@ -10,7 +10,7 @@ public sealed class DeletePositionEndpoint(IPositionRepository positionRepositor
     /// <summary>配置岗位删除接口。</summary>
     public override void Configure()
     {
-        Post("/api/position/delete/{id}");
+        Post("position/delete/{id}");
         Policies(ManagementPermissions.Positions.Delete);
         Description(x => x.WithTags("岗位管理"));
         Summary(s =>

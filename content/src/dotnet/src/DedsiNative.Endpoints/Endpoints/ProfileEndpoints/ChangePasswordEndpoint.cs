@@ -28,7 +28,7 @@ public sealed class ChangePasswordEndpoint(IUserRepository userRepository)
     /// </summary>
     public override void Configure()
     {
-        Post("/api/profile/changePassword");
+        Post("profile/changePassword");
         Description(x => x.WithTags("个人中心"));
         Summary(s =>
         {

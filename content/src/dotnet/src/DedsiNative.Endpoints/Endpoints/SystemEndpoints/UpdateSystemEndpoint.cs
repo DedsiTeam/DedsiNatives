@@ -17,7 +17,7 @@ public sealed class UpdateSystemEndpoint(ISystemRepository systemRepository)
     /// <summary>配置更新系统接口的路由和 HTTP 方法。</summary>
     public override void Configure()
     {
-        Post("/api/system/update/{id}");
+        Post("system/update/{id}");
         Policies(ManagementPermissions.Systems.Update);
         Description(x => x.WithTags("系统管理"));
         Summary(s =>

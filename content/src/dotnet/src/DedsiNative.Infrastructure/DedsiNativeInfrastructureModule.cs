@@ -196,6 +196,6 @@ public class DedsiNativeInfrastructureModule : AbpModule
         });
 
         // 注册 MinIO 对象存储提供者（基于 ABP Blob Storing）
-        context.Services.AddTransient<DedsiNative.StorageFiles.IStorageProvider, DedsiNative.Infrastructure.StorageFiles.MinioStorageProvider>();
+        context.Services.AddTransient<DedsiNative.StorageFiles.IStorageProvider, MinioStorageProvider>();
     }
 }

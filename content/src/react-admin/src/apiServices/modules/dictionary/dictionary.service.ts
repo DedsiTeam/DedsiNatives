@@ -15,29 +15,29 @@ import type {
 export class DictionaryApiService {
   static getPageList(input: DictionaryQueryInputDto): Promise<DictionaryPageResultDto> {
     return request.post<DictionaryPageResultDto, DictionaryQueryInputDto>(
-      '/api/dictionary/pagedQuery',
+      '/dictionary/pagedQuery',
       input,
     );
   }
 
   static getById(id: string): Promise<DictionaryResultDto> {
-    return request.get<DictionaryResultDto>(`/api/dictionary/${encodeURIComponent(id)}`);
+    return request.get<DictionaryResultDto>(`/dictionary/${encodeURIComponent(id)}`);
   }
 
   static create(input: SaveDictionaryInputDto): Promise<CreatedIdResultDto> {
-    return request.post<CreatedIdResultDto, SaveDictionaryInputDto>('/api/dictionary/create', input);
+    return request.post<CreatedIdResultDto, SaveDictionaryInputDto>('/dictionary/create', input);
   }
 
   static update(id: string, input: SaveDictionaryInputDto): Promise<boolean> {
     return request.post<boolean, SaveDictionaryInputDto>(
-      `/api/dictionary/update/${encodeURIComponent(id)}`,
+      `/dictionary/update/${encodeURIComponent(id)}`,
       input,
     );
   }
 
   static getItems(dictionaryId: string): Promise<DictionaryItemResultDto[]> {
     return request.get<DictionaryItemResultDto[]>(
-      `/api/dictionary/${encodeURIComponent(dictionaryId)}/items`,
+      `/dictionary/${encodeURIComponent(dictionaryId)}/items`,
     );
   }
 
@@ -46,7 +46,7 @@ export class DictionaryApiService {
     input: SaveDictionaryItemInputDto,
   ): Promise<CreatedIdResultDto> {
     return request.post<CreatedIdResultDto, SaveDictionaryItemInputDto>(
-      `/api/dictionary/${encodeURIComponent(dictionaryId)}/item/create`,
+      `/dictionary/${encodeURIComponent(dictionaryId)}/item/create`,
       input,
     );
   }
@@ -57,7 +57,7 @@ export class DictionaryApiService {
     input: SaveDictionaryItemInputDto,
   ): Promise<boolean> {
     return request.post<boolean, SaveDictionaryItemInputDto>(
-      `/api/dictionary/${encodeURIComponent(dictionaryId)}/item/update/${encodeURIComponent(itemId)}`,
+      `/dictionary/${encodeURIComponent(dictionaryId)}/item/update/${encodeURIComponent(itemId)}`,
       input,
     );
   }

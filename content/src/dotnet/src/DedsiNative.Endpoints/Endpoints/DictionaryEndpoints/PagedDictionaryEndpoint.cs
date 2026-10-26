@@ -52,7 +52,7 @@ public sealed class PagedDictionaryEndpoint(IDictionaryQuery dictionaryQuery)
     /// </summary>
     public override void Configure()
     {
-        Post("/api/dictionary/pagedQuery");
+        Post("dictionary/pagedQuery");
         Policies(ManagementPermissions.Dictionaries.View);
         Description(description => description.WithTags("字典管理"));
         Summary(summary =>
@@ -69,7 +69,7 @@ public sealed class PagedDictionaryEndpoint(IDictionaryQuery dictionaryQuery)
     /// <param name="ct">取消令牌。</param>
     public override async Task HandleAsync(PagedDictionaryRequest req, CancellationToken ct)
     {
-        var result = await dictionaryQuery.GetPagedAsync(new DictionaryPagedQuery(
+        var result = await dictionaryQuery.GetPagedAsync(new DictionaryPagedQueryInput(
             req.SystemId,
             req.Name,
             req.GetSkipCount(),

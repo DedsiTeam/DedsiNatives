@@ -4,7 +4,7 @@ using FastEndpoints;
 namespace DedsiNative.Endpoints.UserEndpoints;
 
 /// <summary>
-/// 删除用户端点，处理 POST /api/user/delete/{id} 请求，根据路由中的用户 ID 删除对应用户，成功后返回 true。
+/// 删除用户端点，处理 POST /dedsinative-api/user/delete/{id} 请求，根据路由中的用户 ID 删除对应用户，成功后返回 true。
 /// </summary>
 /// <param name="userRepository">用户仓储，用于查询并删除用户实体。</param>
 public class DeleteUserEndpoint(IUserRepository userRepository) : EndpointWithoutRequest<bool>
@@ -14,7 +14,7 @@ public class DeleteUserEndpoint(IUserRepository userRepository) : EndpointWithou
     /// </summary>
     public override void Configure()
     {
-        Post("/api/user/delete/{id}");
+        Post("user/delete/{id}");
         Policies(ManagementPermissions.Users.Delete);
         Description(x => x.WithTags("用户管理"));
         Summary(s =>

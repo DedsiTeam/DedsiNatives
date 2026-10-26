@@ -6,31 +6,23 @@ namespace DedsiNative.EntityFrameworkCore.Queries;
 /// <summary>
 /// 组织机构只读查询契约的 EF Core 实现。
 /// </summary>
-public sealed class OrganizationQuery(IDedsiNativeDbContext dbContext) : IOrganizationQuery
+public sealed class OrganizationQuery(DedsiNativeDbContext dbContext) : IOrganizationQuery
 {
     /// <inheritdoc />
-    public async Task<OrganizationQueryItem[]> GetTreeListAsync(
-        OrganizationTreeQuery query,
+    public async Task<OrganizationQueryItemDto[]> GetTreeListAsync(
+        OrganizationTreeQueryInput query,
         CancellationToken cancellationToken)
     {
-        var dbQuery = dbContext.Organizations.AsNoTracking();
-
-        if (!string.IsNullOrWhiteSpace(query.SystemId))
-        {
-            var trimmedSystemId = query.SystemId.Trim();
-            dbQuery = dbQuery.Where(org => org.SystemId == trimmedSystemId);
-        }
-
-        if (query.IsEnabled.HasValue)
-        {
-            dbQuery = dbQuery.Where(org => org.IsEnabled == query.IsEnabled.Value);
-        }
+        var systemId = query.SystemId?.Trim();
+        var dbQuery = dbContext.Organizations.AsNoTracking()
+            .WhereIf(!string.IsNullOrEmpty(systemId), org => org.SystemId == systemId)
+            .WhereIf(query.IsEnabled.HasValue, org => org.IsEnabled == query.IsEnabled!.Value);
 
         return await dbQuery
             .OrderBy(org => org.Level)
             .ThenBy(org => org.Sort)
             .ThenBy(org => org.Id)
-            .Select(org => new OrganizationQueryItem(
+            .Select(org => new OrganizationQueryItemDto(
                 org.Id,
                 org.SystemId,
                 org.SystemName,
@@ -50,40 +42,25 @@ public sealed class OrganizationQuery(IDedsiNativeDbContext dbContext) : IOrgani
     }
 
     /// <inheritdoc />
-    public async Task<OrganizationPagedQueryResult> GetPagedAsync(
-        OrganizationPagedQuery query,
+    public async Task<OrganizationPagedQueryOutput> GetPagedAsync(
+        OrganizationPagedQueryInput query,
         CancellationToken cancellationToken)
     {
-        var dbQuery = dbContext.Organizations.AsNoTracking();
+        var systemId = query.SystemId?.Trim();
+        var keyword = query.Keyword?.Trim();
+        var parentId = query.ParentId?.Trim();
 
-        if (!string.IsNullOrWhiteSpace(query.SystemId))
-        {
-            var trimmedSystemId = query.SystemId.Trim();
-            dbQuery = dbQuery.Where(org => org.SystemId == trimmedSystemId);
-        }
-
-        if (!string.IsNullOrWhiteSpace(query.Keyword))
-        {
-            var trimmedKeyword = query.Keyword.Trim();
-            dbQuery = dbQuery.Where(org =>
-                org.Name.Contains(trimmedKeyword) ||
-                org.Code.Contains(trimmedKeyword) ||
-                (org.Name1 != null && org.Name1.Contains(trimmedKeyword)) ||
-                (org.Name2 != null && org.Name2.Contains(trimmedKeyword)) ||
-                (org.Name3 != null && org.Name3.Contains(trimmedKeyword)) ||
-                (org.Name4 != null && org.Name4.Contains(trimmedKeyword)));
-        }
-
-        if (!string.IsNullOrWhiteSpace(query.ParentId))
-        {
-            var trimmedParentId = query.ParentId.Trim();
-            dbQuery = dbQuery.Where(org => org.ParentId == trimmedParentId);
-        }
-
-        if (query.IsEnabled.HasValue)
-        {
-            dbQuery = dbQuery.Where(org => org.IsEnabled == query.IsEnabled.Value);
-        }
+        var dbQuery = dbContext.Organizations.AsNoTracking()
+            .WhereIf(!string.IsNullOrEmpty(systemId), org => org.SystemId == systemId)
+            .WhereIf(!string.IsNullOrEmpty(keyword), org =>
+                org.Name.Contains(keyword!) ||
+                org.Code.Contains(keyword!) ||
+                (org.Name1 != null && org.Name1.Contains(keyword!)) ||
+                (org.Name2 != null && org.Name2.Contains(keyword!)) ||
+                (org.Name3 != null && org.Name3.Contains(keyword!)) ||
+                (org.Name4 != null && org.Name4.Contains(keyword!)))
+            .WhereIf(!string.IsNullOrEmpty(parentId), org => org.ParentId == parentId)
+            .WhereIf(query.IsEnabled.HasValue, org => org.IsEnabled == query.IsEnabled!.Value);
 
         var totalCount = await dbQuery.LongCountAsync(cancellationToken);
 
@@ -100,7 +77,7 @@ public sealed class OrganizationQuery(IDedsiNativeDbContext dbContext) : IOrgani
         }
 
         var items = await dbQuery
-            .Select(org => new OrganizationQueryItem(
+            .Select(org => new OrganizationQueryItemDto(
                 org.Id,
                 org.SystemId,
                 org.SystemName,
@@ -118,7 +95,7 @@ public sealed class OrganizationQuery(IDedsiNativeDbContext dbContext) : IOrgani
                 org.CreationTime))
             .ToArrayAsync(cancellationToken);
 
-        return new OrganizationPagedQueryResult(totalCount, items);
+        return new OrganizationPagedQueryOutput(totalCount, items);
     }
 
     /// <inheritdoc />
@@ -136,12 +113,9 @@ public sealed class OrganizationQuery(IDedsiNativeDbContext dbContext) : IOrgani
         CancellationToken cancellationToken,
         string? excludedId = null)
     {
-        var query = dbContext.Organizations.Where(org => org.SystemId == systemId && org.Code == code);
-
-        if (!string.IsNullOrWhiteSpace(excludedId))
-        {
-            query = query.Where(org => org.Id != excludedId);
-        }
+        var query = dbContext.Organizations
+            .Where(org => org.SystemId == systemId && org.Code == code)
+            .WhereIf(!string.IsNullOrWhiteSpace(excludedId), org => org.Id != excludedId);
 
         return await query.AnyAsync(cancellationToken);
     }

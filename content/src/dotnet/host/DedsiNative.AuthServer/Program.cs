@@ -1,4 +1,5 @@
 using DedsiNative.AuthServer;
+using DedsiNative.ServiceDefaults;
 using Serilog;
 using Serilog.Events;
 using DedsiNative.Time;

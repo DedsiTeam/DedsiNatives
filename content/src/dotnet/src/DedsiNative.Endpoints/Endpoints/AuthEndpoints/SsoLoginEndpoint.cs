@@ -19,7 +19,7 @@ public sealed class SsoLoginEndpoint(
 {
     public override void Configure()
     {
-        Post("/api/auth/sso-login");
+        Post("auth/sso-login");
         AllowAnonymous();
         Description(description => description.WithTags("认证管理"));
         Summary(summary =>

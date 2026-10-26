@@ -16,7 +16,7 @@ export interface UserLoginInfoInputDto {
 }
 
 /**
- * 用户分页条件检索输入 DTO (对接 POST /api/user/pagedQuery)
+ * 用户分页条件检索输入 DTO (对接 POST /user/pagedQuery)
  */
 export interface UserQueryInputDto extends PageInputDto {
   /** 按用户名称模糊筛选，为空时不过滤 */
@@ -30,7 +30,7 @@ export interface UserQueryInputDto extends PageInputDto {
 }
 
 /**
- * 创建新用户请求输入 DTO (对接 POST /api/user/create)
+ * 创建新用户请求输入 DTO (对接 POST /user/create)
  */
 export interface CreateUserInputDto {
   /** 用户名称，不能为空 */
@@ -50,7 +50,7 @@ export interface CreateUserInputDto {
 }
 
 /**
- * 修改用户信息请求输入 DTO (对接 POST /api/user/update/{id})
+ * 修改用户信息请求输入 DTO (对接 POST /user/update/{id})
  */
 export interface UpdateUserInputDto {
   /** 用户名称，不能为空 */

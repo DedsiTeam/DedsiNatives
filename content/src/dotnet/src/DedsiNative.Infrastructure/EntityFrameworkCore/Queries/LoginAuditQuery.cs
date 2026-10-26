@@ -7,7 +7,7 @@ namespace DedsiNative.EntityFrameworkCore.Queries;
 /// 登录审计读侧查询服务的 EF Core 实现。
 /// </summary>
 /// <param name="dbContext">DedsiNative 数据库上下文。</param>
-public sealed class LoginAuditQuery(IDedsiNativeDbContext dbContext) : ILoginAuditQuery
+public sealed class LoginAuditQuery(DedsiNativeDbContext dbContext) : ILoginAuditQuery
 {
     /// <summary>
     /// 按时间、认证结果、原因、账号、用户和客户端 IP 条件分页查询登录审计。
@@ -15,8 +15,8 @@ public sealed class LoginAuditQuery(IDedsiNativeDbContext dbContext) : ILoginAud
     /// <param name="query">登录审计筛选及分页条件。</param>
     /// <param name="cancellationToken">用于取消异步查询的令牌。</param>
     /// <returns>登录审计分页查询结果。</returns>
-    public async Task<LoginAuditPagedQueryResult> GetPagedAsync(
-        LoginAuditPagedQuery query,
+    public async Task<LoginAuditPagedQueryOutput> GetPagedAsync(
+        LoginAuditPagedQueryInput query,
         CancellationToken cancellationToken)
     {
         var account = query.Account?.Trim();
@@ -43,7 +43,7 @@ public sealed class LoginAuditQuery(IDedsiNativeDbContext dbContext) : ILoginAud
             .Take(query.MaxResultCount);
 
         var items = await audits
-            .Select(audit => new LoginAuditQueryItem(
+            .Select(audit => new LoginAuditQueryItemDto(
                 audit.Id,
                 audit.LoginTime,
                 audit.Result,
@@ -55,6 +55,6 @@ public sealed class LoginAuditQuery(IDedsiNativeDbContext dbContext) : ILoginAud
                 audit.FailureDescription))
             .ToArrayAsync(cancellationToken);
 
-        return new LoginAuditPagedQueryResult(totalCount, items);
+        return new LoginAuditPagedQueryOutput(totalCount, items);
     }
 }

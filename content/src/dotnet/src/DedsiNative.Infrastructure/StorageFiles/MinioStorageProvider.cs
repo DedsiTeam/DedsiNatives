@@ -1,8 +1,7 @@
-using DedsiNative.StorageFiles;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.BlobStoring;
 
-namespace DedsiNative.Infrastructure.StorageFiles;
+namespace DedsiNative.StorageFiles;
 
 /// <summary>
 /// 基于 ABP Blob Storing 框架的 MinIO 对象存储提供者实现。

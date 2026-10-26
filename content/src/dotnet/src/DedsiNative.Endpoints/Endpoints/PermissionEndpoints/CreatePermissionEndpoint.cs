@@ -30,7 +30,7 @@ public sealed class CreatePermissionEndpoint(
     /// <summary>配置创建权限接口的路由和 HTTP 方法。</summary>
     public override void Configure()
     {
-        Post("/api/permission/create");
+        Post("permission/create");
         Policies(ManagementPermissions.Permissions.Create);
         Description(x => x.WithTags("权限管理"));
         Summary(s =>

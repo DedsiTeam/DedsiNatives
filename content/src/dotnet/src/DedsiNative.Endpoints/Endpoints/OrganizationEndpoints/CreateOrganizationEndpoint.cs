@@ -71,7 +71,7 @@ public sealed class CreateOrganizationEndpoint(
     /// <inheritdoc />
     public override void Configure()
     {
-        Post("/api/organization/create");
+        Post("organization/create");
         Policies(ManagementPermissions.Organizations.Create);
         Description(d => d.WithTags("组织机构管理"));
         Summary(s =>

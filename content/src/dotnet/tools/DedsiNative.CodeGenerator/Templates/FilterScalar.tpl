@@ -1,0 +1,1 @@
+            .WhereIf(input.Filter{{Name}}.HasValue, entity => entity.{{Name}} == input.Filter{{Name}}!.Value)

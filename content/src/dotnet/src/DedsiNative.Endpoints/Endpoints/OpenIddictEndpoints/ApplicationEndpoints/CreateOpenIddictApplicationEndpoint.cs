@@ -47,7 +47,7 @@ public class CreateOpenIddictApplicationEndpoint(IOpenIddictApplicationManager a
 {
     public override void Configure()
     {
-        Post("/api/openiddict/applications");
+        Post("openiddict/applications");
         Policies(OpenIddict.OpenIddictPermissions.Manage);
         Description(x => x.WithTags("SSO 客户端管理"));
         Summary(s =>

@@ -22,20 +22,22 @@ public sealed class PermissionTests
         Assert.True(permission.IsEnabled);
     }
 
-    /// <summary>权限 ID、系统 ID 和名称不合法时应拒绝创建。</summary>
+    /// <summary>
+    /// 权限与系统标识不校验 ULID 格式，名称仍不能为空白。
+    /// </summary>
     [Fact]
     public void Constructor_Should_Reject_Invalid_Values()
     {
-        Assert.Throws<ArgumentException>(() => new Permission(
+        Assert.Equal("invalid", new Permission(
             "invalid",
             Ulid.NewUlid().ToString(),
             "系统",
-            "user.read"));
-        Assert.Throws<ArgumentException>(() => new Permission(
+            "user.read").Id);
+        Assert.Equal("invalid", new Permission(
             Ulid.NewUlid().ToString(),
             "invalid",
             "系统",
-            "user.read"));
+            "user.read").SystemId);
         Assert.Throws<ArgumentException>(() => new Permission(
             Ulid.NewUlid().ToString(),
             Ulid.NewUlid().ToString(),

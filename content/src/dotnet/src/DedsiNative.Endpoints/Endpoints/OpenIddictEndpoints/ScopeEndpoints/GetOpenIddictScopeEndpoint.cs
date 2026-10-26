@@ -21,7 +21,7 @@ public class GetOpenIddictScopeEndpoint(IOpenIddictScopeManager scopeManager)
 {
     public override void Configure()
     {
-        Get("/api/openiddict/scopes/{id}");
+        Get("openiddict/scopes/{id}");
         Policies(OpenIddict.OpenIddictPermissions.View);
         Description(x => x.WithTags("SSO 作用域管理"));
         Summary(s =>

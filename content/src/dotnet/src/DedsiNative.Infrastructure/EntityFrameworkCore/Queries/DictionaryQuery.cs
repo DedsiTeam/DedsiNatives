@@ -7,11 +7,11 @@ namespace DedsiNative.EntityFrameworkCore.Queries;
 /// 字典只读查询服务的 EF Core 实现。
 /// </summary>
 /// <param name="dbContext">DedsiNative 数据库上下文。</param>
-public sealed class DictionaryQuery(IDedsiNativeDbContext dbContext) : IDictionaryQuery
+public sealed class DictionaryQuery(DedsiNativeDbContext dbContext) : IDictionaryQuery
 {
     /// <inheritdoc />
-    public async Task<DictionaryPagedQueryResult> GetPagedAsync(
-        DictionaryPagedQuery query,
+    public async Task<DictionaryPagedQueryOutput> GetPagedAsync(
+        DictionaryPagedQueryInput query,
         CancellationToken cancellationToken)
     {
         var systemId = query.SystemId?.Trim();
@@ -39,7 +39,7 @@ public sealed class DictionaryQuery(IDedsiNativeDbContext dbContext) : IDictiona
         }
 
         var items = await dictionaries
-            .Select(dictionary => new DictionaryQueryItem(
+            .Select(dictionary => new DictionaryQueryItemDto(
                 dictionary.Id,
                 dictionary.SystemId,
                 dictionary.SystemName,
@@ -47,6 +47,6 @@ public sealed class DictionaryQuery(IDedsiNativeDbContext dbContext) : IDictiona
                 dictionary.Items.Count))
             .ToArrayAsync(cancellationToken);
 
-        return new DictionaryPagedQueryResult(totalCount, items);
+        return new DictionaryPagedQueryOutput(totalCount, items);
     }
 }

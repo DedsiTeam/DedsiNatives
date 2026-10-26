@@ -13,14 +13,14 @@ export class StorageApiService {
    * 分页查询文件记录列表
    */
   static getStorageFilesPaged(params: StorageFilePagedRequestDto) {
-    return request.post<StorageFilePagedResultDto>('/api/storage/pagedQuery', params);
+    return request.post<StorageFilePagedResultDto>('/storage/pagedQuery', params);
   }
 
   /**
    * 获取文件详情
    */
   static getStorageFileDetail(id: string) {
-    return request.get<StorageFileResultDto>(`/api/storage/${id}`);
+    return request.get<StorageFileResultDto>(`/storage/${id}`);
   }
 
   /**
@@ -44,7 +44,7 @@ export class StorageApiService {
       formData.append('Description', description);
     }
 
-    return request.post<StorageFileResultDto>('/api/storage/upload', formData, {
+    return request.post<StorageFileResultDto>('/storage/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -55,14 +55,14 @@ export class StorageApiService {
    * 删除文件
    */
   static deleteStorageFile(id: string) {
-    return request.post<{ success: boolean }>(`/api/storage/delete/${id}`);
+    return request.post<{ success: boolean }>(`/storage/delete/${id}`);
   }
 
   /**
    * 使用当前登录令牌下载文件内容。
    */
   static downloadFile(id: string): Promise<Blob> {
-    return request.get<Blob>(`/api/storage/download/${encodeURIComponent(id)}`, {
+    return request.get<Blob>(`/storage/download/${encodeURIComponent(id)}`, {
       responseType: 'blob',
     });
   }
@@ -71,7 +71,7 @@ export class StorageApiService {
    * 使用当前登录令牌读取文件预览内容。
    */
   static previewFile(id: string): Promise<Blob> {
-    return request.get<Blob>(`/api/storage/preview/${encodeURIComponent(id)}`, {
+    return request.get<Blob>(`/storage/preview/${encodeURIComponent(id)}`, {
       responseType: 'blob',
     });
   }

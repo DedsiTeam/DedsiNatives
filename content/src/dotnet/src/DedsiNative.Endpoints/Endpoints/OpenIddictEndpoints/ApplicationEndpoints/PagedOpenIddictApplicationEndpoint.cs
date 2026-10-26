@@ -1,10 +1,7 @@
-using System.Collections.Immutable;
 using Dedsi.Ddd.Application.Contracts.Dtos;
-using DedsiNative.EntityFrameworkCore;
+using DedsiNative.EntityFrameworkCore.Queries;
+using DedsiNative.OpenIddict;
 using FastEndpoints;
-using Microsoft.EntityFrameworkCore;
-using OpenIddict.Abstractions;
-using OpenIddict.EntityFrameworkCore.Models;
 
 namespace DedsiNative.Endpoints.OpenIddictEndpoints.ApplicationEndpoints;
 
@@ -50,12 +47,13 @@ public class PagedOpenIddictApplicationResponse : DedsiPagedResultDto<PagedOpenI
 /// <summary>
 /// 分页查询 OpenIddict 客户端应用端点。
 /// </summary>
-public class PagedOpenIddictApplicationEndpoint(DedsiNativeDbContext dbContext)
+public class PagedOpenIddictApplicationEndpoint(OpenIddictApplicationQuery query)
     : Endpoint<PagedOpenIddictApplicationRequest, PagedOpenIddictApplicationResponse>
 {
+    /// <inheritdoc />
     public override void Configure()
     {
-        Post("/api/openiddict/applications/pagedQuery");
+        Post("openiddict/applications/pagedQuery");
         Policies(OpenIddict.OpenIddictPermissions.View);
         Description(x => x.WithTags("SSO 客户端管理"));
         Summary(s =>
@@ -65,48 +63,28 @@ public class PagedOpenIddictApplicationEndpoint(DedsiNativeDbContext dbContext)
         });
     }
 
+    /// <inheritdoc />
     public override async Task HandleAsync(PagedOpenIddictApplicationRequest req, CancellationToken ct)
     {
-        var query = dbContext.Set<OpenIddictEntityFrameworkCoreApplication>().AsNoTracking();
-
-        if (!string.IsNullOrWhiteSpace(req.ClientId))
-        {
-            query = query.Where(a => a.ClientId != null && a.ClientId.Contains(req.ClientId.Trim()));
-        }
-
-        if (!string.IsNullOrWhiteSpace(req.DisplayName))
-        {
-            query = query.Where(a => a.DisplayName != null && a.DisplayName.Contains(req.DisplayName.Trim()));
-        }
-
-        if (!string.IsNullOrWhiteSpace(req.ClientType))
-        {
-            query = query.Where(a => a.ClientType == req.ClientType.Trim());
-        }
-
-        var totalCount = await query.CountAsync(ct);
-
-        var items = await query
-            .OrderBy(a => a.ClientId)
-            .Skip(req.GetSkipCount())
-            .Take(req.PageSize)
-            .ToListAsync(ct);
-
-        var rows = items.Select(item => new PagedOpenIddictApplicationRowDto(
-            item.Id ?? string.Empty,
-            item.ClientId,
-            item.DisplayName,
-            item.ClientType,
-            item.ConsentType,
-            string.IsNullOrEmpty(item.RedirectUris) ? [] : System.Text.Json.JsonSerializer.Deserialize<string[]>(item.RedirectUris) ?? [],
-            string.IsNullOrEmpty(item.PostLogoutRedirectUris) ? [] : System.Text.Json.JsonSerializer.Deserialize<string[]>(item.PostLogoutRedirectUris) ?? [],
-            string.IsNullOrEmpty(item.Permissions) ? [] : System.Text.Json.JsonSerializer.Deserialize<string[]>(item.Permissions) ?? []
-        )).ToList();
+        var result = await query.GetPagedAsync(new OpenIddictApplicationPagedQueryInput(
+            req.ClientId,
+            req.DisplayName,
+            req.ClientType,
+            req.GetSkipCount(),
+            req.PageSize), ct);
 
         await Send.OkAsync(new PagedOpenIddictApplicationResponse
         {
-            TotalCount = totalCount,
-            Items = rows
+            TotalCount = result.TotalCount,
+            Items = result.Items.Select(item => new PagedOpenIddictApplicationRowDto(
+                item.Id,
+                item.ClientId,
+                item.DisplayName,
+                item.ClientType,
+                item.ConsentType,
+                item.RedirectUris,
+                item.PostLogoutRedirectUris,
+                item.Permissions)).ToList()
         }, ct);
     }
 }

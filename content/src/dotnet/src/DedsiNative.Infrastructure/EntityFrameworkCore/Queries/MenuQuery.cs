@@ -3,16 +3,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DedsiNative.EntityFrameworkCore.Queries;
 
-public sealed class MenuQuery(IDedsiNativeDbContext db) : IMenuQuery
+public sealed class MenuQuery(DedsiNativeDbContext db) : IMenuQuery
 {
-    public async Task<MenuPagedQueryResult> GetPagedAsync(MenuPagedQuery q, CancellationToken ct)
+    public async Task<MenuPagedQueryOutput> GetPagedAsync(MenuPagedQueryInput q, CancellationToken ct)
     {
+        var systemId = q.SystemId?.Trim();
+        var name = q.Name?.Trim();
+        var code = q.Code?.Trim();
+        var parentId = q.ParentId?.Trim();
+
         var x = db.Menus.AsNoTracking()
-            .WhereIf(!string.IsNullOrWhiteSpace(q.SystemId), i => i.SystemId == q.SystemId!.Trim())
-            .WhereIf(!string.IsNullOrWhiteSpace(q.Name), i => i.Name.Contains(q.Name!.Trim()))
-            .WhereIf(!string.IsNullOrWhiteSpace(q.Code), i => i.Code.Contains(q.Code!.Trim()))
+            .WhereIf(!string.IsNullOrEmpty(systemId), i => i.SystemId == systemId!)
+            .WhereIf(!string.IsNullOrEmpty(name), i => i.Name.Contains(name!))
+            .WhereIf(!string.IsNullOrEmpty(code), i => i.Code.Contains(code!))
             .WhereIf(q.Type.HasValue, i => i.Type == q.Type)
-            .WhereIf(!string.IsNullOrWhiteSpace(q.ParentId), i => i.ParentId == q.ParentId!.Trim())
+            .WhereIf(!string.IsNullOrEmpty(parentId), i => i.ParentId == parentId!)
             .WhereIf(q.IsVisible.HasValue, i => i.IsVisible == q.IsVisible)
             .WhereIf(q.IsDisabled.HasValue, i => i.IsDisabled == q.IsDisabled)
             .WhereIf(q.IsExternal.HasValue, i => i.IsExternal == q.IsExternal);
@@ -24,7 +29,7 @@ public sealed class MenuQuery(IDedsiNativeDbContext db) : IMenuQuery
             x = x.Skip(q.SkipCount).Take(q.MaxResultCount);
         }
 
-        var items = await x.Select(i => new MenuQueryItem(
+        var items = await x.Select(i => new MenuQueryItemDto(
             i.Id,
             i.SystemId,
             i.SystemName,
@@ -48,7 +53,7 @@ public sealed class MenuQuery(IDedsiNativeDbContext db) : IMenuQuery
             i.IsAffix,
             i.Description)).ToArrayAsync(ct);
 
-        return new MenuPagedQueryResult(total, items);
+        return new MenuPagedQueryOutput(total, items);
     }
 
     public async Task<bool> HasChildrenAsync(string id, CancellationToken cancellationToken)
@@ -62,11 +67,9 @@ public sealed class MenuQuery(IDedsiNativeDbContext db) : IMenuQuery
         CancellationToken cancellationToken,
         string? excludedMenuId = null)
     {
-        var menus = db.Menus.Where(menu => menu.SystemId == systemId && menu.Code == code);
-        if (!string.IsNullOrWhiteSpace(excludedMenuId))
-        {
-            menus = menus.Where(menu => menu.Id != excludedMenuId);
-        }
+        var menus = db.Menus
+            .Where(menu => menu.SystemId == systemId && menu.Code == code)
+            .WhereIf(!string.IsNullOrWhiteSpace(excludedMenuId), menu => menu.Id != excludedMenuId);
 
         return await menus.AnyAsync(cancellationToken);
     }

@@ -7,11 +7,11 @@ namespace DedsiNative.EntityFrameworkCore.Queries;
 /// 用户查询服务的 EF Core 实现。
 /// </summary>
 /// <param name="dbContext">DedsiNative 数据库上下文。</param>
-public sealed class UserQuery(IDedsiNativeDbContext dbContext) : IUserQuery
+public sealed class UserQuery(DedsiNativeDbContext dbContext) : IUserQuery
 {
     /// <inheritdoc />
-    public async Task<UserPagedQueryResult> GetPagedAsync(
-        UserPagedQuery query,
+    public async Task<UserPagedQueryOutput> GetPagedAsync(
+        UserPagedQueryInput query,
         CancellationToken cancellationToken)
     {
         var name = query.Name?.Trim();
@@ -41,7 +41,7 @@ public sealed class UserQuery(IDedsiNativeDbContext dbContext) : IUserQuery
         }
 
         var items = await users
-            .Select(user => new UserQueryItem(
+            .Select(user => new UserQueryItemDto(
                 user.Id,
                 user.Name,
                 user.Email,
@@ -49,7 +49,7 @@ public sealed class UserQuery(IDedsiNativeDbContext dbContext) : IUserQuery
                 user.LastUpdatedAt))
             .ToArrayAsync(cancellationToken);
 
-        return new UserPagedQueryResult(totalCount, items);
+        return new UserPagedQueryOutput(totalCount, items);
     }
 
     /// <inheritdoc />

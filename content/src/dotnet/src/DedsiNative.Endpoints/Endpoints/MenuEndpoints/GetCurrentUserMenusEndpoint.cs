@@ -48,7 +48,7 @@ public sealed class GetCurrentUserMenusEndpoint(
     /// </summary>
     public override void Configure()
     {
-        Get("/api/menu/currentUser");
+        Get("menu/currentUser");
         Description(x => x.WithTags("菜单管理"));
         Summary(s =>
         {
@@ -93,7 +93,7 @@ public sealed class GetCurrentUserMenusEndpoint(
         foreach (var systemId in allPositionPermissions.Select(p => p.SystemId).Distinct(StringComparer.Ordinal))
         {
             var pagedPermissions = await permissionQuery.GetPagedAsync(
-                new PermissionPagedQuery(systemId, null, true, 0, 1, true),
+                new PermissionPagedQueryInput(systemId, null, true, 0, 1, true),
                 ct);
             var enabledDict = pagedPermissions.Items.ToDictionary(p => p.Id, p => p.Name, StringComparer.Ordinal);
             foreach (var posPerm in allPositionPermissions.Where(p => p.SystemId == systemId))
@@ -116,7 +116,7 @@ public sealed class GetCurrentUserMenusEndpoint(
 
         // 3. 查询系统中所有启用且可见的菜单项（排除禁用和不可见项）
         var menuQueryResult = await menuQuery.GetPagedAsync(
-            new MenuPagedQuery(null, null, null, null, null, true, false, false, 0, 1, true),
+            new MenuPagedQueryInput(null, null, null, null, null, true, false, false, 0, 1, true),
             ct);
 
         // 4. 递归构建并过滤菜单树，严格遵循菜单排序规范（Sort 升序）
@@ -126,7 +126,7 @@ public sealed class GetCurrentUserMenusEndpoint(
     }
 
     private static CurrentUserMenuResponse[] BuildMenuTree(
-        MenuQueryItem[] allMenus,
+        MenuQueryItemDto[] allMenus,
         HashSet<string> userPermissions,
         string? parentId)
     {
@@ -168,7 +168,7 @@ public sealed class GetCurrentUserMenusEndpoint(
         return result.ToArray();
     }
 
-    private static CurrentUserMenuResponse CreateMenuResponse(MenuQueryItem menu, CurrentUserMenuResponse[] children)
+    private static CurrentUserMenuResponse CreateMenuResponse(MenuQueryItemDto menu, CurrentUserMenuResponse[] children)
     {
         return new CurrentUserMenuResponse(
             menu.Id,

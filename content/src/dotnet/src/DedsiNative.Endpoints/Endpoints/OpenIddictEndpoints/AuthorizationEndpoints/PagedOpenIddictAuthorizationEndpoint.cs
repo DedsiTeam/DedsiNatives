@@ -1,9 +1,7 @@
 using Dedsi.Ddd.Application.Contracts.Dtos;
-using DedsiNative.EntityFrameworkCore;
+using DedsiNative.EntityFrameworkCore.Queries;
+using DedsiNative.OpenIddict;
 using FastEndpoints;
-using Microsoft.EntityFrameworkCore;
-using OpenIddict.EntityFrameworkCore.Models;
-using DedsiNative.Time;
 
 namespace DedsiNative.Endpoints.OpenIddictEndpoints.AuthorizationEndpoints;
 
@@ -50,12 +48,13 @@ public class PagedOpenIddictAuthorizationResponse : DedsiPagedResultDto<PagedOpe
 /// <summary>
 /// 分页查询用户应用授权记录端点。
 /// </summary>
-public class PagedOpenIddictAuthorizationEndpoint(DedsiNativeDbContext dbContext)
+public class PagedOpenIddictAuthorizationEndpoint(OpenIddictAuthorizationQuery query)
     : Endpoint<PagedOpenIddictAuthorizationRequest, PagedOpenIddictAuthorizationResponse>
 {
+    /// <inheritdoc />
     public override void Configure()
     {
-        Post("/api/openiddict/authorizations/pagedQuery");
+        Post("openiddict/authorizations/pagedQuery");
         Policies(OpenIddict.OpenIddictPermissions.View);
         Description(x => x.WithTags("SSO 授权与令牌查看"));
         Summary(s =>
@@ -65,51 +64,29 @@ public class PagedOpenIddictAuthorizationEndpoint(DedsiNativeDbContext dbContext
         });
     }
 
+    /// <inheritdoc />
     public override async Task HandleAsync(PagedOpenIddictAuthorizationRequest req, CancellationToken ct)
     {
-        var query = dbContext.Set<OpenIddictEntityFrameworkCoreAuthorization>()
-            .Include(a => a.Application)
-            .AsNoTracking();
-
-        if (!string.IsNullOrWhiteSpace(req.Subject))
-        {
-            query = query.Where(a => a.Subject == req.Subject.Trim());
-        }
-
-        if (!string.IsNullOrWhiteSpace(req.ApplicationId))
-        {
-            query = query.Where(a => a.Application != null && a.Application.Id == req.ApplicationId.Trim());
-        }
-
-        if (!string.IsNullOrWhiteSpace(req.Status))
-        {
-            query = query.Where(a => a.Status == req.Status.Trim());
-        }
-
-        var totalCount = await query.CountAsync(ct);
-
-        var items = await query
-            .OrderByDescending(a => a.CreationDate)
-            .Skip(req.GetSkipCount())
-            .Take(req.PageSize)
-            .ToListAsync(ct);
-
-        var rows = items.Select(item => new PagedOpenIddictAuthorizationRowDto(
-            item.Id ?? string.Empty,
-            item.Application?.Id,
-            item.Application?.ClientId,
-            item.Application?.DisplayName,
-            item.Subject,
-            item.Status,
-            item.Type,
-            string.IsNullOrEmpty(item.Scopes) ? [] : System.Text.Json.JsonSerializer.Deserialize<string[]>(item.Scopes) ?? [],
-            BeijingTimeZoneGuard.FromProtocolUtc(item.CreationDate)
-        )).ToList();
+        var result = await query.GetPagedAsync(new OpenIddictAuthorizationPagedQueryInput(
+            req.Subject,
+            req.ApplicationId,
+            req.Status,
+            req.GetSkipCount(),
+            req.PageSize), ct);
 
         await Send.OkAsync(new PagedOpenIddictAuthorizationResponse
         {
-            TotalCount = totalCount,
-            Items = rows
+            TotalCount = result.TotalCount,
+            Items = result.Items.Select(item => new PagedOpenIddictAuthorizationRowDto(
+                item.Id,
+                item.ApplicationId,
+                item.ClientId,
+                item.ApplicationDisplayName,
+                item.Subject,
+                item.Status,
+                item.Type,
+                item.Scopes,
+                item.CreationDate)).ToList()
         }, ct);
     }
 }

@@ -24,7 +24,7 @@ public sealed class UpdatePermissionEndpoint(
     /// <summary>配置更新权限接口的路由和 HTTP 方法。</summary>
     public override void Configure()
     {
-        Post("/api/permission/update/{id}");
+        Post("permission/update/{id}");
         Policies(ManagementPermissions.Permissions.Update);
         Description(x => x.WithTags("权限管理"));
         Summary(s =>

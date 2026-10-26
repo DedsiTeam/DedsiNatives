@@ -24,7 +24,7 @@ public sealed class SetOrganizationStatusEndpoint(IOrganizationRepository organi
     /// <inheritdoc />
     public override void Configure()
     {
-        Post("/api/organization/setStatus/{id}");
+        Post("organization/setStatus/{id}");
         Policies(ManagementPermissions.Organizations.Update);
         Description(d => d.WithTags("组织机构管理"));
         Summary(s =>

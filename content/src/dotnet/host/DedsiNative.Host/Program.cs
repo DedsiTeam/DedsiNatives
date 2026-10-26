@@ -1,4 +1,5 @@
 using DedsiNative;
+using DedsiNative.ServiceDefaults;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;

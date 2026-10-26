@@ -15,7 +15,7 @@ public sealed class SetPermissionStatusEndpoint(IPermissionRepository permission
     /// <summary>配置权限状态接口的路由和 HTTP 方法。</summary>
     public override void Configure()
     {
-        Post("/api/permission/status/{id}");
+        Post("permission/status/{id}");
         Policies(ManagementPermissions.Permissions.Update);
         Description(x => x.WithTags("权限管理"));
         Summary(s =>

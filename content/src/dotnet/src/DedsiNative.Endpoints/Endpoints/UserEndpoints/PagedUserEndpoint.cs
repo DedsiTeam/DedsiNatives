@@ -46,7 +46,7 @@ public record PagedUserRowDto(
 public class PagedUserResponse : DedsiPagedResultDto<PagedUserRowDto>;
 
 /// <summary>
-/// 用户分页查询端点，处理 POST /api/user/pagedQuery 请求，支持按名称、邮箱及所属组织过滤，
+/// 用户分页查询端点，处理 POST /dedsinative-api/user/pagedQuery 请求，支持按名称、邮箱及所属组织过滤，
 /// 并根据是否为导出模式决定是否分页。
 /// </summary>
 /// <param name="userQuery">用户只读查询服务。</param>
@@ -58,7 +58,7 @@ public class PagedUserEndpoint(IUserQuery userQuery)
     /// </summary>
     public override void Configure()
     {
-        Post("/api/user/pagedQuery");
+        Post("user/pagedQuery");
         Policies(ManagementPermissions.Users.View);
         Description(x => x.WithTags("用户管理"));
         Summary(s =>
@@ -75,7 +75,7 @@ public class PagedUserEndpoint(IUserQuery userQuery)
     /// <param name="ct">取消令牌。</param>
     public override async Task HandleAsync(PagedUserRequest req, CancellationToken ct)
     {
-        var query = new UserPagedQuery(
+        var query = new UserPagedQueryInput(
             req.Name,
             req.Email,
             req.GetSkipCount(),

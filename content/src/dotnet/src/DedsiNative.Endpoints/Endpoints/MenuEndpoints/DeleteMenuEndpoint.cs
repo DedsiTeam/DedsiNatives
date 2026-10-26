@@ -9,7 +9,7 @@ public sealed class DeleteMenuEndpoint(
 {
     public override void Configure()
     {
-        Post("/api/menu/delete/{id}");
+        Post("menu/delete/{id}");
         Policies(ManagementPermissions.Menus.Delete);
     }
 

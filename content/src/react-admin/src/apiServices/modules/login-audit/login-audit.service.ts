@@ -13,7 +13,7 @@ export class LoginAuditApiService {
    */
   static getPageList(input: LoginAuditQueryInputDto): Promise<LoginAuditPageResultDto> {
     return request.post<LoginAuditPageResultDto, LoginAuditQueryInputDto>(
-      '/api/login-audit/pagedQuery',
+      '/login-audit/pagedQuery',
       input,
     );
   }
@@ -24,7 +24,7 @@ export class LoginAuditApiService {
    */
   static getById(id: string): Promise<LoginAuditResultDto> {
     return request.get<LoginAuditResultDto>(
-      `/api/login-audit/${encodeURIComponent(id)}`,
+      `/login-audit/${encodeURIComponent(id)}`,
     );
   }
 }

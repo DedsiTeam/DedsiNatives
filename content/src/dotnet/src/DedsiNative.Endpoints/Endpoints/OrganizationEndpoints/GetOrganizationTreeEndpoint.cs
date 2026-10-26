@@ -47,7 +47,7 @@ public sealed class GetOrganizationTreeEndpoint(IOrganizationQuery organizationQ
     /// <inheritdoc />
     public override void Configure()
     {
-        Get("/api/organization/tree/{systemId}");
+        Get("organization/tree/{systemId}");
         Policies(ManagementPermissions.Organizations.View);
         Description(d => d.WithTags("组织机构管理"));
         Summary(s =>
@@ -61,14 +61,14 @@ public sealed class GetOrganizationTreeEndpoint(IOrganizationQuery organizationQ
     public override async Task HandleAsync(CancellationToken ct)
     {
         var systemId = Route<string>("systemId");
-        var list = await organizationQuery.GetTreeListAsync(new OrganizationTreeQuery(systemId), ct);
+        var list = await organizationQuery.GetTreeListAsync(new OrganizationTreeQueryInput(systemId), ct);
 
         var tree = BuildTree(list, null);
         await Send.OkAsync(tree, ct);
     }
 
     private static OrganizationTreeNodeResponse[] BuildTree(
-        OrganizationQueryItem[] items,
+        OrganizationQueryItemDto[] items,
         string? parentId)
     {
         var result = new List<OrganizationTreeNodeResponse>();

@@ -26,7 +26,7 @@ public sealed record CreateUserRequest(
 );
 
 /// <summary>
-/// 创建用户端点，处理 POST /api/user/create 请求，生成新用户并持久化到数据库，返回新用户的 ID。
+/// 创建用户端点，处理 POST /dedsinative-api/user/create 请求，生成新用户并持久化到数据库，返回新用户的 ID。
 /// </summary>
 /// <param name="userRepository">用户仓储，用于保存新建的用户实体。</param>
 /// <param name="positionRepository">岗位仓储，用于校验关联岗位有效性。</param>
@@ -42,7 +42,7 @@ public sealed class CreateUserEndpoint(
     /// </summary>
     public override void Configure()
     {
-        Post("/api/user/create");
+        Post("user/create");
         Policies(ManagementPermissions.Users.Create);
         Description(x => x.WithTags("用户管理"));
         Summary(s =>

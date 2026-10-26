@@ -47,7 +47,7 @@ public record GetUserResponse(
     UserOrganizationResponse[] Organizations);
 
 /// <summary>
-/// 获取用户详情端点，处理 GET /api/user/{id} 请求，根据路由中的用户 ID 查询并返回用户信息。
+/// 获取用户详情端点，处理 GET /dedsinative-api/user/{id} 请求，根据路由中的用户 ID 查询并返回用户信息。
 /// </summary>
 /// <param name="userRepository">用户仓储，用于查询用户实体。</param>
 public class GetUserEndpoint(IUserRepository userRepository)
@@ -58,7 +58,7 @@ public class GetUserEndpoint(IUserRepository userRepository)
     /// </summary>
     public override void Configure()
     {
-        Get("/api/user/{id}");
+        Get("user/{id}");
         Policies(ManagementPermissions.Users.View);
         Description(x => x.WithTags("用户管理"));
         Summary(s =>

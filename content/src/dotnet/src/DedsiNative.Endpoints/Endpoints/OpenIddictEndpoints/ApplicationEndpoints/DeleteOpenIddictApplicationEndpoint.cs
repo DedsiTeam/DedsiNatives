@@ -11,7 +11,7 @@ public class DeleteOpenIddictApplicationEndpoint(IOpenIddictApplicationManager a
 {
     public override void Configure()
     {
-        Delete("/api/openiddict/applications/{id}");
+        Delete("openiddict/applications/{id}");
         Policies(OpenIddict.OpenIddictPermissions.Manage);
         Description(x => x.WithTags("SSO 客户端管理"));
         Summary(s =>

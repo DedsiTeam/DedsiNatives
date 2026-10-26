@@ -7,6 +7,9 @@ namespace DedsiNative.Dictionaries;
 /// </summary>
 public sealed class DictionaryItem
 {
+    /// <summary>
+    /// 供 ORM 实例化使用。
+    /// </summary>
     private DictionaryItem()
     {
     }
@@ -34,9 +37,16 @@ public sealed class DictionaryItem
         bool isDefault,
         string? parentId)
     {
-        Id = ValidateUlid(id, nameof(id));
-        DictionaryId = ValidateUlid(dictionaryId, nameof(dictionaryId));
-        Change(code, name, description, sort, isEnabled, isDefault, parentId);
+        Id = id;
+        DictionaryId = dictionaryId;
+        Change(
+            code,
+            name,
+            description,
+            sort,
+            isEnabled,
+            isDefault,
+            parentId);
     }
 
     /// <summary>
@@ -87,6 +97,13 @@ public sealed class DictionaryItem
     /// <summary>
     /// 修改字典项资料。
     /// </summary>
+    /// <param name="code">字典项编码，同一分组内唯一。</param>
+    /// <param name="name">字典项名称。</param>
+    /// <param name="description">补充说明，可为空。</param>
+    /// <param name="sort">显示排序值。</param>
+    /// <param name="isEnabled">是否启用。</param>
+    /// <param name="isDefault">是否设为默认项；停用项不会保留默认标记。</param>
+    /// <param name="parentId">父级标识；为空表示根节点。</param>
     internal void Change(
         string code,
         string name,
@@ -96,18 +113,24 @@ public sealed class DictionaryItem
         bool isDefault,
         string? parentId)
     {
-        Code = Check.NotNullOrWhiteSpace(code, nameof(code), DictionaryConsts.MaxCodeLength).Trim();
-        Name = Check.NotNullOrWhiteSpace(name, nameof(name), DictionaryConsts.MaxItemNameLength).Trim();
+        Code = Check.NotNullOrWhiteSpace(
+            code,
+            nameof(code),
+            DictionaryConsts.MaxCodeLength).Trim();
+        Name = Check.NotNullOrWhiteSpace(
+            name,
+            nameof(name),
+            DictionaryConsts.MaxItemNameLength).Trim();
         Description = string.IsNullOrWhiteSpace(description)
             ? null
             : Check.NotNullOrWhiteSpace(
-                description,
-                nameof(description),
-                DictionaryConsts.MaxDescriptionLength).Trim();
+            description,
+            nameof(description),
+            DictionaryConsts.MaxDescriptionLength).Trim();
         Sort = sort;
         IsEnabled = isEnabled;
         IsDefault = isEnabled && isDefault;
-        ParentId = parentId is null ? null : ValidateUlid(parentId, nameof(parentId));
+        ParentId = parentId is null ? null : parentId;
     }
 
     /// <summary>
@@ -119,15 +142,4 @@ public sealed class DictionaryItem
         IsDefault = IsEnabled && isDefault;
     }
 
-    private static string ValidateUlid(string value, string parameterName)
-    {
-        if (string.IsNullOrWhiteSpace(value)
-            || value.Length != DictionaryConsts.UlidLength
-            || !Ulid.TryParse(value, out _))
-        {
-            throw new ArgumentException("标识必须是合法的 26 位 ULID。", parameterName);
-        }
-
-        return value;
-    }
 }

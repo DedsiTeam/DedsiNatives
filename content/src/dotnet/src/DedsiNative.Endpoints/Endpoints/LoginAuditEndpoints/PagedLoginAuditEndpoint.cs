@@ -91,7 +91,7 @@ public sealed class PagedLoginAuditEndpoint(ILoginAuditQuery loginAuditQuery)
     /// </summary>
     public override void Configure()
     {
-        Post("/api/login-audit/pagedQuery");
+        Post("login-audit/pagedQuery");
         Policies(LoginAuditPermissions.View);
         Description(description => description.WithTags("登录审计"));
         Summary(summary =>
@@ -109,7 +109,7 @@ public sealed class PagedLoginAuditEndpoint(ILoginAuditQuery loginAuditQuery)
     public override async Task HandleAsync(PagedLoginAuditRequest req, CancellationToken ct)
     {
         var result = await loginAuditQuery.GetPagedAsync(
-            new LoginAuditPagedQuery(
+            new LoginAuditPagedQueryInput(
                 req.StartTime,
                 req.EndTime,
                 req.Result,

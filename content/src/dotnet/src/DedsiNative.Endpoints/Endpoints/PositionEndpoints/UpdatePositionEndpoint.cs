@@ -19,7 +19,7 @@ public sealed class UpdatePositionEndpoint(
     /// <summary>配置岗位更新接口。</summary>
     public override void Configure()
     {
-        Post("/api/position/update/{id}");
+        Post("position/update/{id}");
         Policies(ManagementPermissions.Positions.Update);
         Description(x => x.WithTags("岗位管理"));
         Summary(s =>

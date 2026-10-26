@@ -32,7 +32,7 @@ export interface LoginUserResultDto {
 }
 
 /**
- * 登录响应 Result DTO（对接 POST /api/auth/login）。
+ * 登录响应 Result DTO（对接 POST /auth/login）。
  */
 export interface LoginResultDto {
   /** 签发的 JWT Bearer Token 字符串 */

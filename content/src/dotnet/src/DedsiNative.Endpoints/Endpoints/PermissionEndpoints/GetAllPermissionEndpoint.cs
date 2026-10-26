@@ -8,14 +8,14 @@ namespace DedsiNative.Endpoints.PermissionEndpoints;
 /// </summary>
 /// <param name="permissionQuery">权限只读查询服务。</param>
 public sealed class GetAllPermissionEndpoint(IPermissionQuery permissionQuery)
-    : EndpointWithoutRequest<PermissionQueryItem[]>
+    : EndpointWithoutRequest<PermissionQueryItemDto[]>
 {
     /// <summary>
     /// 配置按系统获取权限选项接口。
     /// </summary>
     public override void Configure()
     {
-        Get("/api/permission/getAll/{systemId}");
+        Get("permission/getAll/{systemId}");
         Policies(ManagementPermissions.Permissions.View);
     }
 
@@ -27,7 +27,7 @@ public sealed class GetAllPermissionEndpoint(IPermissionQuery permissionQuery)
     {
         var systemId = Route<string>("systemId")!;
         var result = await permissionQuery.GetPagedAsync(
-            new PermissionPagedQuery(systemId, null, null, 0, 0, true),
+            new PermissionPagedQueryInput(systemId, null, null, 0, 0, true),
             ct);
         await Send.OkAsync(result.Items, ct);
     }

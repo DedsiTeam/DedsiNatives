@@ -25,7 +25,7 @@ public sealed class UpdatePositionAssignmentsEndpoint(
     /// <summary>配置岗位关联替换接口。</summary>
     public override void Configure()
     {
-        Post("/api/position/assignments/{id}");
+        Post("position/assignments/{id}");
         Policies(ManagementPermissions.Positions.Assign);
         Description(x => x.WithTags("岗位管理"));
         Summary(s =>

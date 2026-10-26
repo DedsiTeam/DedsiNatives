@@ -15,7 +15,7 @@ public sealed class GetDictionaryItemsEndpoint(IDictionaryRepository dictionaryR
     /// </summary>
     public override void Configure()
     {
-        Get("/api/dictionary/{dictionaryId}/items");
+        Get("dictionary/{dictionaryId}/items");
         Policies(ManagementPermissions.Dictionaries.View);
         Description(description => description.WithTags("字典管理"));
         Summary(summary => summary.Summary = "获取字典项列表");

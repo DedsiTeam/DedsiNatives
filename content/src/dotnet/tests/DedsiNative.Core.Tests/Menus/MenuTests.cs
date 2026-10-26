@@ -27,12 +27,12 @@ public sealed class MenuTests
     }
 
     /// <summary>
-    /// 构造函数应拒绝不合法的标识、排序、层级和菜单类型。
+    /// 标识不校验 ULID 格式，排序、层级和菜单类型仍需符合业务规则。
     /// </summary>
     [Fact]
-    public void Constructor_Should_Reject_Invalid_Identity_And_Numeric_Values()
+    public void Constructor_Should_Preserve_Id_And_Reject_Invalid_Numeric_Values()
     {
-        Assert.Throws<ArgumentException>(() => CreateMenu(id: "invalid"));
+        Assert.Equal("invalid", CreateMenu(id: "invalid").Id);
         Assert.Throws<ArgumentException>(() => CreateMenu(sort: -1));
         Assert.Throws<ArgumentException>(() => CreateMenu(level: 0));
         Assert.Throws<ArgumentException>(() => CreateMenu(type: (MenuType)99));

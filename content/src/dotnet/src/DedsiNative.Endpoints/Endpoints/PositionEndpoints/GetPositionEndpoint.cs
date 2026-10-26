@@ -41,7 +41,7 @@ public sealed class GetPositionEndpoint(IPositionRepository positionRepository)
     /// <summary>配置岗位详情接口。</summary>
     public override void Configure()
     {
-        Get("/api/position/{id}");
+        Get("position/{id}");
         Policies(ManagementPermissions.Positions.View);
         Description(x => x.WithTags("岗位管理"));
         Summary(s =>

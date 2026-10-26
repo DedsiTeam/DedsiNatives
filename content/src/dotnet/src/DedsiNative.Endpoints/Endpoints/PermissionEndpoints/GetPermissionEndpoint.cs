@@ -26,7 +26,7 @@ public sealed class GetPermissionEndpoint(IPermissionRepository permissionReposi
     /// <summary>配置权限详情接口的路由和 HTTP 方法。</summary>
     public override void Configure()
     {
-        Get("/api/permission/{id}");
+        Get("permission/{id}");
         Policies(ManagementPermissions.Permissions.View);
         Description(x => x.WithTags("权限管理"));
         Summary(s =>

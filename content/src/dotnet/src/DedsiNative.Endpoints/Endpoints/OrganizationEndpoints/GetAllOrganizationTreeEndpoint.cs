@@ -12,7 +12,7 @@ public sealed class GetAllOrganizationTreeEndpoint(IOrganizationQuery organizati
     /// <inheritdoc />
     public override void Configure()
     {
-        Get("/api/organization/all-tree", "/api/organization/tree");
+        Get("organization/all-tree", "/dedsinative-api/organization/tree");
         Policies(ManagementPermissions.Organizations.View);
         Description(d => d.WithTags("组织机构管理"));
         Summary(s =>
@@ -26,14 +26,14 @@ public sealed class GetAllOrganizationTreeEndpoint(IOrganizationQuery organizati
     public override async Task HandleAsync(CancellationToken ct)
     {
         // 传入 null 查询全局所有组织机构
-        var list = await organizationQuery.GetTreeListAsync(new OrganizationTreeQuery(null), ct);
+        var list = await organizationQuery.GetTreeListAsync(new OrganizationTreeQueryInput(null), ct);
 
         var tree = BuildTree(list, null);
         await Send.OkAsync(tree, ct);
     }
 
     private static OrganizationTreeNodeResponse[] BuildTree(
-        OrganizationQueryItem[] items,
+        OrganizationQueryItemDto[] items,
         string? parentId)
     {
         var result = new List<OrganizationTreeNodeResponse>();

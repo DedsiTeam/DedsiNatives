@@ -16,7 +16,7 @@ public sealed class DownloadStorageFileEndpoint(
     /// <inheritdoc />
     public override void Configure()
     {
-        Get("/api/storage/download/{id}");
+        Get("storage/download/{id}");
         Policies(ManagementPermissions.Storage.View);
         Description(d => d.WithTags("文件存储管理"));
         Summary(s =>

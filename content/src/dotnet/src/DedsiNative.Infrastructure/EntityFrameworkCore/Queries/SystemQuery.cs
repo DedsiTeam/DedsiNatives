@@ -5,11 +5,11 @@ namespace DedsiNative.EntityFrameworkCore.Queries;
 
 /// <summary>系统查询服务的 EF Core 实现。</summary>
 /// <param name="dbContext">DedsiNative 数据库上下文。</param>
-public sealed class SystemQuery(IDedsiNativeDbContext dbContext) : ISystemQuery
+public sealed class SystemQuery(DedsiNativeDbContext dbContext) : ISystemQuery
 {
     /// <inheritdoc />
-    public async Task<SystemPagedQueryResult> GetPagedAsync(
-        SystemPagedQuery query,
+    public async Task<SystemPagedQueryOutput> GetPagedAsync(
+        SystemPagedQueryInput query,
         CancellationToken cancellationToken)
     {
         var name = query.Name?.Trim();
@@ -28,13 +28,13 @@ public sealed class SystemQuery(IDedsiNativeDbContext dbContext) : ISystemQuery
         }
 
         var items = await systems
-            .Select(system => new SystemQueryItem(
+            .Select(system => new SystemQueryItemDto(
                 system.Id,
                 system.Name,
                 system.Description,
                 system.Sort))
             .ToArrayAsync(cancellationToken);
 
-        return new SystemPagedQueryResult(totalCount, items);
+        return new SystemPagedQueryOutput(totalCount, items);
     }
 }

@@ -23,7 +23,7 @@ public sealed class CreateMenuEndpoint(
     /// </summary>
     public override void Configure()
     {
-        Post("/api/menu/create");
+        Post("menu/create");
         Policies(ManagementPermissions.Menus.Create);
     }
 

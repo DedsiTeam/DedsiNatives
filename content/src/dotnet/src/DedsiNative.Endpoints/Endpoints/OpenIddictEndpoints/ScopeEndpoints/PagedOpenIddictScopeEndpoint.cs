@@ -1,8 +1,7 @@
 using Dedsi.Ddd.Application.Contracts.Dtos;
-using DedsiNative.EntityFrameworkCore;
+using DedsiNative.EntityFrameworkCore.Queries;
+using DedsiNative.OpenIddict;
 using FastEndpoints;
-using Microsoft.EntityFrameworkCore;
-using OpenIddict.EntityFrameworkCore.Models;
 
 namespace DedsiNative.Endpoints.OpenIddictEndpoints.ScopeEndpoints;
 
@@ -40,12 +39,13 @@ public class PagedOpenIddictScopeResponse : DedsiPagedResultDto<PagedOpenIddictS
 /// <summary>
 /// 分页查询 OpenIddict 作用域端点。
 /// </summary>
-public class PagedOpenIddictScopeEndpoint(DedsiNativeDbContext dbContext)
+public class PagedOpenIddictScopeEndpoint(OpenIddictScopeQuery query)
     : Endpoint<PagedOpenIddictScopeRequest, PagedOpenIddictScopeResponse>
 {
+    /// <inheritdoc />
     public override void Configure()
     {
-        Post("/api/openiddict/scopes/pagedQuery");
+        Post("openiddict/scopes/pagedQuery");
         Policies(OpenIddict.OpenIddictPermissions.View);
         Description(x => x.WithTags("SSO 作用域管理"));
         Summary(s =>
@@ -55,40 +55,24 @@ public class PagedOpenIddictScopeEndpoint(DedsiNativeDbContext dbContext)
         });
     }
 
+    /// <inheritdoc />
     public override async Task HandleAsync(PagedOpenIddictScopeRequest req, CancellationToken ct)
     {
-        var query = dbContext.Set<OpenIddictEntityFrameworkCoreScope>().AsNoTracking();
-
-        if (!string.IsNullOrWhiteSpace(req.Name))
-        {
-            query = query.Where(s => s.Name != null && s.Name.Contains(req.Name.Trim()));
-        }
-
-        if (!string.IsNullOrWhiteSpace(req.DisplayName))
-        {
-            query = query.Where(s => s.DisplayName != null && s.DisplayName.Contains(req.DisplayName.Trim()));
-        }
-
-        var totalCount = await query.CountAsync(ct);
-
-        var items = await query
-            .OrderBy(s => s.Name)
-            .Skip(req.GetSkipCount())
-            .Take(req.PageSize)
-            .ToListAsync(ct);
-
-        var rows = items.Select(item => new PagedOpenIddictScopeRowDto(
-            item.Id ?? string.Empty,
-            item.Name,
-            item.DisplayName,
-            item.Description,
-            string.IsNullOrEmpty(item.Resources) ? [] : System.Text.Json.JsonSerializer.Deserialize<string[]>(item.Resources) ?? []
-        )).ToList();
+        var result = await query.GetPagedAsync(new OpenIddictScopePagedQueryInput(
+            req.Name,
+            req.DisplayName,
+            req.GetSkipCount(),
+            req.PageSize), ct);
 
         await Send.OkAsync(new PagedOpenIddictScopeResponse
         {
-            TotalCount = totalCount,
-            Items = rows
+            TotalCount = result.TotalCount,
+            Items = result.Items.Select(item => new PagedOpenIddictScopeRowDto(
+                item.Id,
+                item.Name,
+                item.DisplayName,
+                item.Description,
+                item.Resources)).ToList()
         }, ct);
     }
 }

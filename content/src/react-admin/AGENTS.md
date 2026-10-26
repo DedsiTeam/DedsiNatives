@@ -36,6 +36,7 @@
 
 ## 类型、时间与验证
 
+- 业务 API 前缀只在 `src/configs/api.ts` 的 `ApiRoutePrefix` 中定义，由 `DefaultApiServiceUrl` 与服务地址统一拼接，Vite 开发代理复用同一常量。`VITE_API_SERVICE_URL` 仅配置服务地址，不包含业务 API 前缀；各 API Service 仅传 `/user/create` 等业务路径，不重复拼接前缀。
 - 新增业务代码使用 TypeScript；不用 `any` 逃逸类型。DTO 与 API Service 位于 `src/apiServices/`，按真实 Endpoint 定义请求和响应。
 - 业务时间直接使用后端的北京时间墙钟文本 `yyyy-MM-dd HH:mm:ss.FFFFFFF`；筛选条件按同一格式提交。不得用 `new Date()`、`toLocaleString()` 或浏览器本地时区转换业务时间，也不兼容 ISO/offset 输入。
 - 正式前端变更运行 `bun run build`；适用时运行聚焦 lint；静态原型只运行 `bun run build:prototype`。
